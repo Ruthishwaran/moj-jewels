@@ -1,0 +1,22 @@
+{
+  "short_name": "MOJ Jewels",
+  "name": "MOJ Jewels - Royal Luxury Jewelry Store",
+  "description": "Shop luxury gold, diamond, emerald & solitaire jewelry with exclusive coupon offers, order tracking & manual UPI QR payments.",
+  "icons": [
+    {
+      "src": "/images/logo_icon.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/images/logo_icon.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0b0f19",
+  "theme_color": "#c5a059",
+  "display": "standalone",
+  "orientation": "portrait"
+}
