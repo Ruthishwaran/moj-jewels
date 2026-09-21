@@ -133,14 +133,7 @@ export default function Footer() {
           <div className="mt-4 md:mt-0 flex justify-center items-center space-x-6">
             <span>Privacy Policy</span>
             <span>Terms of Service</span>
-            {/* Discreet link for Store Admin */}
-            <button
-              onClick={() => setCurrentPage('admin')}
-              className="text-slate-600 hover:text-gold-400 flex items-center gap-1 text-[11px]"
-              title="Store Staff Login"
-            >
-              <Lock className="w-3 h-3" /> Store Staff Portal
-            </button>
+            <span>Customer Support</span>
           </div>
         </div>
       </div>

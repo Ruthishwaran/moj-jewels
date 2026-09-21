@@ -3,10 +3,13 @@ import { useStore } from '../context/StoreContext';
 import { User, Package, Heart, Tag, Truck, ShieldCheck, ShoppingBag, Clock } from 'lucide-react';
 
 export default function CustomerDashboard() {
-  const { user, orders, wishlist, coupons, setCurrentPage, setIsAuthModalOpen } = useStore();
+  const { user, orders, wishlist, coupons, setCurrentPage, setIsAuthModalOpen, logoutCustomer } = useStore();
 
   const currentUser = user || { name: 'Valued Customer', email: 'guest@mojjewels.com', role: 'customer' };
-  const myOrders = Array.isArray(orders) ? orders : [];
+  const safeOrders = Array.isArray(orders) ? orders : [];
+  const myOrders = user?.email
+    ? safeOrders.filter(o => o.customerEmail?.toLowerCase() === user.email.toLowerCase() || o.email?.toLowerCase() === user.email.toLowerCase())
+    : safeOrders;
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-5xl space-y-8">
@@ -30,12 +33,19 @@ export default function CustomerDashboard() {
         </div>
 
         <div className="flex items-center space-x-4 text-center text-xs">
-          {!user && (
+          {!user ? (
             <button
               onClick={() => setIsAuthModalOpen(true)}
               className="bg-gold-500 hover:bg-gold-400 text-black px-4 py-2 rounded-xl font-bold shadow-md"
             >
               Sign In to Save Orders
+            </button>
+          ) : (
+            <button
+              onClick={() => { logoutCustomer(); setCurrentPage('home'); }}
+              className="bg-slate-900 hover:bg-rose-950 border border-slate-700 hover:border-rose-500 text-slate-300 hover:text-rose-300 px-3.5 py-2 rounded-xl font-semibold transition-colors"
+            >
+              Logout Account
             </button>
           )}
           <div className="bg-slate-900/80 px-4 py-2.5 rounded-xl border border-slate-800">

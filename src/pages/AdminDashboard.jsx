@@ -47,7 +47,11 @@ export default function AdminDashboard() {
   const [newProdKarat, setNewProdKarat] = useState('18k Gold & VVS Diamond');
   const [newProdStock, setNewProdStock] = useState('10');
   const [newProdImage, setNewProdImage] = useState('/images/hero_banner.jpg');
+  const [newProdImages, setNewProdImages] = useState([]); // Base64 images array from local storage file picker
   const [newProdDesc, setNewProdDesc] = useState('');
+
+  // Order Tab Filter State
+  const [orderFilterTab, setOrderFilterTab] = useState('All'); // 'All', 'Pending Verification', 'Verified', 'Shipped', 'Delivered', 'Rejected'
 
   // Coupon Modal State
   const [isAddCouponOpen, setIsAddCouponOpen] = useState(false);
@@ -78,12 +82,39 @@ export default function AdminDashboard() {
   const safeCoupons = Array.isArray(coupons) ? coupons : [];
 
   const pendingVerifications = safeOrders.filter(o => o?.paymentStatus === 'Pending Verification');
-  const totalRevenue = safeOrders
-    .filter(o => o?.paymentStatus === 'Verified')
-    .reduce((acc, o) => acc + (o?.total || 0), 0);
+  const verifiedOrders = safeOrders.filter(o => o?.paymentStatus === 'Verified' || o?.orderStatus === 'Shipped' || o?.orderStatus === 'Delivered');
+  const shippedOrders = safeOrders.filter(o => o?.orderStatus === 'Shipped');
+  const deliveredOrders = safeOrders.filter(o => o?.orderStatus === 'Delivered');
+  const rejectedOrders = safeOrders.filter(o => o?.paymentStatus === 'Rejected');
+
+  // Profit & Loss Financial Calculations
+  const totalRevenue = verifiedOrders.reduce((acc, o) => acc + (o?.total || 0), 0);
+  const estimatedCOGS = Math.round(totalRevenue * 0.62); // 62% estimated Cost of Goods
+  const grossProfit = totalRevenue - estimatedCOGS;
+  const marginPercent = totalRevenue > 0 ? ((grossProfit / totalRevenue) * 100).toFixed(1) : 0;
+  const avgOrderValue = verifiedOrders.length > 0 ? Math.round(totalRevenue / verifiedOrders.length) : 0;
+
+  // Handle Local File Selection (Laptop / Mobile Local Storage)
+  const handleImageFileUpload = (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNewProdImages(prev => [...prev, reader.result]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeUploadedImage = (index) => {
+    setNewProdImages(prev => prev.filter((_, i) => i !== index));
+  };
 
   const handleCreateProduct = (e) => {
     e.preventDefault();
+    const finalImages = newProdImages.length > 0 ? newProdImages : [newProdImage || '/images/hero_banner.jpg'];
     addProduct({
       title: newProdTitle,
       category: newProdCategory,
@@ -91,12 +122,14 @@ export default function AdminDashboard() {
       originalPrice: parseFloat(newProdOrigPrice) || parseFloat(newProdPrice) || 60000,
       karat: newProdKarat,
       stock: parseInt(newProdStock) || 5,
-      image: newProdImage || '/images/hero_banner.jpg',
+      image: finalImages[0],
+      images: finalImages,
       description: newProdDesc || 'Crafted luxury jewelry piece.'
     });
     setIsAddProductOpen(false);
     setNewProdTitle('');
     setNewProdDesc('');
+    setNewProdImages([]);
   };
 
   const handleCreateCoupon = (e) => {
@@ -160,18 +193,59 @@ export default function AdminDashboard() {
         </div>
 
         {/* Quick Analytics Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
           <div className="bg-slate-900/90 p-3.5 rounded-xl border border-amber-500/30">
             <span className="text-slate-400 text-[10px] block">Pending Payments</span>
             <strong className="text-amber-400 text-lg font-bold">{pendingVerifications.length} Orders</strong>
           </div>
-          <div className="bg-slate-900/90 p-3.5 rounded-xl border border-slate-800">
-            <span className="text-slate-400 text-[10px] block">Total Verified Sales</span>
+          <div className="bg-slate-900/90 p-3.5 rounded-xl border border-emerald-500/30">
+            <span className="text-slate-400 text-[10px] block">Gross Revenue</span>
             <strong className="text-emerald-400 text-lg font-bold">₹{totalRevenue.toLocaleString()}</strong>
           </div>
-          <div className="bg-slate-900/90 p-3.5 rounded-xl border border-slate-800 col-span-2 sm:col-span-1">
-            <span className="text-slate-400 text-[10px] block">Active Products</span>
-            <strong className="text-white text-lg font-bold">{products.length} Items</strong>
+          <div className="bg-slate-900/90 p-3.5 rounded-xl border border-gold-500/30">
+            <span className="text-slate-400 text-[10px] block">Estimated Gross Profit</span>
+            <strong className="text-gold-300 text-lg font-bold">₹{grossProfit.toLocaleString()}</strong>
+            <span className="text-[10px] text-emerald-400 block font-semibold">Margin: {marginPercent}%</span>
+          </div>
+          <div className="bg-slate-900/90 p-3.5 rounded-xl border border-slate-800">
+            <span className="text-slate-400 text-[10px] block">Avg Order Value (AOV)</span>
+            <strong className="text-white text-lg font-bold">₹{avgOrderValue.toLocaleString()}</strong>
+          </div>
+        </div>
+      </div>
+
+      {/* Financial Profit & Loss Dashboard Banner */}
+      <div className="glass-card p-5 rounded-2xl border border-gold-500/30 bg-gradient-to-r from-amber-950/40 via-slate-900 to-amber-950/40 shadow-xl space-y-3">
+        <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+          <div className="flex items-center space-x-2">
+            <TrendingUp className="w-5 h-5 text-gold-400" />
+            <h3 className="text-white font-serif font-bold text-sm">Financial Profit & Loss Analysis</h3>
+          </div>
+          <span className="text-[10px] bg-gold-500/20 text-gold-300 border border-gold-500/40 px-2 py-0.5 rounded-full font-bold uppercase">
+            Real-Time Analytics
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-xs text-center">
+          <div className="bg-slate-950/80 p-3 rounded-xl border border-slate-800">
+            <span className="text-slate-400 text-[10px] uppercase block">Total Verified Sales</span>
+            <strong className="text-emerald-400 font-bold text-sm">₹{totalRevenue.toLocaleString()}</strong>
+          </div>
+          <div className="bg-slate-950/80 p-3 rounded-xl border border-slate-800">
+            <span className="text-slate-400 text-[10px] uppercase block">Est. Cost of Goods (COGS)</span>
+            <strong className="text-rose-400 font-bold text-sm">₹{estimatedCOGS.toLocaleString()}</strong>
+          </div>
+          <div className="bg-slate-950/80 p-3 rounded-xl border border-slate-800">
+            <span className="text-slate-400 text-[10px] uppercase block">Net Gross Profit</span>
+            <strong className="text-gold-300 font-bold text-sm">₹{grossProfit.toLocaleString()}</strong>
+          </div>
+          <div className="bg-slate-950/80 p-3 rounded-xl border border-slate-800">
+            <span className="text-slate-400 text-[10px] uppercase block">Profit Margin %</span>
+            <strong className="text-emerald-400 font-bold text-sm">{marginPercent}%</strong>
+          </div>
+          <div className="bg-slate-950/80 p-3 rounded-xl border border-slate-800 col-span-2 md:col-span-1">
+            <span className="text-slate-400 text-[10px] uppercase block">Orders Fulfilled</span>
+            <strong className="text-white font-bold text-sm">{verifiedOrders.length} Orders</strong>
           </div>
         </div>
       </div>
@@ -337,12 +411,48 @@ export default function AdminDashboard() {
       {/* TAB 2: Order Management */}
       {activeTab === 'orders' && (
         <div className="space-y-6 animate-fade-in">
-          <h2 className="text-xl font-serif font-bold text-white flex items-center gap-2">
-            <Package className="w-5 h-5 text-gold-400" /> All Customer Orders
-          </h2>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+            <h2 className="text-xl font-serif font-bold text-white flex items-center gap-2">
+              <Package className="w-5 h-5 text-gold-400" /> Order Management & Tracking
+            </h2>
+
+            {/* Categorized Order Status Tabs */}
+            <div className="flex flex-wrap gap-1.5 bg-slate-950 p-1.5 rounded-xl border border-slate-800 text-xs">
+              {[
+                { key: 'All', label: `All (${safeOrders.length})` },
+                { key: 'Pending Verification', label: `Pending (${pendingVerifications.length})` },
+                { key: 'Verified', label: `Verified (${verifiedOrders.length})` },
+                { key: 'Shipped', label: `Shipped (${shippedOrders.length})` },
+                { key: 'Delivered', label: `Delivered (${deliveredOrders.length})` },
+                { key: 'Rejected', label: `Rejected (${rejectedOrders.length})` }
+              ].map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => setOrderFilterTab(tab.key)}
+                  className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
+                    orderFilterTab === tab.key
+                      ? 'bg-amber-500 text-black shadow-md'
+                      : 'text-slate-400 hover:text-white hover:bg-slate-900'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
 
           <div className="space-y-4">
-            {orders.map((ord) => (
+            {safeOrders
+              .filter(ord => {
+                if (orderFilterTab === 'All') return true;
+                if (orderFilterTab === 'Pending Verification') return ord.paymentStatus === 'Pending Verification';
+                if (orderFilterTab === 'Verified') return ord.paymentStatus === 'Verified';
+                if (orderFilterTab === 'Shipped') return ord.orderStatus === 'Shipped';
+                if (orderFilterTab === 'Delivered') return ord.orderStatus === 'Delivered';
+                if (orderFilterTab === 'Rejected') return ord.paymentStatus === 'Rejected';
+                return true;
+              })
+              .map((ord) => (
               <div key={ord.id} className="glass-card p-6 rounded-2xl border border-slate-800 space-y-4">
                 <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-800 pb-3 gap-2 text-xs">
                   <div>
@@ -573,14 +683,44 @@ export default function AdminDashboard() {
                     </div>
                   </div>
 
-                  <div>
-                    <label className="text-slate-300 block mb-1">Image URL</label>
+                  <div className="space-y-2">
+                    <label className="text-slate-300 font-semibold block text-xs">
+                      Product Photos (Select from Phone/Laptop Storage)
+                    </label>
                     <input
-                      type="text"
-                      value={newProdImage}
-                      onChange={(e) => setNewProdImage(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white text-[11px]"
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleImageFileUpload}
+                      className="w-full text-xs text-slate-300 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-gold-500 file:text-black hover:file:bg-gold-400 cursor-pointer bg-slate-900 border border-slate-700 rounded-xl p-1"
                     />
+
+                    {newProdImages.length > 0 && (
+                      <div className="flex items-center gap-2 overflow-x-auto pt-2 pb-1">
+                        {newProdImages.map((img, idx) => (
+                          <div key={idx} className="relative w-14 h-14 rounded-lg overflow-hidden border border-gold-500/40 shrink-0 group">
+                            <img src={img} alt="" className="w-full h-full object-cover" />
+                            <button
+                              type="button"
+                              onClick={() => removeUploadedImage(idx)}
+                              className="absolute top-0.5 right-0.5 bg-rose-600 text-white rounded-full p-0.5 text-[9px]"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="pt-1">
+                      <span className="text-[10px] text-slate-400 block mb-1">Or Default Fallback Image URL:</span>
+                      <input
+                        type="text"
+                        value={newProdImage}
+                        onChange={(e) => setNewProdImage(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-white text-[11px]"
+                      />
+                    </div>
                   </div>
 
                   <div>

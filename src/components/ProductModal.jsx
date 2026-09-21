@@ -12,6 +12,7 @@ export default function ProductModal() {
   } = useStore();
 
   const [quantity, setQuantity] = useState(1);
+  const [activeImgIndex, setActiveImgIndex] = useState(0);
 
   if (!selectedProduct) return null;
 
@@ -25,7 +26,12 @@ export default function ProductModal() {
   const karat = selectedProduct.karat || 'Premium Hallmarked';
   const weight = selectedProduct.weight || 'Standard Weight';
   const description = selectedProduct.description || 'Crafted luxury jewelry artifact.';
-  const image = selectedProduct.image || '/images/moj_logo.jpg';
+  
+  // Image list (supports array of images or fallback)
+  const imageList = Array.isArray(selectedProduct.images) && selectedProduct.images.length > 0
+    ? selectedProduct.images
+    : [selectedProduct.image || '/images/moj_logo.jpg'];
+  const activeImage = imageList[activeImgIndex] || imageList[0];
 
   const isWishlisted = isInWishlist(id);
 
@@ -36,7 +42,7 @@ export default function ProductModal() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-      <div className="relative w-full max-w-3xl glass-modal border border-gold-500/30 rounded-2xl overflow-hidden shadow-2xl">
+      <div className="relative w-full max-w-3xl glass-modal border border-gold-500/30 rounded-2xl overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto">
         <button
           onClick={() => setSelectedProduct(null)}
           className="absolute top-4 right-4 z-10 p-2 text-slate-400 hover:text-white bg-slate-900/60 rounded-full backdrop-blur"
@@ -45,16 +51,36 @@ export default function ProductModal() {
         </button>
 
         <div className="grid grid-cols-1 md:grid-cols-2">
-          <div className="relative aspect-square md:h-full bg-slate-950">
-            <img
-              src={image}
-              alt={title}
-              className="w-full h-full object-cover"
-              onError={(e) => { e.target.src = '/images/moj_logo.jpg'; }}
-            />
-            <span className="absolute bottom-4 left-4 bg-black/60 backdrop-blur text-gold-300 text-xs px-3 py-1 rounded-full border border-gold-500/30">
-              {karat}
-            </span>
+          {/* Multi-Image Gallery Container */}
+          <div className="flex flex-col bg-slate-950 p-4 space-y-3">
+            <div className="relative aspect-square w-full rounded-xl overflow-hidden border border-slate-800 bg-slate-900">
+              <img
+                src={activeImage}
+                alt={title}
+                className="w-full h-full object-cover transition-all duration-300"
+                onError={(e) => { e.target.src = '/images/moj_logo.jpg'; }}
+              />
+              <span className="absolute bottom-3 left-3 bg-black/70 backdrop-blur text-gold-300 text-[10px] font-bold px-2.5 py-1 rounded-full border border-gold-500/30">
+                {karat}
+              </span>
+            </div>
+
+            {/* Thumbnails Row if multiple images exist */}
+            {imageList.length > 1 && (
+              <div className="flex items-center space-x-2 overflow-x-auto pb-1">
+                {imageList.map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setActiveImgIndex(idx)}
+                    className={`w-14 h-14 rounded-lg overflow-hidden border-2 shrink-0 transition-all ${
+                      idx === activeImgIndex ? 'border-gold-400 scale-105 shadow-lg' : 'border-slate-800 opacity-60 hover:opacity-100'
+                    }`}
+                  >
+                    <img src={img} alt="" className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="p-6 md:p-8 flex flex-col justify-between space-y-6">

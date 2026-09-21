@@ -56,24 +56,36 @@ export default function Navbar() {
       </div>
 
       {/* Main Header */}
-      <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-        {/* Brand Logo Image */}
-        <div 
-          onClick={() => setCurrentPage('home')}
-          className="flex items-center space-x-3 cursor-pointer group"
-        >
-          <div className="w-12 h-12 rounded-full overflow-hidden gold-border-glow shadow-md group-hover:scale-105 transition-transform bg-white p-0.5">
-            <img
-              src="/images/moj_logo.jpg"
-              alt="MOJ Jewels Logo"
-              className="w-full h-full object-cover rounded-full"
-            />
-          </div>
-          <div>
-            <h1 className="text-2xl font-serif font-bold tracking-widest text-white flex items-center gap-1.5">
-              MOJ <span className="text-gold-400 font-sans text-xl font-light">JEWELS</span>
-            </h1>
-            <p className="text-[9px] tracking-widest text-gold-300/90 uppercase font-medium">Wholesale & Retail • Timeless Beauty</p>
+      <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-2">
+        {/* Left Side: Mobile Menu Button & Brand Logo */}
+        <div className="flex items-center space-x-2 sm:space-x-3">
+          {/* Mobile Hamburger Toggle on LEFT */}
+          <button
+            onClick={() => setMobileMenuOpen(true)}
+            className="md:hidden p-2 text-slate-300 hover:text-white rounded-lg bg-slate-900 border border-slate-800"
+            aria-label="Open Left Menu"
+          >
+            <Menu className="w-5 h-5 text-gold-400" />
+          </button>
+
+          {/* Brand Logo Image & Name */}
+          <div 
+            onClick={() => setCurrentPage('home')}
+            className="flex items-center space-x-2 sm:space-x-3 cursor-pointer group"
+          >
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden gold-border-glow shadow-md group-hover:scale-105 transition-transform bg-white p-0.5 shrink-0">
+              <img
+                src="/images/moj_logo.jpg"
+                alt="MOJ Jewels Logo"
+                className="w-full h-full object-cover rounded-full"
+              />
+            </div>
+            <div>
+              <h1 className="text-lg sm:text-2xl font-serif font-bold tracking-widest text-white flex items-center gap-1">
+                MOJ <span className="text-gold-400 font-sans text-base sm:text-xl font-light">JEWELS</span>
+              </h1>
+              <p className="text-[8px] sm:text-[9px] tracking-widest text-gold-300/90 uppercase font-medium">Wholesale & Retail</p>
+            </div>
           </div>
         </div>
 
@@ -111,12 +123,12 @@ export default function Navbar() {
           </a>
         </nav>
 
-        {/* Customer Action Controls */}
-        <div className="flex items-center space-x-3 md:space-x-5">
+        {/* Customer Action Controls (Right side) */}
+        <div className="flex items-center space-x-2 sm:space-x-4">
           {/* PWA App Install Button */}
           <button
             onClick={installPwaApp}
-            className="flex items-center space-x-1.5 bg-gradient-to-r from-gold-500/20 to-gold-400/10 hover:from-gold-500/30 text-gold-300 border border-gold-500/40 px-3 py-1.5 rounded-full text-xs font-semibold shadow-inner transition-all"
+            className="flex items-center space-x-1 bg-gradient-to-r from-gold-500/20 to-gold-400/10 hover:from-gold-500/30 text-gold-300 border border-gold-500/40 px-2.5 py-1.5 rounded-full text-xs font-semibold shadow-inner transition-all"
             title="Install App Free"
           >
             <Download className="w-3.5 h-3.5 text-gold-400 animate-bounce" />
@@ -131,22 +143,22 @@ export default function Navbar() {
             aria-label="Wishlist"
           >
             <Heart className="w-5 h-5" />
-            {wishlist.length > 0 && (
+            {wishlistCount > 0 && (
               <span className="absolute top-0 right-0 w-4 h-4 bg-rose-500 text-white rounded-full text-[10px] font-bold flex items-center justify-center">
-                {wishlist.length}
+                {wishlistCount}
               </span>
             )}
           </button>
 
-          {/* Cart Icon */}
+          {/* Cart Drawer Icon */}
           <button
             onClick={() => setIsCartOpen(true)}
             className="relative p-2 text-slate-300 hover:text-gold-400 transition-colors"
-            aria-label="Shopping Cart"
+            aria-label="Cart"
           >
             <ShoppingBag className="w-5 h-5" />
             {totalCartCount > 0 && (
-              <span className="absolute top-0 right-0 w-4.5 h-4.5 bg-gold-500 text-black rounded-full text-[10px] font-bold flex items-center justify-center shadow-md">
+              <span className="absolute top-0 right-0 w-4 h-4 bg-gold-500 text-black rounded-full text-[10px] font-bold flex items-center justify-center">
                 {totalCartCount}
               </span>
             )}
@@ -156,7 +168,7 @@ export default function Navbar() {
           {user ? (
             <button
               onClick={() => setCurrentPage('customer-dashboard')}
-              className="flex items-center space-x-2 bg-slate-900 border border-slate-700/80 px-3 py-1.5 rounded-full text-xs hover:border-gold-400"
+              className="flex items-center space-x-2 bg-slate-900 border border-slate-700/80 px-2.5 py-1.5 rounded-full text-xs hover:border-gold-400"
             >
               <div className="w-5 h-5 rounded-full bg-gold-500 text-black font-bold flex items-center justify-center text-[10px]">
                 {user?.name?.charAt(0)?.toUpperCase() || 'U'}
@@ -166,52 +178,112 @@ export default function Navbar() {
           ) : (
             <button
               onClick={() => setIsAuthModalOpen(true)}
-              className="bg-gold-500/10 hover:bg-gold-500 hover:text-black text-gold-300 border border-gold-500/40 px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-colors"
+              className="bg-gold-500/10 hover:bg-gold-500 hover:text-black text-gold-300 border border-gold-500/40 px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-colors"
             >
               <User className="w-4 h-4" />
-              <span>Customer Login</span>
+              <span className="hidden xs:inline">Login</span>
             </button>
           )}
-
-          {/* Mobile Hamburger Toggle */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 text-slate-300 hover:text-white"
-          >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
         </div>
       </div>
 
-      {/* Mobile Drawer */}
+      {/* Slide-Out Left Drawer Menu (Mobile) */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-[#0b0f19] border-b border-gold-500/20 px-4 py-4 space-y-3 animate-fade-in text-xs">
-          <button
-            onClick={() => { setCurrentPage('home'); setMobileMenuOpen(false); }}
-            className="block w-full text-left py-2 text-slate-200 hover:text-gold-400 font-medium"
-          >
-            Home
-          </button>
-          <button
-            onClick={() => { setCurrentPage('shop'); setMobileMenuOpen(false); }}
-            className="block w-full text-left py-2 text-slate-200 hover:text-gold-400 font-medium"
-          >
-            Collections & Items
-          </button>
-          <button
-            onClick={() => { setCurrentPage('track'); setMobileMenuOpen(false); }}
-            className="block w-full text-left py-2 text-slate-200 hover:text-gold-400 font-medium"
-          >
-            Track Order Status
-          </button>
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="block py-2 text-emerald-400 font-semibold"
-          >
-            WhatsApp DM Order
-          </a>
+        <div className="fixed inset-0 z-50 flex">
+          {/* Backdrop */}
+          <div
+            onClick={() => setMobileMenuOpen(false)}
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm animate-fade-in"
+          />
+
+          {/* Left Drawer */}
+          <div className="relative z-10 w-80 max-w-[85vw] bg-[#0b0f19] border-r border-gold-500/30 h-full p-6 flex flex-col justify-between overflow-y-auto shadow-2xl animate-slide-right">
+            <div>
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-6">
+                <div className="flex items-center space-x-2">
+                  <div className="w-8 h-8 rounded-full bg-white p-0.5 border border-gold-500/40">
+                    <img src="/images/moj_logo.jpg" alt="" className="w-full h-full object-cover rounded-full" />
+                  </div>
+                  <span className="font-serif font-bold text-white text-base">MOJ JEWELS</span>
+                </div>
+                <button
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-slate-400 hover:text-white p-1"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              {/* Navigation Links */}
+              <div className="space-y-4">
+                <span className="text-[10px] font-bold uppercase text-gold-400 tracking-wider block">Store Menu</span>
+                
+                <button
+                  onClick={() => { setCurrentPage('home'); setMobileMenuOpen(false); }}
+                  className="w-full flex items-center space-x-3 text-left py-2.5 px-3 rounded-xl bg-slate-900/60 hover:bg-gold-500/10 text-white font-medium text-xs border border-slate-800"
+                >
+                  <Sparkles className="w-4 h-4 text-gold-400" />
+                  <span>Home & Banners</span>
+                </button>
+
+                <button
+                  onClick={() => { setCurrentPage('shop'); setMobileMenuOpen(false); }}
+                  className="w-full flex items-center space-x-3 text-left py-2.5 px-3 rounded-xl bg-slate-900/60 hover:bg-gold-500/10 text-white font-medium text-xs border border-slate-800"
+                >
+                  <ShoppingBag className="w-4 h-4 text-gold-400" />
+                  <span>Browse All Jewelry Items</span>
+                </button>
+
+                <button
+                  onClick={() => { setCurrentPage('track'); setMobileMenuOpen(false); }}
+                  className="w-full flex items-center space-x-3 text-left py-2.5 px-3 rounded-xl bg-slate-900/60 hover:bg-gold-500/10 text-white font-medium text-xs border border-slate-800"
+                >
+                  <CheckCircle2 className="w-4 h-4 text-gold-400" />
+                  <span>Track Order Status</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    if (user) setCurrentPage('customer-dashboard');
+                    else setIsAuthModalOpen(true);
+                  }}
+                  className="w-full flex items-center space-x-3 text-left py-2.5 px-3 rounded-xl bg-slate-900/60 hover:bg-gold-500/10 text-white font-medium text-xs border border-slate-800"
+                >
+                  <User className="w-4 h-4 text-gold-400" />
+                  <span>{user ? 'My Profile & Orders' : 'Customer Account / Sign In'}</span>
+                </button>
+              </div>
+
+              {/* Categories Section */}
+              <div className="mt-8 space-y-3">
+                <span className="text-[10px] font-bold uppercase text-gold-400 tracking-wider block">Shop Categories</span>
+                {['Rings', 'Necklaces', 'Earrings', 'Bracelets'].map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => { setCurrentPage('shop'); setMobileMenuOpen(false); }}
+                    className="w-full text-left py-2 text-slate-300 hover:text-gold-300 text-xs pl-3 border-l-2 border-slate-800 hover:border-gold-400 block transition-colors"
+                  >
+                    {cat} Collection
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Footer Contact */}
+            <div className="border-t border-slate-800 pt-4 mt-6">
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="w-full bg-emerald-500/20 hover:bg-emerald-500 text-emerald-300 hover:text-white border border-emerald-500/40 font-bold py-2.5 px-4 rounded-xl flex items-center justify-center space-x-2 text-xs transition-colors shadow-lg"
+              >
+                <MessageCircle className="w-4 h-4" />
+                <span>Direct WhatsApp Order</span>
+              </a>
+            </div>
+          </div>
         </div>
       )}
     </header>

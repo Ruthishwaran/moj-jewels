@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useStore } from '../context/StoreContext';
-import { ShieldCheck, Lock, User, Sparkles, ArrowRight } from 'lucide-react';
+import { ShieldCheck, Lock, User, Sparkles, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const { loginAdmin } = useStore();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
   const handleAdminLogin = (e) => {
@@ -13,7 +14,7 @@ export default function AdminLoginPage() {
     setErrorMsg('');
     const success = loginAdmin(username, password);
     if (!success) {
-      setErrorMsg('Invalid admin credentials. (Demo: admin / admin123)');
+      setErrorMsg('Invalid admin credentials. Contact management for access.');
     }
   };
 
@@ -29,10 +30,10 @@ export default function AdminLoginPage() {
               RESTRICTED STORE MANAGEMENT
             </span>
             <h1 className="text-2xl font-serif font-bold text-white mt-2">
-              MOJ Jewels Admin Portal
+              MOJ Jewels Admin Desk
             </h1>
             <p className="text-xs text-slate-400 mt-1">
-              Authorized personnel login to verify UPI payments & manage orders.
+              Authorized management portal to verify payments, track orders & inventory.
             </p>
           </div>
         </div>
@@ -45,7 +46,7 @@ export default function AdminLoginPage() {
               <input
                 type="text"
                 required
-                placeholder="admin"
+                placeholder="admin@mojjewels.com"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="w-full bg-slate-900 border border-slate-700/80 rounded-xl pl-10 pr-3 py-2.5 text-white focus:outline-none focus:border-amber-400"
@@ -58,13 +59,21 @@ export default function AdminLoginPage() {
             <div className="relative">
               <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 required
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700/80 rounded-xl pl-10 pr-3 py-2.5 text-white focus:outline-none focus:border-amber-400"
+                className="w-full bg-slate-900 border border-slate-700/80 rounded-xl pl-10 pr-10 py-2.5 text-white focus:outline-none focus:border-amber-400"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-amber-400 p-1 transition-colors"
+                title={showPassword ? 'Hide Password' : 'Show Password'}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
           </div>
 
@@ -75,14 +84,14 @@ export default function AdminLoginPage() {
           )}
 
           <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800 text-[11px] text-slate-400 space-y-1">
-            <span className="text-amber-400 font-bold block">Demo Admin Credentials:</span>
-            <p>Username: <code className="text-white font-mono bg-slate-950 px-1 py-0.5 rounded">admin</code></p>
-            <p>Password: <code className="text-white font-mono bg-slate-950 px-1 py-0.5 rounded">admin123</code></p>
+            <span className="text-amber-400 font-bold block">Protected Access Credentials:</span>
+            <p>Username: <code className="text-white font-mono bg-slate-950 px-1 py-0.5 rounded">admin@mojjewels.com</code></p>
+            <p>Password: <code className="text-white font-mono bg-slate-950 px-1 py-0.5 rounded">MOJ@0606</code></p>
           </div>
 
           <button
             type="submit"
-            className="w-full bg-gradient-to-r from-amber-600 via-gold-500 to-amber-600 text-black font-bold py-3.5 rounded-xl text-xs flex items-center justify-center space-x-2 shadow-xl hover:brightness-110 transition-all"
+            className="w-full bg-gradient-to-r from-amber-600 via-gold-500 to-amber-600 text-black font-bold py-3.5 rounded-xl text-xs flex items-center justify-center space-x-2 shadow-xl hover:brightness-110 transition-all active:scale-95"
           >
             <ShieldCheck className="w-4 h-4" />
             <span>Login to Admin Desk</span>
