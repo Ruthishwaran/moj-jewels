@@ -51,10 +51,99 @@ export const StoreProvider = ({ children }) => {
     }
   });
 
-  // Sync Registered Users
+  // Data Store with LocalStorage Persistence
+  const [products, setProducts] = useState(() => safeParseJSON('moj_products', INITIAL_PRODUCTS));
+  const [coupons, setCoupons] = useState(() => safeParseJSON('moj_coupons', INITIAL_COUPONS));
+  const [banners, setBanners] = useState(() => safeParseJSON('moj_banners', INITIAL_BANNERS));
+  const [paymentConfig, setPaymentConfig] = useState(() => safeParseJSON('moj_payment_config', INITIAL_PAYMENT_CONFIG));
+  const [orders, setOrders] = useState(() => safeParseJSON('moj_orders', INITIAL_ORDERS));
+  const [cart, setCart] = useState(() => safeParseJSON('moj_cart', []));
+  const [wishlist, setWishlist] = useState(() => safeParseJSON('moj_wishlist', []));
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+
+  // PWA Prompt
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [isAppInstallable, setIsAppInstallable] = useState(false);
+
+  // Check URL path on mount
+  useEffect(() => {
+    if (window.location.pathname === '/admin') {
+      setCurrentPage('admin');
+    }
+  }, []);
+
+  // Sync state to LocalStorage
+  useEffect(() => {
+    try { localStorage.setItem('moj_products', JSON.stringify(products)); } catch {}
+  }, [products]);
+
+  useEffect(() => {
+    try { localStorage.setItem('moj_coupons', JSON.stringify(coupons)); } catch {}
+  }, [coupons]);
+
+  useEffect(() => {
+    try { localStorage.setItem('moj_banners', JSON.stringify(banners)); } catch {}
+  }, [banners]);
+
+  useEffect(() => {
+    try { localStorage.setItem('moj_payment_config', JSON.stringify(paymentConfig)); } catch {}
+  }, [paymentConfig]);
+
+  useEffect(() => {
+    try { localStorage.setItem('moj_orders', JSON.stringify(orders)); } catch {}
+  }, [orders]);
+
+  useEffect(() => {
+    try { localStorage.setItem('moj_cart', JSON.stringify(cart)); } catch {}
+  }, [cart]);
+
+  useEffect(() => {
+    try { localStorage.setItem('moj_wishlist', JSON.stringify(wishlist)); } catch {}
+  }, [wishlist]);
+
+  useEffect(() => {
+    try {
+      if (user) {
+        localStorage.setItem('moj_customer_user', JSON.stringify(user));
+      } else {
+        localStorage.removeItem('moj_customer_user');
+      }
+    } catch {}
+  }, [user]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('moj_admin_auth', isAdminAuthenticated ? 'true' : 'false');
+    } catch {}
+  }, [isAdminAuthenticated]);
+
   useEffect(() => {
     try { localStorage.setItem('moj_registered_users', JSON.stringify(registeredUsers)); } catch {}
   }, [registeredUsers]);
+
+  // PWA setup
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setIsAppInstallable(true);
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+  }, []);
+
+  const installPwaApp = async () => {
+    if (!deferredPrompt) {
+      alert('PWA App is ready! Click "Add to Home Screen" in your browser menu to install MOJ Jewels 100% Free!');
+      return;
+    }
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setIsAppInstallable(false);
+      setDeferredPrompt(null);
+    }
+  };
 
   // Customer Auth Functions
   const registerCustomer = ({ name, email, password, phone }) => {
