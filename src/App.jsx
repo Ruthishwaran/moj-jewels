@@ -1,6 +1,5 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { StoreProvider, useStore } from './context/StoreContext';
-import { ErrorBoundary } from './components/ErrorBoundary';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ProductModal from './components/ProductModal';
@@ -22,21 +21,19 @@ function MainContent() {
   const { currentPage, setCurrentPage, isAdminAuthenticated, logoutAdmin } = useStore();
 
   const renderPage = () => {
-    switch (currentPage) {
-      case 'home':
-        return <HomePage />;
-      case 'shop':
-        return <ShopPage />;
-      case 'checkout':
-        return <CheckoutPage />;
-      case 'track':
-        return <OrderTrackPage />;
-      case 'customer-dashboard':
-        return <CustomerDashboard />;
-      case 'admin':
-        return isAdminAuthenticated ? <AdminDashboard /> : <AdminLoginPage />;
-      default:
-        return <HomePage />;
+    try {
+      switch (currentPage) {
+        case 'home': return <HomePage />;
+        case 'shop': return <ShopPage />;
+        case 'checkout': return <CheckoutPage />;
+        case 'track': return <OrderTrackPage />;
+        case 'customer-dashboard': return <CustomerDashboard />;
+        case 'admin': return isAdminAuthenticated ? <AdminDashboard /> : <AdminLoginPage />;
+        default: return <HomePage />;
+      }
+    } catch (e) {
+      console.error('Page render error:', e);
+      return <HomePage />;
     }
   };
 
@@ -44,7 +41,6 @@ function MainContent() {
 
   return (
     <div className="min-h-screen flex flex-col justify-between bg-[#0b0f19] text-slate-100">
-      {/* If logged into Admin view, show Admin top bar */}
       {isAdminView && isAdminAuthenticated ? (
         <div className="bg-amber-500 text-black px-4 py-2 flex items-center justify-between text-xs font-bold shadow-md">
           <div className="flex items-center space-x-2">
@@ -52,15 +48,12 @@ function MainContent() {
             <span>MOJ JEWELS - PROTECTED STORE ADMIN DESK</span>
           </div>
           <div className="flex items-center space-x-4">
-            <button
-              onClick={() => setCurrentPage('home')}
-              className="hover:underline font-semibold text-black"
-            >
+            <button onClick={() => setCurrentPage('home')} className="hover:underline font-semibold">
               Exit to Customer Storefront ➔
             </button>
             <button
               onClick={logoutAdmin}
-              className="bg-black text-amber-400 px-3 py-1 rounded text-xs font-bold flex items-center gap-1 hover:bg-slate-900"
+              className="bg-black text-amber-400 px-3 py-1 rounded text-xs font-bold flex items-center gap-1"
             >
               <LogOut className="w-3.5 h-3.5" /> Logout Admin
             </button>
@@ -77,7 +70,6 @@ function MainContent() {
       {!isAdminView && <Footer />}
       {!isAdminView && <FloatingWhatsApp />}
 
-      {/* Global Customer Overlays */}
       <ProductModal />
       <CartDrawer />
       <WishlistDrawer />
@@ -86,12 +78,11 @@ function MainContent() {
   );
 }
 
+// Simple fallback without ErrorBoundary - let React show real errors
 export default function App() {
   return (
-    <ErrorBoundary>
-      <StoreProvider>
-        <MainContent />
-      </StoreProvider>
-    </ErrorBoundary>
+    <StoreProvider>
+      <MainContent />
+    </StoreProvider>
   );
 }
