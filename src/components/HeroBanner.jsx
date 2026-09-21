@@ -1,13 +1,47 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from '../context/StoreContext';
-import { Sparkles, ArrowRight, Copy, Check, ShieldCheck, Tag, MessageCircle, Instagram } from 'lucide-react';
+import { Sparkles, ArrowRight, Copy, Check, Tag, MessageCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function HeroBanner() {
-  const { coupons, setCurrentPage } = useStore();
+  const { coupons, banners, setCurrentPage } = useStore();
   const [copiedCode, setCopiedCode] = useState('');
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
 
-  const whatsappNumber = "919876543210";
+  const whatsappNumber = "918248875865";
   const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent('Hi MOJ Jewels! I would like to inquire about your Wholesale & Retail Jewellery.')}`;
+
+  // Default banner images list combining local uploaded banners & store banners
+  const slideList = [
+    {
+      id: 'banner-1',
+      imageUrl: '/images/moj_banner_1.jpg',
+      title: 'Luxury Wholesale & Retail Collections',
+      tagline: 'DIRECT WHOLESALE PRICES • PREMIUM QUALITY',
+      badge: 'NEW ARRIVALS 2026'
+    },
+    {
+      id: 'banner-2',
+      imageUrl: '/images/moj_banner_2.jpg',
+      title: 'Bridal & Royal Antique Masterpieces',
+      tagline: 'EXCLUSIVELY DESIGNED FOR BRIDAL ELEGANCE',
+      badge: '50% OFF BULK WHOLESALE'
+    },
+    ...(banners || []).map((b, idx) => ({
+      id: b.id || `custom-b-${idx}`,
+      imageUrl: b.image || b.imageUrl || '/images/hero_banner.jpg',
+      title: b.title || 'MOJ Jewels Premium Jewelry',
+      tagline: b.subtitle || '100% Guaranteed Premium Quality',
+      badge: 'FEATURED BANNER'
+    }))
+  ];
+
+  // 5-Second Auto-Slideshow Timer
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlideIndex((prev) => (prev + 1) % slideList.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [slideList.length]);
 
   const copyCoupon = (code) => {
     navigator.clipboard.writeText(code);
@@ -15,19 +49,66 @@ export default function HeroBanner() {
     setTimeout(() => setCopiedCode(''), 2500);
   };
 
+  const nextSlide = () => setCurrentSlideIndex((prev) => (prev + 1) % slideList.length);
+  const prevSlide = () => setCurrentSlideIndex((prev) => (prev - 1 + slideList.length) % slideList.length);
+
+  const currentSlide = slideList[currentSlideIndex] || slideList[0];
+
   return (
-    <section className="relative overflow-hidden bg-[#070a11] py-10 md:py-16 border-b border-gold-500/20">
-      <div className="container mx-auto px-4 space-y-10 relative z-10">
+    <section className="relative overflow-hidden bg-[#070a11] py-8 md:py-14 border-b border-gold-500/20">
+      <div className="container mx-auto px-4 space-y-8 relative z-10">
         
-        {/* User's Banner 1 Image Display */}
-        <div className="relative rounded-2xl overflow-hidden gold-border-glow shadow-2xl group">
+        {/* 5-Second Dynamic Auto-Slideshow Hero Frame */}
+        <div className="relative rounded-2xl overflow-hidden gold-border-glow shadow-2xl group min-h-[220px] md:min-h-[380px] bg-slate-950">
           <img
-            src="/images/moj_banner_1.jpg"
-            alt="MOJ Jewels Wholesale & Retail Banner"
-            className="w-full h-auto min-h-[180px] md:max-h-[380px] object-cover rounded-2xl transform group-hover:scale-102 transition-transform duration-700"
+            key={currentSlide.id}
+            src={currentSlide.imageUrl}
+            alt={currentSlide.title}
+            className="w-full h-full min-h-[220px] max-h-[420px] object-cover rounded-2xl transition-all duration-700 transform group-hover:scale-102"
           />
-          <div className="absolute top-4 right-4 bg-black/70 backdrop-blur text-gold-300 text-[10px] md:text-xs font-bold px-3 py-1 rounded-full border border-gold-500/40">
-            NEW COLLECTIONS EVERY WEEK
+
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6 md:p-10">
+            <span className="inline-block self-start bg-gold-500 text-black text-[10px] md:text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-2 shadow-md">
+              {currentSlide.badge}
+            </span>
+            <h2 className="text-xl md:text-3xl font-serif font-bold text-white drop-shadow-md">
+              {currentSlide.title}
+            </h2>
+            <p className="text-gold-300 text-xs md:text-sm font-medium tracking-wide">
+              {currentSlide.tagline}
+            </p>
+          </div>
+
+          {/* Carousel Manual Controls */}
+          <button
+            onClick={prevSlide}
+            className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/90 text-gold-300 p-2 rounded-full backdrop-blur border border-gold-500/30 transition-all opacity-80 hover:opacity-100"
+            title="Previous Banner"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <button
+            onClick={nextSlide}
+            className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/90 text-gold-300 p-2 rounded-full backdrop-blur border border-gold-500/30 transition-all opacity-80 hover:opacity-100"
+            title="Next Banner (Auto 5-Sec)"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+
+          {/* Slideshow Pagination Dots */}
+          <div className="absolute bottom-3 right-6 flex items-center gap-2">
+            {slideList.map((s, idx) => (
+              <button
+                key={s.id}
+                onClick={() => setCurrentSlideIndex(idx)}
+                className={`h-2 rounded-full transition-all ${
+                  idx === currentSlideIndex
+                    ? 'w-6 bg-gold-400'
+                    : 'w-2 bg-white/40 hover:bg-white/70'
+                }`}
+                title={`Go to slide ${idx + 1}`}
+              />
+            ))}
           </div>
         </div>
 
@@ -36,7 +117,7 @@ export default function HeroBanner() {
           <div className="lg:col-span-7 space-y-5">
             <div className="inline-flex items-center space-x-2 bg-gold-500/10 border border-gold-500/30 px-3.5 py-1.5 rounded-full text-gold-300 text-xs font-medium">
               <Sparkles className="w-4 h-4 text-gold-400" />
-              <span>Premium Imitation Jewellery • Bridal • Antique • Daily Wear</span>
+              <span>Premium Imitation Jewellery • Wholesale & Retail Direct</span>
             </div>
 
             <h1 className="text-3xl md:text-5xl font-serif font-bold text-white leading-tight">
@@ -96,7 +177,7 @@ export default function HeroBanner() {
             </div>
           </div>
 
-          {/* User's Banner 2 Image */}
+          {/* Secondary Banner 2 Frame */}
           <div className="lg:col-span-5">
             <div className="relative rounded-2xl overflow-hidden gold-border-glow shadow-2xl group">
               <img

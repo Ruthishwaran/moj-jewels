@@ -36,8 +36,22 @@ export const StoreProvider = ({ children }) => {
       name: 'Ruthi Shwaran',
       email: 'ruthi@mojjewels.com',
       password: 'password123',
+      phone: '+91 82488 75865',
+      role: 'customer',
+      accountType: 'wholesale',
+      isApproved: true,
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: 'cust-demo-2',
+      name: 'Retail Customer',
+      email: 'retail@mojjewels.com',
+      password: 'password123',
       phone: '+91 98765 43210',
-      role: 'customer'
+      role: 'customer',
+      accountType: 'retail',
+      isApproved: true,
+      createdAt: new Date().toISOString()
     }
   ]));
   const [user, setUser] = useState(() => safeParseJSON('moj_customer_user', null));
@@ -179,24 +193,33 @@ export const StoreProvider = ({ children }) => {
   };
 
   // Customer Auth Functions
-  const registerCustomer = ({ name, email, password, phone }) => {
+  const registerCustomer = ({ name, email, password, phone, accountType = 'retail' }) => {
     const cleanEmail = (email || '').trim().toLowerCase();
     const existing = registeredUsers.find(u => u.email.toLowerCase() === cleanEmail);
     if (existing) {
       return { success: false, message: 'An account with this email already exists. Please login instead.' };
     }
+    const isWholesale = accountType === 'wholesale';
     const newUser = {
       id: `cust-${Date.now()}`,
       name: name || 'Valued Customer',
       email: cleanEmail,
       password: password || '123456',
-      phone: phone || '+91 98765 43210',
+      phone: phone || '+91 82488 75865',
       role: 'customer',
+      accountType: isWholesale ? 'wholesale' : 'retail',
+      isApproved: !isWholesale, // Wholesale requires admin approval, retail auto-approved
       createdAt: new Date().toISOString()
     };
     setRegisteredUsers(prev => [newUser, ...prev]);
     setUser(newUser);
-    return { success: true, user: newUser };
+    return {
+      success: true,
+      user: newUser,
+      message: isWholesale
+        ? 'Wholesale account created! Pending Admin approval for bulk ordering privileges.'
+        : 'Retail account created successfully!'
+    };
   };
 
   const loginCustomer = (email, password) => {
@@ -215,11 +238,41 @@ export const StoreProvider = ({ children }) => {
       name: email ? email.split('@')[0] : 'Valued Customer',
       email: cleanEmail || 'customer@example.com',
       password: password || '123456',
-      role: 'customer'
+      role: 'customer',
+      accountType: 'retail',
+      isApproved: true,
+      createdAt: new Date().toISOString()
     };
     setRegisteredUsers(prev => [guestUser, ...prev]);
     setUser(guestUser);
     return { success: true, user: guestUser };
+  };
+
+  const approveWholesaleUser = (userId) => {
+    setRegisteredUsers(prev => prev.map(u => {
+      if (u.id === userId) {
+        const updated = { ...u, accountType: 'wholesale', isApproved: true };
+        if (user && user.id === userId) setUser(updated);
+        return updated;
+      }
+      return u;
+    }));
+  };
+
+  const toggleUserAccountType = (userId) => {
+    setRegisteredUsers(prev => prev.map(u => {
+      if (u.id === userId) {
+        const nextType = u.accountType === 'wholesale' ? 'retail' : 'wholesale';
+        const updated = {
+          ...u,
+          accountType: nextType,
+          isApproved: nextType === 'retail' ? true : u.isApproved
+        };
+        if (user && user.id === userId) setUser(updated);
+        return updated;
+      }
+      return u;
+    }));
   };
 
   const logoutCustomer = () => {
@@ -449,6 +502,8 @@ export const StoreProvider = ({ children }) => {
       loginCustomer,
       logoutCustomer,
       deleteUserAccount,
+      approveWholesaleUser,
+      toggleUserAccountType,
       isAdminAuthenticated,
       loginAdmin,
       logoutAdmin,

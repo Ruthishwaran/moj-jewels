@@ -33,7 +33,7 @@ export default function Navbar() {
   const totalCartCount = (cart || []).reduce((acc, i) => acc + (i?.quantity || 0), 0);
   const wishlistCount = (wishlist || []).length;
 
-  const whatsappNumber = "919876543210";
+  const whatsappNumber = "918248875865";
   const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent('Hi MOJ Jewels! I would like to order.')}`;
 
   return (
@@ -47,7 +47,7 @@ export default function Navbar() {
           </div>
           <div className="hidden md:flex items-center space-x-6 text-[11px]">
             <a href={whatsappUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 hover:underline font-bold">
-              <MessageCircle className="w-3.5 h-3.5" /> WhatsApp DM to Order (+91 98765 43210)
+              <MessageCircle className="w-3.5 h-3.5" /> WhatsApp DM (+91 82488 75865)
             </a>
             <span className="flex items-center gap-1">
               <CheckCircle2 className="w-3.5 h-3.5" /> Premium Imitation & Antique Collections

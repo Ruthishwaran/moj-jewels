@@ -5,7 +5,7 @@ import { Sparkles, Shield, Truck, Award, QrCode, Phone, Mail, MapPin, MessageCir
 export default function Footer() {
   const { setCurrentPage } = useStore();
 
-  const whatsappNumber = "919876543210";
+  const whatsappNumber = "918248875865";
   const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent('Hi MOJ Jewels!')}`;
 
   return (
@@ -41,7 +41,7 @@ export default function Footer() {
                   <MessageCircle className="w-4 h-4" />
                 </a>
                 <a
-                  href="https://instagram.com/moj_jewels"
+                  href="https://www.instagram.com/moj.jewels?stkn=MWVnN216YWFmNzFwYQ=="
                   target="_blank"
                   rel="noreferrer"
                   className="w-9 h-9 rounded-full bg-rose-500/20 hover:bg-rose-500 text-rose-400 hover:text-white border border-rose-500/40 flex items-center justify-center transition-colors"
@@ -50,7 +50,7 @@ export default function Footer() {
                   <Instagram className="w-4 h-4" />
                 </a>
                 <a
-                  href="https://youtube.com/@moj_jewels"
+                  href="https://youtube.com/@moj.jewels?si=O-Xng2CYlOIrBSel"
                   target="_blank"
                   rel="noreferrer"
                   className="w-9 h-9 rounded-full bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/40 flex items-center justify-center transition-colors"
@@ -113,11 +113,11 @@ export default function Footer() {
             <div className="space-y-2 text-slate-300">
               <div className="flex items-center space-x-2">
                 <Phone className="w-4 h-4 text-gold-400 shrink-0" />
-                <span>+91 98765 43210</span>
+                <span>+91 82488 75865</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Mail className="w-4 h-4 text-gold-400 shrink-0" />
-                <span>care@mojjewels.com</span>
+                <span>mojjewels2026@gmail.com</span>
               </div>
               <div className="flex items-center space-x-2">
                 <MapPin className="w-4 h-4 text-gold-400 shrink-0" />

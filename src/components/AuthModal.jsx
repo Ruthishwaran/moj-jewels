@@ -13,6 +13,7 @@ export default function AuthModal() {
   } = useStore();
 
   const [mode, setMode] = useState('login'); // 'login' or 'signup'
+  const [accountType, setAccountType] = useState('retail'); // 'retail' or 'wholesale'
   const [email, setEmail] = useState(user?.email || '');
   const [name, setName] = useState(user?.name || '');
   const [phone, setPhone] = useState('');
@@ -33,16 +34,16 @@ export default function AuthModal() {
         setErrorMsg('Please fill in all required fields.');
         return;
       }
-      const res = registerCustomer({ name, email, password, phone });
+      const res = registerCustomer({ name, email, password, phone, accountType });
       if (!res.success) {
         setErrorMsg(res.message);
         return;
       }
-      setSuccessMsg('Account created successfully! Welcome to MOJ Jewels.');
+      setSuccessMsg(res.message || 'Account created successfully!');
       setTimeout(() => {
         setIsAuthModalOpen(false);
         setCurrentPage('customer-dashboard');
-      }, 1000);
+      }, 1200);
     } else {
       if (!email) {
         setErrorMsg('Please enter your email address.');
@@ -102,20 +103,57 @@ export default function AuthModal() {
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           {mode === 'signup' && (
-            <div>
-              <label className="text-xs text-slate-300 font-medium block mb-1">Full Name *</label>
-              <div className="relative">
-                <User className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  required
-                  placeholder="Ruthi Shwaran"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700/80 rounded-xl pl-9 pr-3 py-2.5 text-xs text-white focus:outline-none focus:border-gold-400"
-                />
+            <>
+              <div>
+                <label className="text-xs text-gold-300 font-semibold block mb-1">Select Account Type *</label>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setAccountType('retail')}
+                    className={`p-2.5 rounded-xl border font-semibold flex flex-col items-center justify-center text-center transition-all ${
+                      accountType === 'retail'
+                        ? 'bg-gold-500/20 border-gold-500 text-gold-300'
+                        : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <span>🛍️ Retail Customer</span>
+                    <span className="text-[10px] text-slate-400 font-normal">Single piece purchases</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAccountType('wholesale')}
+                    className={`p-2.5 rounded-xl border font-semibold flex flex-col items-center justify-center text-center transition-all ${
+                      accountType === 'wholesale'
+                        ? 'bg-amber-500/20 border-amber-500 text-amber-300'
+                        : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <span>🏢 Wholesale Partner</span>
+                    <span className="text-[10px] text-slate-400 font-normal">Bulk minimum orders</span>
+                  </button>
+                </div>
+                {accountType === 'wholesale' && (
+                  <p className="text-[10px] text-amber-300/80 mt-1 italic">
+                    * Wholesale accounts require Store Admin approval for bulk ordering privileges (Min 5 pcs / ₹25,000 total).
+                  </p>
+                )}
               </div>
-            </div>
+
+              <div>
+                <label className="text-xs text-slate-300 font-medium block mb-1">Full Name *</label>
+                <div className="relative">
+                  <User className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ruthi Shwaran"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full bg-slate-900 border border-slate-700/80 rounded-xl pl-9 pr-3 py-2.5 text-xs text-white focus:outline-none focus:border-gold-400"
+                  />
+                </div>
+              </div>
+            </>
           )}
 
           <div>

@@ -15,11 +15,19 @@ export default function CartDrawer() {
     appliedCoupon,
     applyCouponCode,
     removeCoupon,
-    setCurrentPage
+    setCurrentPage,
+    user
   } = useStore();
 
   const [couponInput, setCouponInput] = useState('');
   const [couponFeedback, setCouponFeedback] = useState(null);
+
+  const totalCartQty = (cart || []).reduce((acc, item) => acc + (item.quantity || 1), 0);
+  const isWholesaleAccount = user?.accountType === 'wholesale';
+  const isWholesaleApproved = user?.isApproved !== false;
+
+  // Wholesale constraint rule: Min 5 total pcs OR min ₹25,000 subtotal
+  const isWholesaleValid = !isWholesaleAccount || !isWholesaleApproved || (totalCartQty >= 5 || subtotal >= 25000);
 
   if (!isCartOpen) return null;
 
@@ -175,6 +183,25 @@ export default function CartDrawer() {
                 )}
               </div>
 
+              {/* Wholesale Account Notices */}
+              {isWholesaleAccount && !isWholesaleApproved && (
+                <div className="bg-amber-500/10 border border-amber-500/30 p-2.5 rounded-xl text-[11px] text-amber-200 flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                  <p>
+                    <strong>Wholesale Account Pending Approval:</strong> Your wholesale tier is awaiting Admin approval. You can place retail orders now or contact WhatsApp <strong className="text-gold-300">+91 82488 75865</strong>.
+                  </p>
+                </div>
+              )}
+
+              {isWholesaleAccount && isWholesaleApproved && !isWholesaleValid && (
+                <div className="bg-rose-500/20 border border-rose-500/40 p-2.5 rounded-xl text-[11px] text-rose-300 flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                  <p>
+                    <strong>Wholesale Bulk Requirement:</strong> Wholesale orders require a minimum of <strong>5 items</strong> or <strong>₹25,000 order total</strong> (Current: {totalCartQty} items, ₹{subtotal.toLocaleString()}).
+                  </p>
+                </div>
+              )}
+
               {/* Summary Calculation */}
               <div className="space-y-2 text-xs text-slate-300">
                 <div className="flex justify-between">
@@ -199,10 +226,15 @@ export default function CartDrawer() {
 
               <button
                 onClick={handleProceedToCheckout}
-                className="w-full btn-gold-shimmer py-3.5 rounded-xl text-sm font-semibold flex items-center justify-center space-x-2 shadow-xl"
+                disabled={!isWholesaleValid}
+                className={`w-full py-3.5 rounded-xl text-sm font-semibold flex items-center justify-center space-x-2 shadow-xl transition-all ${
+                  isWholesaleValid
+                    ? 'btn-gold-shimmer text-black cursor-pointer'
+                    : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed opacity-75'
+                }`}
               >
-                <span>Proceed to Checkout</span>
-                <ArrowRight className="w-4 h-4" />
+                <span>{isWholesaleValid ? 'Proceed to Checkout' : 'Wholesale Min Order Not Met (Min 5 items / ₹25k)'}</span>
+                {isWholesaleValid && <ArrowRight className="w-4 h-4" />}
               </button>
             </div>
           )}

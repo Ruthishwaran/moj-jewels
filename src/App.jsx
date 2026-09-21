@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react';
+import React, { useState, Suspense } from 'react';
 import { StoreProvider, useStore } from './context/StoreContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -18,7 +18,8 @@ import AdminLoginPage from './pages/AdminLoginPage';
 import { ShieldCheck, LogOut } from 'lucide-react';
 
 function MainContent() {
-  const { currentPage, setCurrentPage, isAdminAuthenticated, logoutAdmin } = useStore();
+  const { currentPage, setCurrentPage, isAdminAuthenticated, logoutAdmin, isAppInstallable, installPwaApp } = useStore();
+  const [showPwaBanner, setShowPwaBanner] = useState(true);
 
   const renderPage = () => {
     try {
@@ -41,6 +42,34 @@ function MainContent() {
 
   return (
     <div className="min-h-screen flex flex-col justify-between bg-[#0b0f19] text-slate-100">
+      {/* 100% Free PWA Install Prompt Banner */}
+      {!isAdminView && showPwaBanner && (
+        <div className="bg-gradient-to-r from-slate-900 via-amber-950 to-slate-900 border-b border-gold-500/30 px-4 py-2 text-xs flex items-center justify-between text-slate-200">
+          <div className="flex items-center space-x-2">
+            <span className="bg-gold-500 text-black text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">
+              100% FREE APP
+            </span>
+            <span className="hidden sm:inline text-gold-300 font-semibold">Install MOJ Jewels Web App for Instant Orders & Push Deals!</span>
+            <span className="sm:hidden text-gold-300 font-semibold">Install MOJ Jewels Mobile App</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={installPwaApp}
+              className="bg-gold-500 hover:bg-gold-400 text-black font-bold px-3 py-1 rounded-lg shadow-md transition-colors text-[11px]"
+            >
+              Install App 📲
+            </button>
+            <button
+              onClick={() => setShowPwaBanner(false)}
+              className="text-slate-400 hover:text-white p-1"
+              title="Close Banner"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
       {isAdminView && isAdminAuthenticated ? (
         <div className="bg-amber-500 text-black px-4 py-2 flex items-center justify-between text-xs font-bold shadow-md">
           <div className="flex items-center space-x-2">

@@ -16,7 +16,8 @@ import {
   AlertCircle,
   Search,
   Sparkles,
-  Settings
+  Settings,
+  User
 } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -39,6 +40,8 @@ export default function AdminDashboard() {
     deleteCategory,
     registeredUsers,
     deleteUserAccount,
+    approveWholesaleUser,
+    toggleUserAccountType,
     banners
   } = useStore();
 
@@ -1108,40 +1111,82 @@ export default function AdminDashboard() {
       {/* TAB 7: Customer Account Control */}
       {activeTab === 'customers' && (
         <div className="glass-card p-6 md:p-8 rounded-2xl border border-amber-500/40 space-y-6 animate-fade-in">
-          <div className="border-b border-slate-800 pb-4">
-            <h2 className="text-2xl font-serif font-bold text-white flex items-center gap-2">
-              <User className="w-6 h-6 text-emerald-400" /> Registered Customer Accounts ({registeredUsers?.length || 0})
-            </h2>
-            <p className="text-xs text-slate-400 mt-1">
-              Inspect registered business clients & retail customers.
-            </p>
+          <div className="border-b border-slate-800 pb-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div>
+              <h2 className="text-2xl font-serif font-bold text-white flex items-center gap-2">
+                <User className="w-6 h-6 text-emerald-400" /> Registered Customer Accounts ({registeredUsers?.length || 0})
+              </h2>
+              <p className="text-xs text-slate-400 mt-1">
+                Manage retail customers & approve wholesale accounts for bulk order access.
+              </p>
+            </div>
+            <div className="flex gap-2 text-xs">
+              <span className="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-3 py-1 rounded-full font-semibold">
+                Pending Wholesale: {(registeredUsers || []).filter(u => u.accountType === 'wholesale' && !u.isApproved).length}
+              </span>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {(registeredUsers || []).map((u) => (
-              <div key={u.id} className="p-4 bg-slate-900/90 rounded-xl border border-slate-800 flex justify-between items-center text-xs space-y-1">
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <strong className="text-white font-semibold text-sm">{u.name}</strong>
-                    <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">
-                      {u.role || 'Customer'}
-                    </span>
-                  </div>
-                  <p className="text-slate-400 text-xs mt-0.5">{u.email}</p>
-                  <p className="text-slate-400 text-[11px]">{u.phone || 'No phone provided'}</p>
-                </div>
+            {(registeredUsers || []).map((u) => {
+              const isWholesale = u.accountType === 'wholesale';
+              const isApproved = u.isApproved !== false;
 
-                <button
-                  onClick={() => {
-                    if (confirm(`Remove account for ${u.name}?`)) deleteUserAccount(u.id);
-                  }}
-                  className="p-2 text-slate-500 hover:text-rose-400 bg-slate-950 rounded-lg border border-slate-800"
-                  title="Remove Account"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            ))}
+              return (
+                <div key={u.id} className="p-4 bg-slate-900/90 rounded-xl border border-slate-800 flex justify-between items-center text-xs space-y-1">
+                  <div className="space-y-1">
+                    <div className="flex items-center space-x-2 flex-wrap gap-y-1">
+                      <strong className="text-white font-semibold text-sm">{u.name}</strong>
+                      
+                      {isWholesale ? (
+                        <span className={`border text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase ${
+                          isApproved
+                            ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                            : 'bg-amber-500/20 text-amber-300 border-amber-500/40 animate-pulse'
+                        }`}>
+                          🏢 Wholesale {isApproved ? '(Approved)' : '(Pending Admin Review)'}
+                        </span>
+                      ) : (
+                        <span className="bg-slate-800 text-slate-300 border border-slate-700 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">
+                          🛍️ Retail Customer
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-slate-400 text-xs mt-0.5">{u.email}</p>
+                    <p className="text-slate-400 text-[11px]">{u.phone || 'No phone provided'}</p>
+                  </div>
+
+                  <div className="flex items-center space-x-2 shrink-0">
+                    {isWholesale && !isApproved && (
+                      <button
+                        onClick={() => approveWholesaleUser(u.id)}
+                        className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] px-3 py-1.5 rounded-lg shadow-md transition-colors"
+                      >
+                        Approve Wholesale
+                      </button>
+                    )}
+
+                    <button
+                      onClick={() => toggleUserAccountType(u.id)}
+                      className="bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] px-2.5 py-1.5 rounded-lg border border-slate-700"
+                      title="Toggle between Retail and Wholesale Tier"
+                    >
+                      Set as {isWholesale ? 'Retail' : 'Wholesale'}
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        if (confirm(`Remove account for ${u.name}?`)) deleteUserAccount(u.id);
+                      }}
+                      className="p-2 text-slate-500 hover:text-rose-400 bg-slate-950 rounded-lg border border-slate-800"
+                      title="Remove Account"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

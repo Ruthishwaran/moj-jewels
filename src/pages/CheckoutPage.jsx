@@ -61,10 +61,19 @@ export default function CheckoutPage() {
     );
   }
 
+  const totalCartQty = (cart || []).reduce((acc, item) => acc + (item.quantity || 1), 0);
+  const isWholesaleAccount = user?.accountType === 'wholesale';
+  const isWholesaleApproved = user?.isApproved !== false;
+  const isWholesaleValid = !isWholesaleAccount || !isWholesaleApproved || (totalCartQty >= 5 || subtotal >= 25000);
+
   const handleNextToPayment = (e) => {
     e.preventDefault();
     if (!shippingAddress || !city || !pincode) {
       alert('Please fill out all address details.');
+      return;
+    }
+    if (!isWholesaleValid) {
+      alert('Wholesale Order Requirement: Wholesale partner accounts must order at least 5 total items or ₹25,000 subtotal value.');
       return;
     }
     setStep(2);
