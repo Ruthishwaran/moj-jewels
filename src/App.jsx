@@ -78,11 +78,57 @@ function MainContent() {
   );
 }
 
-// Simple fallback without ErrorBoundary - let React show real errors
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("Uncaught app error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-[#0b0f19] text-white flex items-center justify-center p-6 text-center">
+          <div className="max-w-md p-8 bg-slate-900 border border-amber-500/40 rounded-2xl shadow-2xl space-y-4">
+            <h2 className="text-xl font-serif font-bold text-amber-400">MOJ Jewels Store Error</h2>
+            <p className="text-xs text-slate-300">
+              {this.state.error?.message || "An unexpected issue occurred while rendering the page."}
+            </p>
+            <div className="flex gap-3 justify-center pt-2">
+              <button
+                onClick={() => window.location.reload()}
+                className="bg-amber-500 text-black font-bold px-4 py-2 rounded-xl text-xs"
+              >
+                Reload App
+              </button>
+              <button
+                onClick={() => { localStorage.clear(); window.location.reload(); }}
+                className="bg-slate-800 text-slate-300 font-semibold px-4 py-2 rounded-xl text-xs hover:bg-slate-700"
+              >
+                Reset Store Cache
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 export default function App() {
   return (
-    <StoreProvider>
-      <MainContent />
-    </StoreProvider>
+    <ErrorBoundary>
+      <StoreProvider>
+        <MainContent />
+      </StoreProvider>
+    </ErrorBoundary>
   );
 }

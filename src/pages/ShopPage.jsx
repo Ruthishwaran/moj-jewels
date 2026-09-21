@@ -12,11 +12,14 @@ export default function ShopPage() {
 
   const categories = ['All', 'Rings', 'Necklaces', 'Earrings', 'Bracelets'];
 
-  let filtered = products.filter(p => {
-    const matchesSearch = p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          p.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          (p.karat && p.karat.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchesCategory = selectedCategory === 'All' || p.category.toLowerCase() === selectedCategory.toLowerCase();
+  const safeProducts = Array.isArray(products) ? products : [];
+
+  let filtered = safeProducts.filter(p => {
+    const titleMatch = p.title ? p.title.toLowerCase().includes(searchQuery.toLowerCase()) : false;
+    const catMatch = p.category ? p.category.toLowerCase().includes(searchQuery.toLowerCase()) : false;
+    const karatMatch = p.karat ? p.karat.toLowerCase().includes(searchQuery.toLowerCase()) : false;
+    const matchesSearch = titleMatch || catMatch || karatMatch;
+    const matchesCategory = selectedCategory === 'All' || (p.category && p.category.toLowerCase() === selectedCategory.toLowerCase());
     return matchesSearch && matchesCategory;
   });
 

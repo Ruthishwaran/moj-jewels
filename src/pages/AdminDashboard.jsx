@@ -73,10 +73,14 @@ export default function AdminDashboard() {
   const [trackingCode, setTrackingCode] = useState('');
 
   // Calculate Metrics
-  const pendingVerifications = orders.filter(o => o.paymentStatus === 'Pending Verification');
-  const totalRevenue = orders
-    .filter(o => o.paymentStatus === 'Verified')
-    .reduce((acc, o) => acc + o.total, 0);
+  const safeOrders = Array.isArray(orders) ? orders : [];
+  const safeProducts = Array.isArray(products) ? products : [];
+  const safeCoupons = Array.isArray(coupons) ? coupons : [];
+
+  const pendingVerifications = safeOrders.filter(o => o?.paymentStatus === 'Pending Verification');
+  const totalRevenue = safeOrders
+    .filter(o => o?.paymentStatus === 'Verified')
+    .reduce((acc, o) => acc + (o?.total || 0), 0);
 
   const handleCreateProduct = (e) => {
     e.preventDefault();

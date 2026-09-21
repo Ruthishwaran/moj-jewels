@@ -6,7 +6,7 @@ export default function CustomerDashboard() {
   const { user, orders, wishlist, coupons, setCurrentPage, setIsAuthModalOpen } = useStore();
 
   const currentUser = user || { name: 'Valued Customer', email: 'guest@mojjewels.com', role: 'customer' };
-  const myOrders = orders;
+  const myOrders = Array.isArray(orders) ? orders : [];
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-5xl space-y-8">

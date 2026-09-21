@@ -81,7 +81,7 @@ export default function CartDrawer() {
                 </button>
               </div>
             ) : (
-              cart.map((item) => (
+              (cart || []).map((item) => (
                 <div key={item.id} className="flex gap-4 p-3 bg-slate-900/60 rounded-xl border border-slate-800">
                   <img
                     src={item.image}

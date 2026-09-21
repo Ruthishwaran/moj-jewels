@@ -29,7 +29,8 @@ export default function Navbar() {
   } = useStore();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const totalCartCount = cart.reduce((acc, i) => acc + i.quantity, 0);
+  const totalCartCount = (cart || []).reduce((acc, i) => acc + (i?.quantity || 0), 0);
+  const wishlistCount = (wishlist || []).length;
 
   const whatsappNumber = "919876543210";
   const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent('Hi MOJ Jewels! I would like to order.')}`;
@@ -158,9 +159,9 @@ export default function Navbar() {
               className="flex items-center space-x-2 bg-slate-900 border border-slate-700/80 px-3 py-1.5 rounded-full text-xs hover:border-gold-400"
             >
               <div className="w-5 h-5 rounded-full bg-gold-500 text-black font-bold flex items-center justify-center text-[10px]">
-                {user.name.charAt(0).toUpperCase()}
+                {user?.name?.charAt(0)?.toUpperCase() || 'U'}
               </div>
-              <span className="hidden sm:inline text-white font-medium line-clamp-1">{user.name}</span>
+              <span className="hidden sm:inline text-white font-medium line-clamp-1">{user?.name || 'Customer'}</span>
             </button>
           ) : (
             <button

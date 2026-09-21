@@ -10,9 +10,11 @@ export default function HomePage() {
 
   const categories = ['All', 'Rings', 'Necklaces', 'Earrings', 'Bracelets'];
 
+  const safeProducts = Array.isArray(products) ? products : [];
+
   const filteredProducts = selectedCategory === 'All'
-    ? products
-    : products.filter(p => p.category.toLowerCase() === selectedCategory.toLowerCase());
+    ? safeProducts
+    : safeProducts.filter(p => p?.category && p.category.toLowerCase() === selectedCategory.toLowerCase());
 
   return (
     <div className="space-y-16 pb-16">

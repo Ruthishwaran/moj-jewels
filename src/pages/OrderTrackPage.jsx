@@ -15,16 +15,17 @@ import {
 
 export default function OrderTrackPage() {
   const { orders } = useStore();
+  const safeOrders = Array.isArray(orders) ? orders : [];
 
   const [searchId, setSearchId] = useState('');
-  const [trackedOrder, setTrackedOrder] = useState(orders[0] || null);
+  const [trackedOrder, setTrackedOrder] = useState(safeOrders[0] || null);
   const [errorMsg, setErrorMsg] = useState('');
 
   const handleSearchOrder = (e) => {
     e.preventDefault();
     setErrorMsg('');
     const cleanId = searchId.trim().toUpperCase();
-    const found = orders.find(o => o.id.toUpperCase() === cleanId);
+    const found = safeOrders.find(o => o.id?.toUpperCase() === cleanId);
     if (found) {
       setTrackedOrder(found);
     } else {
