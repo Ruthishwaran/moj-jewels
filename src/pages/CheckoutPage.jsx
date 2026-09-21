@@ -34,9 +34,9 @@ export default function CheckoutPage() {
   const [copiedUpi, setCopiedUpi] = useState(false);
 
   // Form Fields
-  const [customerName, setCustomerName] = useState(user.name || '');
+  const [customerName, setCustomerName] = useState(user?.name || '');
   const [customerPhone, setCustomerPhone] = useState('+91 98765 43210');
-  const [customerEmail, setCustomerEmail] = useState(user.email || '');
+  const [customerEmail, setCustomerEmail] = useState(user?.email || '');
   const [shippingAddress, setShippingAddress] = useState('');
   const [city, setCity] = useState('');
   const [pincode, setPincode] = useState('');

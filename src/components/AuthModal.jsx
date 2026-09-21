@@ -7,13 +7,12 @@ export default function AuthModal() {
     isAuthModalOpen,
     setIsAuthModalOpen,
     user,
-    setUser,
-    switchRole
+    setUser
   } = useStore();
 
   const [mode, setMode] = useState('login'); // 'login' or 'signup'
-  const [email, setEmail] = useState(user.email || '');
-  const [name, setName] = useState(user.name || '');
+  const [email, setEmail] = useState(user?.email || '');
+  const [name, setName] = useState(user?.name || '');
 
   if (!isAuthModalOpen) return null;
 
