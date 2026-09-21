@@ -13,6 +13,21 @@ export default function ProductModal() {
 
   const [quantity, setQuantity] = useState(1);
   const [activeImgIndex, setActiveImgIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+
+  // Auto 5-second slideshow for multi-image gallery
+  React.useEffect(() => {
+    if (!selectedProduct) return;
+    const list = Array.isArray(selectedProduct?.images) && selectedProduct.images.length > 0
+      ? selectedProduct.images
+      : [selectedProduct?.image || '/images/moj_logo.jpg'];
+    if (list.length <= 1 || isPaused) return;
+
+    const timer = setInterval(() => {
+      setActiveImgIndex(prev => (prev + 1) % list.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [selectedProduct, isPaused]);
 
   if (!selectedProduct) return null;
 
@@ -51,8 +66,12 @@ export default function ProductModal() {
         </button>
 
         <div className="grid grid-cols-1 md:grid-cols-2">
-          {/* Multi-Image Gallery Container */}
-          <div className="flex flex-col bg-slate-950 p-4 space-y-3">
+          {/* Multi-Image Gallery Container (5s Auto-slideshow with Pause on Hover) */}
+          <div
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
+            className="flex flex-col bg-slate-950 p-4 space-y-3"
+          >
             <div className="relative aspect-square w-full rounded-xl overflow-hidden border border-slate-800 bg-slate-900">
               <img
                 src={activeImage}

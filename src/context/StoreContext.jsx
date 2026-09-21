@@ -60,6 +60,9 @@ export const StoreProvider = ({ children }) => {
   const [cart, setCart] = useState(() => safeParseJSON('moj_cart', []));
   const [wishlist, setWishlist] = useState(() => safeParseJSON('moj_wishlist', []));
   const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [categories, setCategories] = useState(() => safeParseJSON('moj_categories', [
+    'All', 'Rings', 'Necklaces', 'Earrings', 'Bracelets', 'Antique Sets', 'Temple Jewellery', 'Bridal Sets'
+  ]));
 
   // PWA Prompt
   const [deferredPrompt, setDeferredPrompt] = useState(null);
@@ -102,6 +105,10 @@ export const StoreProvider = ({ children }) => {
   }, [wishlist]);
 
   useEffect(() => {
+    try { localStorage.setItem('moj_categories', JSON.stringify(categories)); } catch {}
+  }, [categories]);
+
+  useEffect(() => {
     try {
       if (user) {
         localStorage.setItem('moj_customer_user', JSON.stringify(user));
@@ -120,6 +127,32 @@ export const StoreProvider = ({ children }) => {
   useEffect(() => {
     try { localStorage.setItem('moj_registered_users', JSON.stringify(registeredUsers)); } catch {}
   }, [registeredUsers]);
+
+  // Listen to storage events across tabs & windows for instant live updates
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'moj_orders') setOrders(safeParseJSON('moj_orders', INITIAL_ORDERS));
+      if (e.key === 'moj_products') setProducts(safeParseJSON('moj_products', INITIAL_PRODUCTS));
+      if (e.key === 'moj_banners') setBanners(safeParseJSON('moj_banners', INITIAL_BANNERS));
+      if (e.key === 'moj_categories') setCategories(safeParseJSON('moj_categories', ['All', 'Rings', 'Necklaces', 'Earrings', 'Bracelets']));
+      if (e.key === 'moj_payment_config') setPaymentConfig(safeParseJSON('moj_payment_config', INITIAL_PAYMENT_CONFIG));
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  const addCategory = (catName) => {
+    if (!catName) return;
+    const clean = catName.trim();
+    if (!categories.includes(clean)) {
+      setCategories(prev => [...prev, clean]);
+    }
+  };
+
+  const deleteCategory = (catName) => {
+    if (catName === 'All') return;
+    setCategories(prev => prev.filter(c => c !== catName));
+  };
 
   // PWA setup
   useEffect(() => {
@@ -320,9 +353,23 @@ export const StoreProvider = ({ children }) => {
       ...orderData
     };
 
+    // Deduct inventory stock automatically for each ordered item
+    setProducts(prev => (Array.isArray(prev) ? prev : []).map(p => {
+      const itemInCart = safeCart.find(i => i.id === p.id);
+      if (itemInCart) {
+        const updatedStock = Math.max(0, (p.stock || 10) - (itemInCart.quantity || 1));
+        return { ...p, stock: updatedStock };
+      }
+      return p;
+    }));
+
     setOrders(prev => [newOrder, ...(Array.isArray(prev) ? prev : [])]);
     clearCart();
     return newOrder;
+  };
+
+  const deleteUserAccount = (userId) => {
+    setRegisteredUsers(prev => (Array.isArray(prev) ? prev : []).filter(u => u.id !== userId));
   };
 
   // Admin Actions
@@ -401,9 +448,13 @@ export const StoreProvider = ({ children }) => {
       registerCustomer,
       loginCustomer,
       logoutCustomer,
+      deleteUserAccount,
       isAdminAuthenticated,
       loginAdmin,
       logoutAdmin,
+      categories,
+      addCategory,
+      deleteCategory,
       products: Array.isArray(products) ? products : INITIAL_PRODUCTS,
       addProduct,
       editProduct,

@@ -83,12 +83,6 @@ export default function AdminLoginPage() {
             </p>
           )}
 
-          <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800 text-[11px] text-slate-400 space-y-1">
-            <span className="text-amber-400 font-bold block">Protected Access Credentials:</span>
-            <p>Username: <code className="text-white font-mono bg-slate-950 px-1 py-0.5 rounded">admin@mojjewels.com</code></p>
-            <p>Password: <code className="text-white font-mono bg-slate-950 px-1 py-0.5 rounded">MOJ@0606</code></p>
-          </div>
-
           <button
             type="submit"
             className="w-full bg-gradient-to-r from-amber-600 via-gold-500 to-amber-600 text-black font-bold py-3.5 rounded-xl text-xs flex items-center justify-center space-x-2 shadow-xl hover:brightness-110 transition-all active:scale-95"

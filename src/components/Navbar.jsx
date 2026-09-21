@@ -25,7 +25,8 @@ export default function Navbar() {
     setIsAuthModalOpen,
     user,
     logoutCustomer,
-    installPwaApp
+    installPwaApp,
+    categories
   } = useStore();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -196,8 +197,8 @@ export default function Navbar() {
             className="fixed inset-0 bg-black/70 backdrop-blur-sm animate-fade-in"
           />
 
-          {/* Left Drawer */}
-          <div className="relative z-10 w-80 max-w-[85vw] bg-[#0b0f19] border-r border-gold-500/30 h-full p-6 flex flex-col justify-between overflow-y-auto shadow-2xl animate-slide-right">
+          {/* Left Drawer (Full Screen Height & 75vw Width) */}
+          <div className="relative z-10 w-72 sm:w-80 max-w-[75vw] bg-[#0b0f19] border-r border-gold-500/30 h-screen top-0 bottom-0 p-5 flex flex-col justify-between overflow-y-auto shadow-2xl animate-slide-right">
             <div>
               {/* Header */}
               <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-6">
@@ -256,10 +257,10 @@ export default function Navbar() {
                 </button>
               </div>
 
-              {/* Categories Section */}
+              {/* Dynamic Categories Section */}
               <div className="mt-8 space-y-3">
                 <span className="text-[10px] font-bold uppercase text-gold-400 tracking-wider block">Shop Categories</span>
-                {['Rings', 'Necklaces', 'Earrings', 'Bracelets'].map((cat) => (
+                {(categories || ['Rings', 'Necklaces', 'Earrings', 'Bracelets']).filter(c => c !== 'All').map((cat) => (
                   <button
                     key={cat}
                     onClick={() => { setCurrentPage('shop'); setMobileMenuOpen(false); }}

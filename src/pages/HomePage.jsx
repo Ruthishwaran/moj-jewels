@@ -5,10 +5,10 @@ import ProductCard from '../components/ProductCard';
 import { Sparkles, ShieldCheck, Download, Search, Tag, ArrowRight, Award } from 'lucide-react';
 
 export default function HomePage() {
-  const { products, coupons, setCurrentPage, installPwaApp } = useStore();
+  const { products, coupons, setCurrentPage, installPwaApp, categories: storeCategories } = useStore();
   const [selectedCategory, setSelectedCategory] = useState('All');
 
-  const categories = ['All', 'Rings', 'Necklaces', 'Earrings', 'Bracelets'];
+  const categories = storeCategories || ['All', 'Rings', 'Necklaces', 'Earrings', 'Bracelets'];
 
   const safeProducts = Array.isArray(products) ? products : [];
 

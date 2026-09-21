@@ -33,15 +33,24 @@ export default function AdminDashboard() {
     toggleCouponStatus,
     deleteCoupon,
     paymentConfig,
-    setPaymentConfig
+    setPaymentConfig,
+    categories,
+    addCategory,
+    deleteCategory,
+    registeredUsers,
+    deleteUserAccount,
+    banners
   } = useStore();
 
-  const [activeTab, setActiveTab] = useState('payments'); // 'payments', 'orders', 'products', 'coupons', 'qr-settings'
+  const [activeTab, setActiveTab] = useState('payments'); // 'payments', 'orders', 'products', 'categories', 'customers', 'coupons', 'qr-settings'
+
+  // Dynamic Category State
+  const [newCatInput, setNewCatInput] = useState('');
 
   // Product Modal State
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const [newProdTitle, setNewProdTitle] = useState('');
-  const [newProdCategory, setNewProdCategory] = useState('Rings');
+  const [newProdCategory, setNewProdCategory] = useState(categories && categories[1] ? categories[1] : 'Rings');
   const [newProdPrice, setNewProdPrice] = useState('');
   const [newProdOrigPrice, setNewProdOrigPrice] = useState('');
   const [newProdKarat, setNewProdKarat] = useState('18k Gold & VVS Diamond');
@@ -51,7 +60,7 @@ export default function AdminDashboard() {
   const [newProdDesc, setNewProdDesc] = useState('');
 
   // Order Tab Filter State
-  const [orderFilterTab, setOrderFilterTab] = useState('All'); // 'All', 'Pending Verification', 'Verified', 'Shipped', 'Delivered', 'Rejected'
+  const [orderFilterTab, setOrderFilterTab] = useState('All'); // 'All', 'Pending Verification', 'Verified', 'Packaging', 'Shipped', 'Delivered', 'Rejected', 'Returned'
 
   // Coupon Modal State
   const [isAddCouponOpen, setIsAddCouponOpen] = useState(false);
@@ -70,6 +79,17 @@ export default function AdminDashboard() {
   const [editIfsc, setEditIfsc] = useState(paymentConfig.ifscCode);
   const [editQrImg, setEditQrImg] = useState(paymentConfig.qrImageUrl);
   const [qrSaveMsg, setQrSaveMsg] = useState('');
+
+  // Local Storage QR Code Image Reader
+  const handleQrFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setEditQrImg(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
 
   // Shipping Modal State
   const [editingOrderForShipping, setEditingOrderForShipping] = useState(null);
@@ -294,6 +314,30 @@ export default function AdminDashboard() {
         </button>
 
         <button
+          onClick={() => setActiveTab('categories')}
+          className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all ${
+            activeTab === 'categories'
+              ? 'bg-amber-500 text-black shadow-lg'
+              : 'bg-slate-900 border border-slate-800 text-slate-300 hover:text-white'
+          }`}
+        >
+          <Tag className="w-4 h-4 text-amber-400" />
+          <span>Categories ({categories?.length || 0})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('customers')}
+          className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all ${
+            activeTab === 'customers'
+              ? 'bg-amber-500 text-black shadow-lg'
+              : 'bg-slate-900 border border-slate-800 text-slate-300 hover:text-white'
+          }`}
+        >
+          <User className="w-4 h-4 text-emerald-400" />
+          <span>Customer Accounts ({registeredUsers?.length || 0})</span>
+        </button>
+
+        <button
           onClick={() => setActiveTab('coupons')}
           className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all ${
             activeTab === 'coupons'
@@ -302,7 +346,7 @@ export default function AdminDashboard() {
           }`}
         >
           <Tag className="w-4 h-4" />
-          <span>Manage Coupons & Banners</span>
+          <span>Coupons & Banners</span>
         </button>
 
         <button
@@ -314,7 +358,7 @@ export default function AdminDashboard() {
           }`}
         >
           <Settings className="w-4 h-4" />
-          <span>Store QR & Bank Config</span>
+          <span>GPay QR & Bank Config</span>
         </button>
       </div>
 
@@ -951,15 +995,38 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            <div>
-              <label className="text-slate-300 font-medium block mb-1">Payment QR Code Image URL</label>
+            <div className="space-y-2">
+              <label className="text-gold-300 font-semibold block mb-1">
+                Upload GPay / UPI QR Code (Select from Phone/Laptop Storage)
+              </label>
               <input
-                type="text"
-                required
-                value={editQrImg}
-                onChange={(e) => setEditQrImg(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white text-[11px]"
+                type="file"
+                accept="image/*"
+                onChange={handleQrFileUpload}
+                className="w-full text-xs text-slate-300 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-gold-500 file:text-black hover:file:bg-gold-400 cursor-pointer bg-slate-900 border border-slate-700 rounded-xl p-1"
               />
+
+              {editQrImg && (
+                <div className="pt-2 flex items-center space-x-4 bg-slate-950 p-3 rounded-xl border border-slate-800">
+                  <div className="w-20 h-20 bg-white p-1 rounded-lg border border-gold-500/40 shrink-0">
+                    <img src={editQrImg} alt="GPay QR Preview" className="w-full h-full object-contain" />
+                  </div>
+                  <div>
+                    <span className="text-xs text-gold-400 font-semibold block">GPay QR Preview Ready</span>
+                    <span className="text-[10px] text-slate-400">Customers will scan this QR during UPI payment checkout.</span>
+                  </div>
+                </div>
+              )}
+
+              <div className="pt-2">
+                <span className="text-[10px] text-slate-400 block mb-1">Or QR Image URL:</span>
+                <input
+                  type="text"
+                  value={editQrImg}
+                  onChange={(e) => setEditQrImg(e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-white text-[11px]"
+                />
+              </div>
             </div>
 
             {qrSaveMsg && (
@@ -975,6 +1042,107 @@ export default function AdminDashboard() {
               Save Store Payment Settings
             </button>
           </form>
+        </div>
+      )}
+
+      {/* TAB 6: Dynamic Categories Management */}
+      {activeTab === 'categories' && (
+        <div className="glass-card p-6 md:p-8 rounded-2xl border border-amber-500/40 space-y-6 max-w-3xl mx-auto animate-fade-in">
+          <div className="border-b border-slate-800 pb-4 flex justify-between items-center">
+            <div>
+              <h2 className="text-2xl font-serif font-bold text-white flex items-center gap-2">
+                <Tag className="w-6 h-6 text-gold-400" /> Dynamic Category Management
+              </h2>
+              <p className="text-xs text-slate-400 mt-1">
+                Add custom categories for products (e.g. Antique Sets, Temple Jewellery, Matte Bangles).
+              </p>
+            </div>
+          </div>
+
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (newCatInput) {
+                addCategory(newCatInput);
+                setNewCatInput('');
+              }
+            }}
+            className="flex gap-3 text-xs"
+          >
+            <input
+              type="text"
+              required
+              placeholder="e.g. Temple Jewellery"
+              value={newCatInput}
+              onChange={(e) => setNewCatInput(e.target.value)}
+              className="flex-1 bg-slate-900 border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-gold-400"
+            />
+            <button
+              type="submit"
+              className="btn-gold-shimmer px-6 py-3 rounded-xl font-bold text-xs"
+            >
+              + Add Category
+            </button>
+          </form>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+            {(categories || []).map((cat) => (
+              <div key={cat} className="flex justify-between items-center p-3.5 bg-slate-900/80 rounded-xl border border-slate-800 text-xs">
+                <span className="text-white font-semibold">{cat}</span>
+                {cat !== 'All' && (
+                  <button
+                    onClick={() => {
+                      if (confirm(`Remove category "${cat}"?`)) deleteCategory(cat);
+                    }}
+                    className="text-slate-500 hover:text-rose-400 p-1"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 7: Customer Account Control */}
+      {activeTab === 'customers' && (
+        <div className="glass-card p-6 md:p-8 rounded-2xl border border-amber-500/40 space-y-6 animate-fade-in">
+          <div className="border-b border-slate-800 pb-4">
+            <h2 className="text-2xl font-serif font-bold text-white flex items-center gap-2">
+              <User className="w-6 h-6 text-emerald-400" /> Registered Customer Accounts ({registeredUsers?.length || 0})
+            </h2>
+            <p className="text-xs text-slate-400 mt-1">
+              Inspect registered business clients & retail customers.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {(registeredUsers || []).map((u) => (
+              <div key={u.id} className="p-4 bg-slate-900/90 rounded-xl border border-slate-800 flex justify-between items-center text-xs space-y-1">
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <strong className="text-white font-semibold text-sm">{u.name}</strong>
+                    <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">
+                      {u.role || 'Customer'}
+                    </span>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-0.5">{u.email}</p>
+                  <p className="text-slate-400 text-[11px]">{u.phone || 'No phone provided'}</p>
+                </div>
+
+                <button
+                  onClick={() => {
+                    if (confirm(`Remove account for ${u.name}?`)) deleteUserAccount(u.id);
+                  }}
+                  className="p-2 text-slate-500 hover:text-rose-400 bg-slate-950 rounded-lg border border-slate-800"
+                  title="Remove Account"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
