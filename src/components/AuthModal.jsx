@@ -173,12 +173,13 @@ export default function AuthModal() {
 
           {mode === 'signup' && (
             <div>
-              <label className="text-xs text-slate-300 font-medium block mb-1">Mobile Number</label>
+              <label className="text-xs text-slate-300 font-medium block mb-1">Mobile Number *</label>
               <div className="relative">
                 <Phone className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="tel"
-                  placeholder="+91 98765 43210"
+                  required
+                  placeholder="+91 82488 75865"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   className="w-full bg-slate-900 border border-slate-700/80 rounded-xl pl-9 pr-3 py-2.5 text-xs text-white focus:outline-none focus:border-gold-400"

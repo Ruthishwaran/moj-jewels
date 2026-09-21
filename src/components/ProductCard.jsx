@@ -29,21 +29,33 @@ export default function ProductCard({ product }) {
     ? Math.round(((originalPrice - price) / originalPrice) * 100)
     : 0;
 
+  const isOutOfStock = stock <= 0;
+
   return (
     <div className="glass-card rounded-2xl overflow-hidden border border-slate-800 hover:border-gold-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-gold-500/10 group flex flex-col h-full">
       {/* Product Image Area */}
-      <div className="relative aspect-square overflow-hidden bg-slate-950">
+      <div 
+        onClick={() => setSelectedProduct(product)}
+        className="relative aspect-square overflow-hidden bg-slate-950 cursor-pointer"
+      >
         <img
           src={image}
           alt={title}
-          className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500"
+          className={`w-full h-full object-cover group-hover:scale-108 transition-transform duration-500 ${isOutOfStock ? 'grayscale opacity-60' : ''}`}
           onError={(e) => { e.target.src = '/images/moj_logo.jpg'; }}
         />
 
         {/* Discount Badge */}
-        {discountPercent > 0 && (
+        {discountPercent > 0 && !isOutOfStock && (
           <span className="absolute top-3 left-3 bg-gradient-to-r from-amber-600 to-gold-500 text-black font-bold text-[11px] px-2.5 py-1 rounded-full shadow-md uppercase tracking-wider">
             {discountPercent}% OFF
+          </span>
+        )}
+
+        {/* Out of Stock Red Badge */}
+        {isOutOfStock && (
+          <span className="absolute top-3 left-3 bg-rose-600 text-white font-bold text-[11px] px-3 py-1 rounded-full shadow-lg uppercase tracking-wider animate-pulse">
+            OUT OF STOCK
           </span>
         )}
 
@@ -63,14 +75,14 @@ export default function ProductCard({ product }) {
           <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-current text-white' : ''}`} />
         </button>
 
-        {/* Quick View Hover Button */}
+        {/* View Details Hover Button */}
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none group-hover:pointer-events-auto">
           <button
             onClick={() => setSelectedProduct(product)}
             className="bg-gold-500 hover:bg-gold-400 text-black font-semibold text-xs px-4 py-2.5 rounded-xl shadow-xl flex items-center space-x-1.5 transform translate-y-2 group-hover:translate-y-0 transition-all"
           >
             <Eye className="w-4 h-4" />
-            <span>Quick Inspect</span>
+            <span>View Details</span>
           </button>
         </div>
       </div>
@@ -112,13 +124,22 @@ export default function ProductCard({ product }) {
                 </span>
               )}
             </div>
-            <span className="text-[10px] text-emerald-400">In Stock ({stock} units)</span>
+            {isOutOfStock ? (
+              <span className="text-[10px] text-rose-400 font-bold uppercase">Out of Stock (0 units)</span>
+            ) : (
+              <span className="text-[10px] text-emerald-400">In Stock ({stock} units)</span>
+            )}
           </div>
 
           <button
-            onClick={() => addToCart(product)}
-            className="bg-gold-500/10 hover:bg-gold-500 hover:text-black text-gold-400 border border-gold-500/40 p-2.5 rounded-xl transition-all active:scale-95 flex items-center justify-center"
-            title="Add to Cart"
+            onClick={() => !isOutOfStock && addToCart(product)}
+            disabled={isOutOfStock}
+            className={`p-2.5 rounded-xl transition-all flex items-center justify-center ${
+              isOutOfStock
+                ? 'bg-slate-800 text-slate-600 border border-slate-700 cursor-not-allowed'
+                : 'bg-gold-500/10 hover:bg-gold-500 hover:text-black text-gold-400 border border-gold-500/40 active:scale-95'
+            }`}
+            title={isOutOfStock ? 'Item Out of Stock' : 'Add to Cart'}
           >
             <ShoppingBag className="w-4 h-4" />
           </button>

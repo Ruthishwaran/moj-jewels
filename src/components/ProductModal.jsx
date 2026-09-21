@@ -48,9 +48,13 @@ export default function ProductModal() {
     : [selectedProduct.image || '/images/moj_logo.jpg'];
   const activeImage = imageList[activeImgIndex] || imageList[0];
 
+  const stock = typeof selectedProduct.stock === 'number' ? selectedProduct.stock : (parseInt(selectedProduct.stock) || 0);
+  const isOutOfStock = stock <= 0;
+
   const isWishlisted = isInWishlist(id);
 
   const handleAddToCart = () => {
+    if (isOutOfStock) return;
     addToCart(selectedProduct, quantity);
     setSelectedProduct(null);
   };
@@ -76,12 +80,17 @@ export default function ProductModal() {
               <img
                 src={activeImage}
                 alt={title}
-                className="w-full h-full object-cover transition-all duration-300"
+                className={`w-full h-full object-cover transition-all duration-300 ${isOutOfStock ? 'grayscale opacity-60' : ''}`}
                 onError={(e) => { e.target.src = '/images/moj_logo.jpg'; }}
               />
               <span className="absolute bottom-3 left-3 bg-black/70 backdrop-blur text-gold-300 text-[10px] font-bold px-2.5 py-1 rounded-full border border-gold-500/30">
                 {karat}
               </span>
+              {isOutOfStock && (
+                <span className="absolute top-3 left-3 bg-rose-600 text-white font-bold text-xs px-3 py-1 rounded-full uppercase shadow-md animate-pulse">
+                  OUT OF STOCK
+                </span>
+              )}
             </div>
 
             {/* Thumbnails Row if multiple images exist */}
@@ -116,7 +125,7 @@ export default function ProductModal() {
                 {title}
               </h2>
 
-              <div className="flex items-baseline space-x-3 mb-4">
+              <div className="flex items-baseline space-x-3 mb-2">
                 <span className="text-2xl font-bold text-white">
                   ₹{price.toLocaleString()}
                 </span>
@@ -124,6 +133,14 @@ export default function ProductModal() {
                   <span className="text-slate-500 line-through text-sm">
                     ₹{originalPrice.toLocaleString()}
                   </span>
+                )}
+              </div>
+
+              <div className="mb-4">
+                {isOutOfStock ? (
+                  <span className="text-xs text-rose-400 font-bold uppercase">Out of Stock (0 units remaining)</span>
+                ) : (
+                  <span className="text-xs text-emerald-400 font-semibold">Available Stock: {stock} units</span>
                 )}
               </div>
 
@@ -159,14 +176,16 @@ export default function ProductModal() {
                 <div className="flex items-center bg-slate-900 border border-slate-700 rounded-xl px-3 py-2">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="text-slate-400 hover:text-white px-2 font-bold"
+                    disabled={isOutOfStock}
+                    className="text-slate-400 hover:text-white px-2 font-bold disabled:opacity-30"
                   >
                     -
                   </button>
                   <span className="text-white font-semibold px-3 text-sm">{quantity}</span>
                   <button
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="text-slate-400 hover:text-white px-2 font-bold"
+                    onClick={() => setQuantity(Math.min(stock, quantity + 1))}
+                    disabled={isOutOfStock || quantity >= stock}
+                    className="text-slate-400 hover:text-white px-2 font-bold disabled:opacity-30"
                   >
                     +
                   </button>
@@ -174,10 +193,15 @@ export default function ProductModal() {
 
                 <button
                   onClick={handleAddToCart}
-                  className="flex-1 btn-gold-shimmer py-3 px-6 rounded-xl font-semibold text-sm flex items-center justify-center space-x-2"
+                  disabled={isOutOfStock}
+                  className={`flex-1 py-3 px-6 rounded-xl font-semibold text-sm flex items-center justify-center space-x-2 transition-all ${
+                    isOutOfStock
+                      ? 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
+                      : 'btn-gold-shimmer text-black cursor-pointer'
+                  }`}
                 >
                   <ShoppingBag className="w-4 h-4" />
-                  <span>Add to Bag - ₹{(price * quantity).toLocaleString()}</span>
+                  <span>{isOutOfStock ? 'Currently Out of Stock' : `Add to Bag - ₹${(price * quantity).toLocaleString()}`}</span>
                 </button>
               </div>
 

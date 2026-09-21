@@ -62,8 +62,10 @@ export default function AdminDashboard() {
   const [newProdImages, setNewProdImages] = useState([]); // Base64 images array from local storage file picker
   const [newProdDesc, setNewProdDesc] = useState('');
 
-  // Order Tab Filter State
-  const [orderFilterTab, setOrderFilterTab] = useState('All'); // 'All', 'Pending Verification', 'Verified', 'Packaging', 'Shipped', 'Delivered', 'Rejected', 'Returned'
+  // Order Tab & Date Filter State
+  const [orderFilterTab, setOrderFilterTab] = useState('All'); // 'All', 'Pending Verification', 'Verified', 'Shipped', 'Delivered', 'Rejected'
+  const [selectedOrderDate, setSelectedOrderDate] = useState(''); // 'YYYY-MM-DD'
+  const [dateQuickFilter, setDateQuickFilter] = useState('All'); // 'All', 'Today', 'Yesterday', 'Week'
 
   // Coupon Modal State
   const [isAddCouponOpen, setIsAddCouponOpen] = useState(false);
@@ -459,9 +461,14 @@ export default function AdminDashboard() {
       {activeTab === 'orders' && (
         <div className="space-y-6 animate-fade-in">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
-            <h2 className="text-xl font-serif font-bold text-white flex items-center gap-2">
-              <Package className="w-5 h-5 text-gold-400" /> Order Management & Tracking
-            </h2>
+            <div>
+              <h2 className="text-xl font-serif font-bold text-white flex items-center gap-2">
+                <Package className="w-5 h-5 text-gold-400" /> Order Management & Tracking
+              </h2>
+              <p className="text-xs text-slate-400 mt-1">
+                Filter orders by status and date range for daily store fulfillment.
+              </p>
+            </div>
 
             {/* Categorized Order Status Tabs */}
             <div className="flex flex-wrap gap-1.5 bg-slate-950 p-1.5 rounded-xl border border-slate-800 text-xs">
@@ -488,15 +495,96 @@ export default function AdminDashboard() {
             </div>
           </div>
 
+          {/* Date Filter Bar */}
+          <div className="bg-slate-900/90 p-4 rounded-xl border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+            <div className="flex items-center space-x-2 flex-wrap gap-y-2">
+              <span className="text-gold-300 font-semibold text-xs">📅 Filter by Date:</span>
+              {[
+                { key: 'All', label: 'All Dates' },
+                { key: 'Today', label: 'Today' },
+                { key: 'Yesterday', label: 'Yesterday' },
+                { key: 'Week', label: 'Last 7 Days' }
+              ].map((d) => (
+                <button
+                  key={d.key}
+                  onClick={() => {
+                    setDateQuickFilter(d.key);
+                    setSelectedOrderDate('');
+                  }}
+                  className={`px-3 py-1 rounded-lg font-medium transition-all ${
+                    dateQuickFilter === d.key && !selectedOrderDate
+                      ? 'bg-gold-500 text-black font-bold'
+                      : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                  }`}
+                >
+                  {d.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Custom Date Input */}
+            <div className="flex items-center space-x-2">
+              <span className="text-slate-400 text-[11px]">Specific Date:</span>
+              <input
+                type="date"
+                value={selectedOrderDate}
+                onChange={(e) => {
+                  setSelectedOrderDate(e.target.value);
+                  setDateQuickFilter('Custom');
+                }}
+                className="bg-slate-950 border border-slate-700 text-white rounded-lg px-2.5 py-1 text-xs focus:outline-none focus:border-gold-400"
+              />
+              {selectedOrderDate && (
+                <button
+                  onClick={() => {
+                    setSelectedOrderDate('');
+                    setDateQuickFilter('All');
+                  }}
+                  className="text-slate-500 hover:text-rose-400 text-xs p-1"
+                  title="Clear Date Filter"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          </div>
+
           <div className="space-y-4">
             {safeOrders
               .filter(ord => {
-                if (orderFilterTab === 'All') return true;
-                if (orderFilterTab === 'Pending Verification') return ord.paymentStatus === 'Pending Verification';
-                if (orderFilterTab === 'Verified') return ord.paymentStatus === 'Verified';
-                if (orderFilterTab === 'Shipped') return ord.orderStatus === 'Shipped';
-                if (orderFilterTab === 'Delivered') return ord.orderStatus === 'Delivered';
-                if (orderFilterTab === 'Rejected') return ord.paymentStatus === 'Rejected';
+                // Status Filter
+                if (orderFilterTab === 'Pending Verification' && ord.paymentStatus !== 'Pending Verification') return false;
+                if (orderFilterTab === 'Verified' && ord.paymentStatus !== 'Verified') return false;
+                if (orderFilterTab === 'Shipped' && ord.orderStatus !== 'Shipped') return false;
+                if (orderFilterTab === 'Delivered' && ord.orderStatus !== 'Delivered') return false;
+                if (orderFilterTab === 'Rejected' && ord.paymentStatus !== 'Rejected') return false;
+
+                // Date Filter
+                if (!ord.date) return true;
+                const ordDateObj = new Date(ord.date);
+                const todayStr = new Date().toISOString().split('T')[0];
+                const ordDateStr = ordDateObj.toISOString().split('T')[0];
+
+                if (selectedOrderDate) {
+                  return ordDateStr === selectedOrderDate;
+                }
+
+                if (dateQuickFilter === 'Today') {
+                  return ordDateStr === todayStr;
+                }
+
+                if (dateQuickFilter === 'Yesterday') {
+                  const yestObj = new Date();
+                  yestObj.setDate(yestObj.getDate() - 1);
+                  return ordDateStr === yestObj.toISOString().split('T')[0];
+                }
+
+                if (dateQuickFilter === 'Week') {
+                  const weekAgo = new Date();
+                  weekAgo.setDate(weekAgo.getDate() - 7);
+                  return ordDateObj >= weekAgo;
+                }
+
                 return true;
               })
               .map((ord) => (
@@ -505,6 +593,9 @@ export default function AdminDashboard() {
                   <div>
                     <span className="text-gold-400 font-mono font-bold text-sm mr-3">Order ID: {ord.id}</span>
                     <span className="text-slate-300 font-medium">{ord.customerName} ({ord.customerPhone})</span>
+                    <span className="text-slate-500 text-[11px] block mt-0.5">
+                      📅 Date: {new Date(ord.date).toLocaleString()}
+                    </span>
                   </div>
 
                   <div className="flex items-center gap-2">

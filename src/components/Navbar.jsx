@@ -85,7 +85,9 @@ export default function Navbar() {
               <h1 className="text-lg sm:text-2xl font-serif font-bold tracking-widest text-white flex items-center gap-1">
                 MOJ <span className="text-gold-400 font-sans text-base sm:text-xl font-light">JEWELS</span>
               </h1>
-              <p className="text-[8px] sm:text-[9px] tracking-widest text-gold-300/90 uppercase font-medium">Wholesale & Retail</p>
+              <p className="text-[8px] sm:text-[9px] tracking-widest text-gold-300 uppercase font-medium">
+                Timeless Beauty Made For You 🩷 • Gudiyatham, Vellore
+              </p>
             </div>
           </div>
         </div>

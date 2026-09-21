@@ -192,13 +192,51 @@ export const StoreProvider = ({ children }) => {
     }
   };
 
-  // Customer Auth Functions
+  // Web Audio API Order Chime Generator
+  const playOrderSuccessSound = () => {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      
+      const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6 melodic chord
+      notes.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.08);
+        
+        gain.gain.setValueAtTime(0.18, ctx.currentTime + idx * 0.08);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + idx * 0.08 + 0.6);
+        
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        
+        osc.start(ctx.currentTime + idx * 0.08);
+        osc.stop(ctx.currentTime + idx * 0.08 + 0.6);
+      });
+    } catch (e) {
+      console.warn('Audio sound playback skipped:', e);
+    }
+  };
+
+  // Customer Auth Functions (Enforces Unique Email & Phone)
   const registerCustomer = ({ name, email, password, phone, accountType = 'retail' }) => {
     const cleanEmail = (email || '').trim().toLowerCase();
-    const existing = registeredUsers.find(u => u.email.toLowerCase() === cleanEmail);
-    if (existing) {
-      return { success: false, message: 'An account with this email already exists. Please login instead.' };
+    const cleanPhone = (phone || '').trim().replace(/[\s\-\(\)]/g, '');
+
+    const existingEmail = registeredUsers.find(u => u.email.toLowerCase() === cleanEmail);
+    if (existingEmail) {
+      return { success: false, message: 'An account with this email address already exists. Please login instead.' };
     }
+
+    if (cleanPhone) {
+      const existingPhone = registeredUsers.find(u => u.phone && u.phone.replace(/[\s\-\(\)]/g, '') === cleanPhone);
+      if (existingPhone) {
+        return { success: false, message: 'An account with this mobile phone number already exists. Please login instead.' };
+      }
+    }
+
     const isWholesale = accountType === 'wholesale';
     const newUser = {
       id: `cust-${Date.now()}`,
@@ -224,7 +262,7 @@ export const StoreProvider = ({ children }) => {
 
   const loginCustomer = (email, password) => {
     const cleanEmail = (email || '').trim().toLowerCase();
-    const found = registeredUsers.find(u => u.email.toLowerCase() === cleanEmail);
+    const found = registeredUsers.find(u => u.email.toLowerCase() === cleanEmail || (u.phone && u.phone.replace(/[\s\-\(\)]/g, '') === cleanEmail));
     if (found) {
       if (password && found.password && found.password !== password) {
         return { success: false, message: 'Incorrect password. Please try again.' };
@@ -298,24 +336,55 @@ export const StoreProvider = ({ children }) => {
     setCurrentPage('home');
   };
 
-  // Cart Functions
+  // Cart Functions (Enforces Stock Allocation Limits)
   const addToCart = (product, quantity = 1) => {
     if (!product) return;
+    const maxStock = typeof product.stock === 'number' ? product.stock : (parseInt(product.stock) || 0);
+
+    if (maxStock <= 0) {
+      alert(`Sorry! "${product.title}" is currently OUT OF STOCK.`);
+      return;
+    }
+
+    let isStockExceeded = false;
+
     setCart(prev => {
       const safePrev = Array.isArray(prev) ? prev : [];
       const existing = safePrev.find(item => item.id === product.id);
+      const currentQty = existing ? existing.quantity : 0;
+
+      if (currentQty + quantity > maxStock) {
+        isStockExceeded = true;
+        return safePrev;
+      }
+
       if (existing) {
         return safePrev.map(item => item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item);
       }
       return [...safePrev, { ...product, quantity }];
     });
+
+    if (isStockExceeded) {
+      const existingInCart = (cart || []).find(i => i.id === product.id);
+      const currQty = existingInCart ? existingInCart.quantity : 0;
+      alert(`Stock Limit Reached! Only ${maxStock} units of "${product.title}" are available in store. You already have ${currQty} unit(s) in your bag.`);
+      return;
+    }
+
     setIsCartOpen(true);
   };
 
   const updateCartQty = (productId, delta) => {
+    const targetProduct = (products || []).find(p => p.id === productId);
+    const maxStock = targetProduct ? (typeof targetProduct.stock === 'number' ? targetProduct.stock : parseInt(targetProduct.stock) || 10) : 10;
+
     setCart(prev => (Array.isArray(prev) ? prev : []).map(item => {
       if (item.id === productId) {
         const newQty = item.quantity + delta;
+        if (delta > 0 && newQty > maxStock) {
+          alert(`Stock Limit Reached! Maximum ${maxStock} units available for this item.`);
+          return item;
+        }
         return newQty > 0 ? { ...item, quantity: newQty } : item;
       }
       return item;
@@ -375,9 +444,15 @@ export const StoreProvider = ({ children }) => {
     setAppliedCoupon(null);
   };
 
-  // Calculation
+  // Financial Calculations & 5% Wholesale Discount
   const safeCart = Array.isArray(cart) ? cart : [];
-  const subtotal = safeCart.reduce((acc, item) => acc + ((item.price || 0) * (item.quantity || 1)), 0);
+  const rawSubtotal = safeCart.reduce((acc, item) => acc + ((item.price || 0) * (item.quantity || 1)), 0);
+  
+  // 5% Wholesale Discount for approved Wholesalers
+  const isWholesaleApprovedUser = user?.accountType === 'wholesale' && user?.isApproved !== false;
+  const wholesaleDiscountAmount = isWholesaleApprovedUser ? Math.round(rawSubtotal * 0.05) : 0;
+  const subtotal = Math.max(0, rawSubtotal - wholesaleDiscountAmount);
+
   let discountAmount = 0;
   if (appliedCoupon) {
     if (appliedCoupon.discountType === 'percentage') {
@@ -388,7 +463,7 @@ export const StoreProvider = ({ children }) => {
   }
   const grandTotal = Math.max(0, subtotal - discountAmount);
 
-  // Orders
+  // Orders Placement
   const placeOrder = (orderData) => {
     const newOrderId = `MOJ-${Math.floor(10000 + Math.random() * 90000)}`;
     const newOrder = {
@@ -396,6 +471,7 @@ export const StoreProvider = ({ children }) => {
       date: new Date().toISOString(),
       items: [...safeCart],
       subtotal,
+      wholesaleDiscount: wholesaleDiscountAmount,
       discount: discountAmount,
       total: grandTotal,
       couponCode: appliedCoupon ? appliedCoupon.code : '',
@@ -418,6 +494,10 @@ export const StoreProvider = ({ children }) => {
 
     setOrders(prev => [newOrder, ...(Array.isArray(prev) ? prev : [])]);
     clearCart();
+
+    // Play Satisfying Order Completion Audio Chime
+    playOrderSuccessSound();
+
     return newOrder;
   };
 
