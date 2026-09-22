@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../context/StoreContext';
+import { compressImage } from '../utils/imageCompressor';
 import {
   ShieldCheck,
   Check,
@@ -86,14 +87,11 @@ export default function AdminDashboard() {
   const [qrSaveMsg, setQrSaveMsg] = useState('');
 
   // Local Storage QR Code Image Reader
-  const handleQrFileUpload = (e) => {
+  const handleQrFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setEditQrImg(reader.result);
-    };
-    reader.readAsDataURL(file);
+    const compressed = await compressImage(file, 800, 0.75);
+    setEditQrImg(compressed);
   };
 
   // Shipping Modal State
@@ -119,18 +117,15 @@ export default function AdminDashboard() {
   const marginPercent = totalRevenue > 0 ? ((grossProfit / totalRevenue) * 100).toFixed(1) : 0;
   const avgOrderValue = verifiedOrders.length > 0 ? Math.round(totalRevenue / verifiedOrders.length) : 0;
 
-  // Handle Local File Selection (Laptop / Mobile Local Storage)
-  const handleImageFileUpload = (e) => {
+  // Handle Local File Selection (Laptop / Mobile Local Storage) with Auto-Compression
+  const handleImageFileUpload = async (e) => {
     const files = Array.from(e.target.files);
     if (!files.length) return;
 
-    files.forEach(file => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setNewProdImages(prev => [...prev, reader.result]);
-      };
-      reader.readAsDataURL(file);
-    });
+    for (const file of files) {
+      const compressed = await compressImage(file, 800, 0.75);
+      setNewProdImages(prev => [...prev, compressed]);
+    }
   };
 
   const removeUploadedImage = (index) => {

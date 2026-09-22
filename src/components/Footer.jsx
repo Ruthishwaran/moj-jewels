@@ -1,6 +1,7 @@
 import React from 'react';
 import { useStore } from '../context/StoreContext';
-import { Sparkles, Shield, Truck, Award, QrCode, Phone, Mail, MapPin, MessageCircle, Instagram, Youtube, Lock } from 'lucide-react';
+import { Sparkles, Shield, Truck, Award, QrCode, Phone, Mail, MapPin, Instagram, Youtube, Lock } from 'lucide-react';
+import WhatsAppIcon from './WhatsAppIcon';
 
 export default function Footer() {
   const { setCurrentPage } = useStore();
@@ -36,12 +37,10 @@ export default function Footer() {
                   href={whatsappUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="w-9 h-9 rounded-full bg-emerald-500/20 hover:bg-emerald-500 text-emerald-400 hover:text-white border border-emerald-500/40 flex items-center justify-center transition-colors shadow-md"
+                  className="w-9 h-9 rounded-full bg-[#25D366]/20 hover:bg-[#25D366] text-[#25D366] hover:text-white border border-[#25D366]/40 flex items-center justify-center transition-colors shadow-md"
                   title="WhatsApp DM"
                 >
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                    <path d="M12.031 0C5.396 0 0 5.397 0 12.035c0 2.116.553 4.184 1.603 6.004L0 24l6.136-1.609a11.95 11.95 0 005.895 1.558h.005c6.634 0 12.03-5.397 12.03-12.035A12.003 12.003 0 0012.031 0zm0 21.97h-.004a9.934 9.934 0 01-5.066-1.39l-.364-.216-3.765.987 1.004-3.67-.237-.377a9.96 9.96 0 01-1.529-5.271c0-5.498 4.473-9.972 9.976-9.972 2.664 0 5.168 1.038 7.049 2.922 1.882 1.883 2.918 4.388 2.918 7.054 0 5.5-4.474 9.973-9.976 9.973zm5.467-7.469c-.3-.15-1.772-.874-2.046-.973-.275-.1-.475-.15-.675.15-.2.3-.774.973-.95 1.172-.175.2-.35.225-.65.075-.3-.15-1.264-.466-2.408-1.485-.89-.793-1.49-1.773-1.665-2.073-.175-.3-.018-.462.13-.61.135-.133.3-.35.45-.525.15-.175.2-.3.3-.5.1-.2.05-.375-.025-.525-.075-.15-.675-1.625-.925-2.225-.243-.583-.49-.504-.675-.514-.175-.008-.375-.008-.575-.008-.2 0-.525.075-.8.375-.275.3-1.05 1.025-1.05 2.5 0 1.475 1.075 2.9 1.225 3.1.15.2 2.114 3.228 5.122 4.529.715.31 1.273.495 1.709.633.719.228 1.373.196 1.89.119.577-.086 1.772-.724 2.022-1.424.25-.7.25-1.3.175-1.424-.075-.125-.275-.2-.575-.35z" />
-                  </svg>
+                  <WhatsAppIcon className="w-4 h-4" color="#25D366" />
                 </a>
                 <a
                   href="https://www.instagram.com/moj.jewels?stkn=MWVnN216YWFmNzFwYQ=="

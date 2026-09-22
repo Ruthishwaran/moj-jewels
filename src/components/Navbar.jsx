@@ -10,9 +10,9 @@ import {
   Sparkles,
   MapPin,
   CheckCircle2,
-  MessageCircle,
   PhoneCall
 } from 'lucide-react';
+import WhatsAppIcon from './WhatsAppIcon';
 
 export default function Navbar() {
   const {
@@ -46,8 +46,8 @@ export default function Navbar() {
             <span>WHOLESALE & RETAIL • Use Coupon <strong className="underline">ROYAL10</strong> for 10% OFF</span>
           </div>
           <div className="hidden md:flex items-center space-x-6 text-[11px]">
-            <a href={whatsappUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 hover:underline font-bold">
-              <MessageCircle className="w-3.5 h-3.5" /> WhatsApp DM (+91 82488 75865)
+            <a href={whatsappUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 hover:underline font-bold text-white">
+              <WhatsAppIcon className="w-3.5 h-3.5" color="#25D366" /> WhatsApp DM (+91 82488 75865)
             </a>
             <span className="flex items-center gap-1">
               <CheckCircle2 className="w-3.5 h-3.5" /> Premium Imitation & Antique Collections
@@ -119,9 +119,9 @@ export default function Navbar() {
             href={whatsappUrl}
             target="_blank"
             rel="noreferrer"
-            className="text-emerald-400 hover:text-emerald-300 flex items-center gap-1 font-semibold"
+            className="text-[#25D366] hover:text-emerald-300 flex items-center gap-1.5 font-bold"
           >
-            <MessageCircle className="w-4 h-4" />
+            <WhatsAppIcon className="w-4 h-4" color="#25D366" />
             <span>WhatsApp Order</span>
           </a>
         </nav>
@@ -326,9 +326,9 @@ export default function Navbar() {
                 href={whatsappUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="w-full bg-emerald-500/20 hover:bg-emerald-500 text-emerald-300 hover:text-white border border-emerald-500/40 font-bold py-2.5 px-4 rounded-xl flex items-center justify-center space-x-2 text-xs transition-colors shadow-lg"
+                className="w-full bg-[#25D366]/20 hover:bg-[#25D366] text-[#25D366] hover:text-white border border-[#25D366]/40 font-bold py-2.5 px-4 rounded-xl flex items-center justify-center space-x-2 text-xs transition-colors shadow-lg"
               >
-                <MessageCircle className="w-4 h-4" />
+                <WhatsAppIcon className="w-4 h-4" color="#25D366" />
                 <span>Direct WhatsApp Order</span>
               </a>
             </div>

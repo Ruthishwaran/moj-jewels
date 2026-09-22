@@ -197,13 +197,21 @@ export const StoreProvider = ({ children }) => {
     if (!catName) return;
     const clean = catName.trim();
     if (!categories.includes(clean)) {
-      setCategories(prev => [...prev, clean]);
+      setCategories(prev => {
+        const next = [...(Array.isArray(prev) ? prev : []), clean];
+        try { localStorage.setItem('moj_categories', JSON.stringify(next)); } catch (e) { console.warn(e); }
+        return next;
+      });
     }
   };
 
   const deleteCategory = (catName) => {
     if (catName === 'All') return;
-    setCategories(prev => prev.filter(c => c !== catName));
+    setCategories(prev => {
+      const next = (Array.isArray(prev) ? prev : []).filter(c => c !== catName);
+      try { localStorage.setItem('moj_categories', JSON.stringify(next)); } catch (e) { console.warn(e); }
+      return next;
+    });
   };
 
   // PWA setup
@@ -579,15 +587,39 @@ export const StoreProvider = ({ children }) => {
       reviewsCount: 1,
       ...newProd
     };
-    setProducts(prev => [created, ...(Array.isArray(prev) ? prev : [])]);
+    setProducts(prev => {
+      const next = [created, ...(Array.isArray(prev) ? prev : [])];
+      try {
+        localStorage.setItem('moj_products', JSON.stringify(next));
+      } catch (e) {
+        console.warn('Failed to sync new product to LocalStorage:', e);
+      }
+      return next;
+    });
   };
 
   const editProduct = (id, updatedFields) => {
-    setProducts(prev => (Array.isArray(prev) ? prev : []).map(p => p.id === id ? { ...p, ...updatedFields } : p));
+    setProducts(prev => {
+      const next = (Array.isArray(prev) ? prev : []).map(p => p.id === id ? { ...p, ...updatedFields } : p);
+      try {
+        localStorage.setItem('moj_products', JSON.stringify(next));
+      } catch (e) {
+        console.warn('Failed to sync product edit to LocalStorage:', e);
+      }
+      return next;
+    });
   };
 
   const deleteProduct = (id) => {
-    setProducts(prev => (Array.isArray(prev) ? prev : []).filter(p => p.id !== id));
+    setProducts(prev => {
+      const next = (Array.isArray(prev) ? prev : []).filter(p => p.id !== id);
+      try {
+        localStorage.setItem('moj_products', JSON.stringify(next));
+      } catch (e) {
+        console.warn('Failed to sync product deletion to LocalStorage:', e);
+      }
+      return next;
+    });
   };
 
   const addCoupon = (newCoupon) => {
