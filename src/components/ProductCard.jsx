@@ -86,21 +86,41 @@ export default function ProductCard({ product }) {
           </span>
         )}
 
-        {/* Wishlist Heart Action */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            toggleWishlist(product);
-          }}
-          className={`absolute top-3 right-3 p-2.5 rounded-full backdrop-blur-md transition-transform active:scale-90 shadow-md ${
-            isWishlisted
-              ? 'bg-rose-500/90 text-white'
-              : 'bg-black/40 text-slate-300 hover:text-white hover:bg-black/70'
-          }`}
-          aria-label="Toggle Wishlist"
-        >
-          <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-current text-white' : ''}`} />
-        </button>
+        {/* Wishlist Heart + Add to Bag Buttons (visible on mobile) */}
+        <div className="absolute top-3 right-3 flex flex-col gap-2">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleWishlist(product);
+            }}
+            className={`p-2.5 rounded-full backdrop-blur-md transition-transform active:scale-90 shadow-md ${
+              isWishlisted
+                ? 'bg-rose-500/90 text-white'
+                : 'bg-black/40 text-slate-300 hover:text-white hover:bg-black/70'
+            }`}
+            aria-label="Toggle Wishlist"
+          >
+            <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-current text-white' : ''}`} />
+          </button>
+
+          {/* Add to Bag button — visible on mobile right on the image */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!isOutOfStock) addToCart(product);
+            }}
+            disabled={isOutOfStock}
+            aria-label="Add to Cart"
+            className={`p-2.5 rounded-full backdrop-blur-md transition-transform active:scale-90 shadow-md ${
+              isOutOfStock
+                ? 'bg-black/40 text-slate-600 cursor-not-allowed'
+                : 'bg-gold-500/90 text-black hover:bg-gold-400'
+            }`}
+            title={isOutOfStock ? 'Out of Stock' : 'Add to Bag'}
+          >
+            <ShoppingBag className="w-4 h-4" />
+          </button>
+        </div>
 
         {/* View Details Hover Button */}
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none group-hover:pointer-events-auto">
@@ -161,7 +181,7 @@ export default function ProductCard({ product }) {
           <button
             onClick={() => !isOutOfStock && addToCart(product)}
             disabled={isOutOfStock}
-            className={`p-2.5 rounded-xl transition-all flex items-center justify-center ${
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all text-xs font-semibold ${
               isOutOfStock
                 ? 'bg-slate-800 text-slate-600 border border-slate-700 cursor-not-allowed'
                 : 'bg-gold-500/10 hover:bg-gold-500 hover:text-black text-gold-400 border border-gold-500/40 active:scale-95'
@@ -169,6 +189,7 @@ export default function ProductCard({ product }) {
             title={isOutOfStock ? 'Item Out of Stock' : 'Add to Cart'}
           >
             <ShoppingBag className="w-4 h-4" />
+            <span className="hidden sm:inline">Add</span>
           </button>
         </div>
       </div>
