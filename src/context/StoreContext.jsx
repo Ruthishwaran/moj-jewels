@@ -29,32 +29,10 @@ export const StoreProvider = ({ children }) => {
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
-  // Customer Account Registry & Auth
-  const [registeredUsers, setRegisteredUsers] = useState(() => safeParseJSON('moj_registered_users', [
-    {
-      id: 'cust-demo-1',
-      name: 'Ruthi Shwaran',
-      email: 'ruthi@mojjewels.com',
-      password: 'password123',
-      phone: '+91 82488 75865',
-      role: 'customer',
-      accountType: 'wholesale',
-      isApproved: true,
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: 'cust-demo-2',
-      name: 'Retail Customer',
-      email: 'retail@mojjewels.com',
-      password: 'password123',
-      phone: '+91 98765 43210',
-      role: 'customer',
-      accountType: 'retail',
-      isApproved: true,
-      createdAt: new Date().toISOString()
-    }
-  ]));
+  // Customer Account Registry & Auth (Cleaned of fake accounts - 100% Admin Controlled)
+  const [registeredUsers, setRegisteredUsers] = useState(() => safeParseJSON('moj_registered_users', []));
   const [user, setUser] = useState(() => safeParseJSON('moj_customer_user', null));
+  const [usedCoupons, setUsedCoupons] = useState(() => safeParseJSON('moj_used_coupons', []));
 
   // Admin Portal Auth
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => {
@@ -65,7 +43,7 @@ export const StoreProvider = ({ children }) => {
     }
   });
 
-  // Data Store with LocalStorage Persistence
+  // Data Store with LocalStorage & Cross-Device Persistence
   const [products, setProducts] = useState(() => safeParseJSON('moj_products', INITIAL_PRODUCTS));
   const [coupons, setCoupons] = useState(() => safeParseJSON('moj_coupons', INITIAL_COUPONS));
   const [banners, setBanners] = useState(() => safeParseJSON('moj_banners', INITIAL_BANNERS));
@@ -78,9 +56,10 @@ export const StoreProvider = ({ children }) => {
     'All', 'Rings', 'Necklaces', 'Earrings', 'Bracelets', 'Antique Sets', 'Temple Jewellery', 'Bridal Sets'
   ]));
 
-  // PWA Prompt
+  // PWA App Installation Modal State
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [isAppInstallable, setIsAppInstallable] = useState(false);
+  const [isInstallModalOpen, setIsInstallModalOpen] = useState(false);
 
   // Check URL path on mount
   useEffect(() => {
@@ -227,14 +206,20 @@ export const StoreProvider = ({ children }) => {
 
   const installPwaApp = async () => {
     if (!deferredPrompt) {
-      alert('PWA App is ready! Click "Add to Home Screen" in your browser menu to install MOJ Jewels 100% Free!');
+      setIsInstallModalOpen(true);
       return;
     }
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') {
-      setIsAppInstallable(false);
-      setDeferredPrompt(null);
+    try {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        setIsAppInstallable(false);
+        setDeferredPrompt(null);
+      } else {
+        setIsInstallModalOpen(true);
+      }
+    } catch {
+      setIsInstallModalOpen(true);
     }
   };
 
@@ -464,7 +449,7 @@ export const StoreProvider = ({ children }) => {
     return Array.isArray(wishlist) && wishlist.some(item => item && item.id === productId);
   };
 
-  // Coupons
+  // Coupons (Enforces Single-Use Per Customer Account / Device)
   const applyCouponCode = (code) => {
     if (!code) return { success: false, message: 'Please enter a coupon code.' };
     const cleanCode = code.trim().toUpperCase();
@@ -473,6 +458,20 @@ export const StoreProvider = ({ children }) => {
     if (!found) {
       return { success: false, message: 'Invalid or inactive coupon code.' };
     }
+
+    // Single-Use Verification
+    const currentUserId = user?.email?.toLowerCase() || user?.id || 'guest';
+    const hasBeenUsed = (Array.isArray(usedCoupons) ? usedCoupons : []).some(
+      uc => uc.code === cleanCode && (uc.user === currentUserId || (user?.email && uc.email === user.email.toLowerCase()))
+    ) || (user?.usedCoupons && user.usedCoupons.includes(cleanCode));
+
+    if (hasBeenUsed) {
+      return {
+        success: false,
+        message: `Coupon code "${found.code}" has already been redeemed on a previous order! Coupons can only be redeemed once per customer.`
+      };
+    }
+
     const safeCart = Array.isArray(cart) ? cart : [];
     const cartSubtotal = safeCart.reduce((acc, item) => acc + ((item.price || 0) * (item.quantity || 1)), 0);
     if (cartSubtotal < found.minAmount) {
@@ -527,6 +526,31 @@ export const StoreProvider = ({ children }) => {
       trackingNumber: '',
       ...orderData
     };
+
+    // Record coupon usage to prevent double-redemption
+    if (appliedCoupon) {
+      const couponRecord = {
+        code: appliedCoupon.code,
+        user: user?.email?.toLowerCase() || user?.id || 'guest',
+        email: user?.email?.toLowerCase() || '',
+        orderId: newOrderId,
+        usedAt: new Date().toISOString()
+      };
+      setUsedCoupons(prev => {
+        const next = [...(Array.isArray(prev) ? prev : []), couponRecord];
+        try { localStorage.setItem('moj_used_coupons', JSON.stringify(next)); } catch {}
+        return next;
+      });
+
+      if (user) {
+        const updatedUser = {
+          ...user,
+          usedCoupons: [...(user.usedCoupons || []), appliedCoupon.code]
+        };
+        setUser(updatedUser);
+        setRegisteredUsers(prev => (Array.isArray(prev) ? prev : []).map(u => u.id === user.id ? updatedUser : u));
+      }
+    }
 
     // Deduct inventory stock automatically for each ordered item
     setProducts(prev => (Array.isArray(prev) ? prev : []).map(p => {
@@ -690,7 +714,9 @@ export const StoreProvider = ({ children }) => {
       discountAmount,
       grandTotal,
       isAppInstallable,
-      installPwaApp
+      installPwaApp,
+      isInstallModalOpen,
+      setIsInstallModalOpen
     }}>
       {children}
     </StoreContext.Provider>

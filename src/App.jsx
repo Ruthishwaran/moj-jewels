@@ -7,6 +7,7 @@ import CartDrawer from './components/CartDrawer';
 import WishlistDrawer from './components/WishlistDrawer';
 import AuthModal from './components/AuthModal';
 import FloatingWhatsApp from './components/FloatingWhatsApp';
+import AppInstallModal from './components/AppInstallModal';
 
 import HomePage from './pages/HomePage';
 import ShopPage from './pages/ShopPage';
@@ -18,7 +19,7 @@ import AdminLoginPage from './pages/AdminLoginPage';
 import { ShieldCheck, LogOut } from 'lucide-react';
 
 function MainContent() {
-  const { currentPage, setCurrentPage, isAdminAuthenticated, logoutAdmin, isAppInstallable, installPwaApp } = useStore();
+  const { currentPage, setCurrentPage, isAdminAuthenticated, logoutAdmin, isAppInstallable, installPwaApp, isInstallModalOpen, setIsInstallModalOpen } = useStore();
   const [showPwaBanner, setShowPwaBanner] = useState(true);
 
   const renderPage = () => {
@@ -99,6 +100,7 @@ function MainContent() {
       <CartDrawer />
       <WishlistDrawer />
       <AuthModal />
+      <AppInstallModal isOpen={isInstallModalOpen} onClose={() => setIsInstallModalOpen(false)} />
     </div>
   );
 }

@@ -135,19 +135,27 @@ export default function AdminDashboard() {
   const handleCreateProduct = (e) => {
     e.preventDefault();
     const finalImages = newProdImages.length > 0 ? newProdImages : [newProdImage || '/images/hero_banner.jpg'];
+    const priceNum = parseFloat(newProdPrice) || 50000;
+    let origPriceNum = parseFloat(newProdOrigPrice);
+    if (!origPriceNum || origPriceNum <= priceNum) {
+      origPriceNum = Math.round(priceNum * 1.25); // Automatically set 25% higher MRP so top-left % OFF badge always displays identically to preset products
+    }
+
     addProduct({
       title: newProdTitle,
       category: newProdCategory,
-      price: parseFloat(newProdPrice) || 50000,
-      originalPrice: parseFloat(newProdOrigPrice) || parseFloat(newProdPrice) || 60000,
-      karat: newProdKarat,
-      stock: parseInt(newProdStock) || 5,
+      price: priceNum,
+      originalPrice: origPriceNum,
+      karat: newProdKarat || '22k Gold BIS Hallmarked',
+      stock: parseInt(newProdStock) || 10,
       image: finalImages[0],
       images: finalImages,
       description: newProdDesc || 'Crafted luxury jewelry piece.'
     });
     setIsAddProductOpen(false);
     setNewProdTitle('');
+    setNewProdPrice('');
+    setNewProdOrigPrice('');
     setNewProdDesc('');
     setNewProdImages([]);
   };
@@ -779,16 +787,27 @@ export default function AdminDashboard() {
                     </div>
 
                     <div>
-                      <label className="text-slate-300 block mb-1">Price (₹)</label>
+                      <label className="text-slate-300 block mb-1">Offer Sale Price (₹)</label>
                       <input
                         type="number"
                         required
-                        placeholder="75000"
+                        placeholder="e.g. 50000"
                         value={newProdPrice}
                         onChange={(e) => setNewProdPrice(e.target.value)}
                         className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white"
                       />
                     </div>
+                  </div>
+
+                  <div>
+                    <label className="text-slate-300 block mb-1">Original MRP / Tag Price (₹)</label>
+                    <input
+                      type="number"
+                      placeholder="e.g. 65000 (Shows Top-Left % OFF Discount Badge)"
+                      value={newProdOrigPrice}
+                      onChange={(e) => setNewProdOrigPrice(e.target.value)}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white"
+                    />
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
