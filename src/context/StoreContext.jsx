@@ -139,12 +139,17 @@ export const StoreProvider = ({ children }) => {
       collection(db, 'products'),
       snap => {
         const data = snap.docs.map(d => ({ ...d.data(), id: d.id }));
-        data.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-        setProducts(data);
+        if (data.length > 0) {
+          data.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+          setProducts(data);
+        } else {
+          setProducts(INITIAL_PRODUCTS);
+        }
         setIsLoading(false);
       },
       err => {
         console.warn('Products listener error:', err);
+        setProducts(INITIAL_PRODUCTS);
         setIsLoading(false);
       }
     );
@@ -249,19 +254,19 @@ export const StoreProvider = ({ children }) => {
 
   // ===== PRODUCT CRUD (Firestore) =====
   const addProduct = async (newProd) => {
+    const id = `prod-${Date.now()}`;
+    const created = {
+      ...newProd,
+      id,
+      rating: 5.0,
+      reviewsCount: 1,
+      createdAt: Date.now()
+    };
+    setProducts(prev => [created, ...(Array.isArray(prev) ? prev : [])]);
     try {
-      const id = `prod-${Date.now()}`;
-      const created = {
-        ...newProd,
-        id,
-        rating: 5.0,
-        reviewsCount: 1,
-        createdAt: Date.now()
-      };
       await setDoc(doc(db, 'products', id), created);
     } catch (err) {
       console.error('addProduct error:', err);
-      alert('Failed to add product. Please check your internet connection.');
     }
   };
 
@@ -466,19 +471,27 @@ export const StoreProvider = ({ children }) => {
   // ===== CART FUNCTIONS (session only, device-local) =====
   const addToCart = (product, quantity = 1) => {
     if (!product) return;
-    const stockVal = product.stock !== undefined && product.stock !== null && product.stock !== ''
-      ? parseInt(product.stock, 10)
+    const safeProduct = {
+      ...product,
+      id: product.id || `prod-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      title: product.title || 'MOJ Fine Jewelry',
+      price: typeof product.price === 'number' ? product.price : parseFloat(product.price) || 0,
+      image: product.image || (Array.isArray(product.images) && product.images[0]) || '/images/moj_logo.jpg'
+    };
+
+    const stockVal = safeProduct.stock !== undefined && safeProduct.stock !== null && safeProduct.stock !== ''
+      ? parseInt(safeProduct.stock, 10)
       : 10;
     const maxStock = !isNaN(stockVal) ? stockVal : 10;
 
     if (maxStock <= 0) {
-      alert(`Sorry! "${product.title || 'This item'}" is currently OUT OF STOCK.`);
+      alert(`Sorry! "${safeProduct.title}" is currently OUT OF STOCK.`);
       return;
     }
 
     setCart(prev => {
       const safePrev = Array.isArray(prev) ? prev : [];
-      const existing = safePrev.find(item => item.id === product.id);
+      const existing = safePrev.find(item => item && item.id === safeProduct.id);
       const currentQty = existing ? existing.quantity : 0;
 
       if (currentQty + quantity > maxStock) {
@@ -488,10 +501,10 @@ export const StoreProvider = ({ children }) => {
 
       if (existing) {
         return safePrev.map(item =>
-          item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item
+          item && item.id === safeProduct.id ? { ...item, quantity: item.quantity + quantity } : item
         );
       }
-      return [...safePrev, { ...product, quantity }];
+      return [...safePrev, { ...safeProduct, quantity }];
     });
 
     setIsCartOpen(true);
