@@ -23,7 +23,8 @@ import {
   FileText,
   BarChart2,
   Calendar,
-  RefreshCw
+  RefreshCw,
+  Star
 } from 'lucide-react';
 
 export default function AdminDashboard() {
