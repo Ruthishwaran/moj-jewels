@@ -58,34 +58,7 @@ function MainContent() {
 
   return (
     <div className="min-h-screen flex flex-col justify-between bg-[#0b0f19] text-slate-100">
-      {/* ── Top Search Bar (replaces Install banner) ── */}
-      {!isAdminView && (
-        <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-gold-500/20 px-4 py-2">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              const q = e.target.querySelector('input').value.trim();
-              if (q) { setCurrentPage('shop'); }
-            }}
-            className="max-w-2xl mx-auto relative"
-          >
-            <Search className="w-4 h-4 text-gold-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input
-              type="text"
-              placeholder="🔍  Search rings, necklaces, earrings, bridal sets..."
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') setCurrentPage('shop');
-              }}
-              onClick={() => setCurrentPage('shop')}
-              className="w-full bg-slate-900/80 border border-gold-500/20 text-white text-xs rounded-xl pl-9 pr-4 py-2 focus:outline-none focus:border-gold-400 placeholder-slate-500 cursor-pointer"
-              readOnly
-            />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gold-400 font-semibold hidden sm:block">
-              Tap to Search
-            </span>
-          </form>
-        </div>
-      )}
+
 
       {isAdminView && isAdminAuthenticated ? (
         <div className="bg-amber-500 text-black px-4 py-2 flex items-center justify-between text-xs font-bold shadow-md">

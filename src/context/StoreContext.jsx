@@ -33,6 +33,8 @@ export const StoreProvider = ({ children }) => {
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
 
   // ===== Session State (stays per device in localStorage) =====
   const [user, setUser] = useState(() => safeParseJSON('moj_customer_user', null));
@@ -747,7 +749,11 @@ export const StoreProvider = ({ children }) => {
       isAppInstallable,
       installPwaApp,
       isInstallModalOpen,
-      setIsInstallModalOpen
+      setIsInstallModalOpen,
+      searchQuery,
+      setSearchQuery,
+      selectedCategory,
+      setSelectedCategory
     }}>
       {children}
     </StoreContext.Provider>

@@ -4,10 +4,15 @@ import ProductCard from '../components/ProductCard';
 import { Search, SlidersHorizontal, Sparkles } from 'lucide-react';
 
 export default function ShopPage() {
-  const { products, categories: storeCategories } = useStore();
+  const {
+    products,
+    categories: storeCategories,
+    searchQuery,
+    setSearchQuery,
+    selectedCategory,
+    setSelectedCategory
+  } = useStore();
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
   const [sortBy, setSortBy] = useState('featured'); // 'featured', 'price-low', 'price-high', 'rating'
 
   const categories = storeCategories || ['All', 'Rings', 'Necklaces', 'Earrings', 'Bracelets'];

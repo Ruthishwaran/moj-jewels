@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useStore } from '../context/StoreContext';
 import {
   ShoppingBag,
@@ -10,7 +10,10 @@ import {
   Sparkles,
   MapPin,
   CheckCircle2,
-  PhoneCall
+  PhoneCall,
+  Search,
+  Tag,
+  ArrowRight
 } from 'lucide-react';
 import WhatsAppIcon from './WhatsAppIcon';
 
@@ -25,16 +28,66 @@ export default function Navbar() {
     setIsAuthModalOpen,
     user,
     logoutCustomer,
-    installPwaApp,
-    categories
+    products,
+    categories,
+    searchQuery,
+    setSearchQuery,
+    selectedCategory,
+    setSelectedCategory,
+    setSelectedProduct
   } = useStore();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const searchRef = useRef(null);
+
   const totalCartCount = (cart || []).reduce((acc, i) => acc + (i?.quantity || 0), 0);
   const wishlistCount = (wishlist || []).length;
 
   const whatsappNumber = "918248875865";
   const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent('Hi MOJ Jewels! I would like to order.')}`;
+
+  const safeProducts = Array.isArray(products) ? products : [];
+  const safeCategories = Array.isArray(categories) ? categories.filter(c => c !== 'All') : [];
+
+  // Filter matching categories and products for live search
+  const query = (searchQuery || '').trim().toLowerCase();
+  
+  const matchedCategories = query
+    ? safeCategories.filter(cat => cat.toLowerCase().includes(query))
+    : safeCategories.slice(0, 5);
+
+  const matchedProducts = query
+    ? safeProducts.filter(p => 
+        (p.title && p.title.toLowerCase().includes(query)) ||
+        (p.category && p.category.toLowerCase().includes(query)) ||
+        (p.karat && p.karat.toLowerCase().includes(query))
+      ).slice(0, 6)
+    : [];
+
+  // Close search dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (searchRef.current && !searchRef.current.contains(e.target)) {
+        setIsSearchFocused(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSelectCategory = (cat) => {
+    setSelectedCategory(cat);
+    setSearchQuery('');
+    setCurrentPage('shop');
+    setIsSearchFocused(false);
+  };
+
+  const handleSelectProduct = (product) => {
+    setSelectedProduct(product);
+    setCurrentPage('shop');
+    setIsSearchFocused(false);
+  };
 
   return (
     <header className="sticky top-0 z-40 bg-[#0b0f19]/95 backdrop-blur-md border-b border-gold-500/20 shadow-2xl">
@@ -57,9 +110,9 @@ export default function Navbar() {
       </div>
 
       {/* Main Header */}
-      <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-2">
+      <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-3">
         {/* Left Side: Mobile Menu Button & Brand Logo */}
-        <div className="flex items-center space-x-2 sm:space-x-3">
+        <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
           {/* Mobile Hamburger Toggle on LEFT */}
           <button
             onClick={() => setMobileMenuOpen(true)}
@@ -82,8 +135,8 @@ export default function Navbar() {
               />
             </div>
             <div>
-              <h1 className="text-lg sm:text-2xl font-serif font-bold tracking-widest text-white flex items-center gap-1">
-                MOJ <span className="text-gold-400 font-sans text-base sm:text-xl font-light">JEWELS</span>
+              <h1 className="text-lg sm:text-xl md:text-2xl font-serif font-bold tracking-widest text-white flex items-center gap-1">
+                MOJ <span className="text-gold-400 font-sans text-base sm:text-lg md:text-xl font-light">JEWELS</span>
               </h1>
               <p className="text-[8px] sm:text-[9px] tracking-widest text-gold-300 uppercase font-medium">
                 Timeless Beauty Made For You 🩷
@@ -92,76 +145,140 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Customer Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-8 text-sm font-medium">
-          <button
-            onClick={() => setCurrentPage('home')}
-            className={`hover:text-gold-400 transition-colors ${currentPage === 'home' ? 'text-gold-400 font-semibold underline underline-offset-8 decoration-gold-400' : 'text-slate-300'}`}
-          >
-            Home
-          </button>
+        {/* ── CENTER: LIVE SEARCH BAR WITH CATEGORIES & IMAGE SUGGESTIONS DROPDOWN ── */}
+        <div className="flex-1 max-w-md relative" ref={searchRef}>
+          <div className="relative">
+            <Search className="w-4 h-4 text-gold-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search rings, necklaces, earrings..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setIsSearchFocused(true);
+              }}
+              onFocus={() => setIsSearchFocused(true)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  setCurrentPage('shop');
+                  setIsSearchFocused(false);
+                }
+              }}
+              className="w-full bg-slate-900/90 border border-gold-500/30 text-white text-xs rounded-xl pl-9 pr-8 py-2 focus:outline-none focus:border-gold-400 placeholder-slate-400 shadow-inner"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1 text-xs"
+              >
+                ✕
+              </button>
+            )}
+          </div>
 
-          <button
-            onClick={() => setCurrentPage('shop')}
-            className={`hover:text-gold-400 transition-colors ${currentPage === 'shop' ? 'text-gold-400 font-semibold underline underline-offset-8 decoration-gold-400' : 'text-slate-300'}`}
-          >
-            Collections & Items
-          </button>
+          {/* ── DROPDOWN SEARCH RESULTS & CATEGORIES POPUP ── */}
+          {isSearchFocused && (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-[#0d1322] border border-gold-500/40 rounded-2xl shadow-2xl overflow-hidden z-50 animate-fade-in max-h-96 overflow-y-auto">
+              {/* Category Suggestions */}
+              <div className="p-3 border-b border-slate-800">
+                <span className="text-[10px] font-bold text-gold-400 uppercase tracking-wider block mb-2 flex items-center gap-1">
+                  <Tag className="w-3 h-3" /> Related Categories
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {matchedCategories.map((cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => handleSelectCategory(cat)}
+                      className={`text-xs px-2.5 py-1 rounded-lg border font-medium transition-colors ${
+                        selectedCategory === cat
+                          ? 'bg-gold-500 text-black border-gold-400 font-bold'
+                          : 'bg-slate-900 border-slate-700/80 text-slate-300 hover:text-gold-300 hover:border-gold-500/50'
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-          <button
-            onClick={() => setCurrentPage('track')}
-            className={`hover:text-gold-400 transition-colors ${currentPage === 'track' ? 'text-gold-400 font-semibold underline underline-offset-8 decoration-gold-400' : 'text-slate-300'}`}
-          >
-            Track Order
-          </button>
+              {/* Product Suggestions with Images */}
+              {query && (
+                <div className="p-3 space-y-2">
+                  <span className="text-[10px] font-bold text-gold-400 uppercase tracking-wider block">
+                    Matching Jewels ({matchedProducts.length})
+                  </span>
+                  {matchedProducts.length === 0 ? (
+                    <p className="text-xs text-slate-400 py-2 text-center">No jewelry items found matching "{searchQuery}"</p>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {matchedProducts.map((p) => (
+                        <div
+                          key={p.id}
+                          onClick={() => handleSelectProduct(p)}
+                          className="flex items-center justify-between p-2 rounded-xl bg-slate-900/60 hover:bg-gold-500/10 border border-slate-800 hover:border-gold-500/40 cursor-pointer transition-colors"
+                        >
+                          <div className="flex items-center space-x-3">
+                            <img
+                              src={p.image}
+                              alt={p.title}
+                              className="w-10 h-10 object-cover rounded-lg bg-slate-950 border border-slate-800"
+                            />
+                            <div>
+                              <h4 className="text-xs font-semibold text-white line-clamp-1">{p.title}</h4>
+                              <span className="text-[10px] text-slate-400">{p.karat} • {p.category}</span>
+                            </div>
+                          </div>
+                          <span className="text-xs font-bold text-gold-400 shrink-0">
+                            ₹{(p.price || 0).toLocaleString()}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="text-[#25D366] hover:text-emerald-300 flex items-center gap-1.5 font-bold"
-          >
-            <WhatsAppIcon className="w-4 h-4" color="#25D366" />
-            <span>WhatsApp Order</span>
-          </a>
-        </nav>
+                  <button
+                    onClick={() => {
+                      setCurrentPage('shop');
+                      setIsSearchFocused(false);
+                    }}
+                    className="w-full mt-2 bg-slate-900 hover:bg-gold-500 hover:text-black border border-gold-500/30 text-gold-300 text-xs py-2 rounded-xl font-bold flex items-center justify-center gap-1 transition-all"
+                  >
+                    <span>View all matching results in Shop</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
-        {/* Customer Action Controls (Right side) */}
-        <div className="flex items-center space-x-2 sm:space-x-4">
-          {/* PWA App Install Button */}
-          <button
-            onClick={installPwaApp}
-            className="flex items-center space-x-1 bg-gradient-to-r from-gold-500/20 to-gold-400/10 hover:from-gold-500/30 text-gold-300 border border-gold-500/40 px-2.5 py-1.5 rounded-full text-xs font-semibold shadow-inner transition-all"
-            title="Install App"
-          >
-            <Download className="w-3.5 h-3.5 text-gold-400 animate-bounce" />
-            <span className="hidden sm:inline">Install MOJ App</span>
-            <span className="sm:hidden text-[10px]">Install MOJ App</span>
-          </button>
-
-          {/* Wishlist Icon */}
+        {/* Customer Action Controls (Right side: Wishlist Heart THEN Cart Bag) */}
+        <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
+          {/* Wishlist Heart Icon (FIRST) */}
           <button
             onClick={() => setIsWishlistOpen(true)}
             className="relative p-2 text-slate-300 hover:text-gold-400 transition-colors"
             aria-label="Wishlist"
+            title="Wishlist"
           >
             <Heart className="w-5 h-5" />
             {wishlistCount > 0 && (
-              <span className="absolute top-0 right-0 w-4 h-4 bg-rose-500 text-white rounded-full text-[10px] font-bold flex items-center justify-center">
+              <span className="absolute top-0 right-0 w-4 h-4 bg-rose-500 text-white rounded-full text-[10px] font-bold flex items-center justify-center shadow">
                 {wishlistCount}
               </span>
             )}
           </button>
 
-          {/* Cart Drawer Icon */}
+          {/* Cart Drawer Bag Icon (SECOND — Directly after Heart) */}
           <button
             onClick={() => setIsCartOpen(true)}
             className="relative p-2 text-slate-300 hover:text-gold-400 transition-colors"
-            aria-label="Cart"
+            aria-label="Cart Bag"
+            title="Checkout Bag"
           >
             <ShoppingBag className="w-5 h-5" />
             {totalCartCount > 0 && (
-              <span className="absolute top-0 right-0 w-4 h-4 bg-gold-500 text-black rounded-full text-[10px] font-bold flex items-center justify-center">
+              <span className="absolute top-0 right-0 w-4 h-4 bg-gold-500 text-black rounded-full text-[10px] font-bold flex items-center justify-center shadow">
                 {totalCartCount}
               </span>
             )}
@@ -176,7 +293,7 @@ export default function Navbar() {
               <div className="w-5 h-5 rounded-full bg-gold-500 text-black font-bold flex items-center justify-center text-[10px]">
                 {user?.name?.charAt(0)?.toUpperCase() || 'U'}
               </div>
-              <span className="hidden sm:inline text-white font-medium line-clamp-1">{user?.name || 'Customer'}</span>
+              <span className="hidden md:inline text-white font-medium line-clamp-1">{user?.name || 'Customer'}</span>
             </button>
           ) : (
             <button
