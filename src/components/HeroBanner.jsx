@@ -59,56 +59,61 @@ export default function HeroBanner() {
       <div className="container mx-auto px-4 space-y-8 relative z-10">
         
         {/* 5-Second Dynamic Auto-Slideshow Hero Frame */}
-        <div className="relative rounded-2xl overflow-hidden gold-border-glow shadow-2xl group min-h-[160px] sm:min-h-[220px] md:min-h-[380px] bg-slate-950">
-          <img
-            key={currentSlide.id}
-            src={currentSlide.imageUrl}
-            alt={currentSlide.title}
-            className="w-full h-auto min-h-[160px] sm:min-h-[220px] max-h-[300px] sm:max-h-[380px] md:max-h-[440px] object-cover rounded-2xl transition-all duration-700 transform group-hover:scale-102"
-          />
+        <div className="relative rounded-2xl overflow-hidden gold-border-glow shadow-2xl group bg-slate-950">
+          <div className="relative overflow-hidden">
+            <img
+              key={currentSlide.id}
+              src={currentSlide.imageUrl}
+              alt={currentSlide.title}
+              className="w-full h-auto min-h-[160px] sm:min-h-[220px] max-h-[300px] sm:max-h-[380px] md:max-h-[440px] object-cover transition-all duration-700 transform group-hover:scale-102"
+            />
 
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent flex flex-col justify-end p-4 sm:p-6 md:p-10">
-            <span className="inline-block self-start bg-gold-500 text-black text-[9px] sm:text-[10px] md:text-xs font-bold px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full uppercase tracking-wider mb-1.5 shadow-md">
-              {currentSlide.badge}
-            </span>
-            <h2 className="text-base sm:text-xl md:text-3xl font-serif font-bold text-white drop-shadow-md line-clamp-1">
-              {currentSlide.title}
-            </h2>
-            <p className="text-gold-300 text-[10px] sm:text-xs md:text-sm font-medium tracking-wide line-clamp-1">
-              {currentSlide.tagline}
-            </p>
+            {/* Carousel Manual Controls */}
+            <button
+              onClick={prevSlide}
+              className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/90 text-gold-300 p-2 rounded-full backdrop-blur border border-gold-500/30 transition-all opacity-80 hover:opacity-100 z-10"
+              title="Previous Banner"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button
+              onClick={nextSlide}
+              className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/90 text-gold-300 p-2 rounded-full backdrop-blur border border-gold-500/30 transition-all opacity-80 hover:opacity-100 z-10"
+              title="Next Banner (Auto 5-Sec)"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+
+            {/* Slideshow Pagination Dots */}
+            <div className="absolute bottom-3 right-4 flex items-center gap-1.5 z-10">
+              {slideList.map((s, idx) => (
+                <button
+                  key={s.id}
+                  onClick={() => setCurrentSlideIndex(idx)}
+                  className={`h-1.5 rounded-full transition-all ${
+                    idx === currentSlideIndex
+                      ? 'w-5 bg-gold-400'
+                      : 'w-1.5 bg-white/40 hover:bg-white/70'
+                  }`}
+                  title={`Go to slide ${idx + 1}`}
+                />
+              ))}
+            </div>
           </div>
 
-          {/* Carousel Manual Controls */}
-          <button
-            onClick={prevSlide}
-            className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/90 text-gold-300 p-2 rounded-full backdrop-blur border border-gold-500/30 transition-all opacity-80 hover:opacity-100"
-            title="Previous Banner"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <button
-            onClick={nextSlide}
-            className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/90 text-gold-300 p-2 rounded-full backdrop-blur border border-gold-500/30 transition-all opacity-80 hover:opacity-100"
-            title="Next Banner (Auto 5-Sec)"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-
-          {/* Slideshow Pagination Dots */}
-          <div className="absolute bottom-3 right-6 flex items-center gap-2">
-            {slideList.map((s, idx) => (
-              <button
-                key={s.id}
-                onClick={() => setCurrentSlideIndex(idx)}
-                className={`h-2 rounded-full transition-all ${
-                  idx === currentSlideIndex
-                    ? 'w-6 bg-gold-400'
-                    : 'w-2 bg-white/40 hover:bg-white/70'
-                }`}
-                title={`Go to slide ${idx + 1}`}
-              />
-            ))}
+          {/* ── BANNER WORDS PLACED DOWN BELOW THE IMAGE (Unblocking image artwork) ── */}
+          <div className="bg-slate-900/95 border-t border-gold-500/30 p-3 sm:p-4 text-left flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <span className="inline-block bg-gold-500 text-black text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider mb-1 shadow-sm">
+                {currentSlide.badge}
+              </span>
+              <h2 className="text-sm sm:text-lg md:text-xl font-serif font-bold text-white leading-tight">
+                {currentSlide.title}
+              </h2>
+              <p className="text-gold-300 text-[10px] sm:text-xs font-medium tracking-wide">
+                {currentSlide.tagline}
+              </p>
+            </div>
           </div>
         </div>
 

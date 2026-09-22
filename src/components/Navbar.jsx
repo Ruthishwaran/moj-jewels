@@ -145,8 +145,8 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* ── CENTER: LIVE SEARCH BAR WITH CATEGORIES & IMAGE SUGGESTIONS DROPDOWN ── */}
-        <div className="flex-1 max-w-md relative" ref={searchRef}>
+        {/* ── CENTER: LIVE SEARCH BAR (Desktop) & MOBILE SEARCH TOGGLE ── */}
+        <div className="hidden md:block flex-1 max-w-md relative" ref={searchRef}>
           <div className="relative">
             <Search className="w-4 h-4 text-gold-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
@@ -252,8 +252,20 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Customer Action Controls (Right side: Wishlist Heart THEN Cart Bag) */}
-        <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
+        {/* Customer Action Controls (Right side: Search Icon on mobile, Wishlist Heart THEN Cart Bag) */}
+        <div className="flex items-center space-x-1.5 sm:space-x-3 shrink-0">
+          {/* Mobile Search Button Icon */}
+          <button
+            onClick={() => {
+              setCurrentPage('shop');
+            }}
+            className="md:hidden p-2 text-slate-300 hover:text-gold-400 transition-colors"
+            aria-label="Search"
+            title="Search Catalog"
+          >
+            <Search className="w-5 h-5 text-gold-400" />
+          </button>
+
           {/* Wishlist Heart Icon (FIRST) */}
           <button
             onClick={() => setIsWishlistOpen(true)}

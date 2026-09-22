@@ -96,18 +96,7 @@ export default function ProductCard({ product }) {
           </span>
         )}
 
-        {/* Wishlist Heart — top right */}
-        <button
-          onClick={(e) => { e.stopPropagation(); toggleWishlist(product); }}
-          className={`absolute top-3 right-3 z-10 p-2.5 rounded-full backdrop-blur-md transition-all active:scale-90 shadow-lg ${
-            isWishlisted
-              ? 'bg-rose-500 text-white scale-110'
-              : 'bg-black/50 text-white hover:bg-rose-500/80'
-          }`}
-          aria-label="Wishlist"
-        >
-          <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-current' : ''}`} />
-        </button>
+
 
         {/* ── ADD TO BAG / CHECKOUT STRIP — Bottom of image, always visible ── */}
         {addedFlash ? (

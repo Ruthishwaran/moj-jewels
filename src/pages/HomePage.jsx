@@ -113,24 +113,21 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             {coupons.map((coupon) => (
               <div 
                 key={coupon.code}
-                className="bg-slate-900/90 border border-gold-500/30 rounded-2xl p-6 relative overflow-hidden shadow-xl space-y-4"
+                className="bg-slate-900/90 border border-gold-500/30 rounded-xl p-3.5 relative overflow-hidden shadow-lg flex flex-col justify-between space-y-2 hover:border-gold-500/60 transition-colors"
               >
                 <div className="flex items-center justify-between">
-                  <span className="bg-gold-500/20 text-gold-300 border border-gold-500/40 text-xs font-bold px-3 py-1 rounded-lg flex items-center gap-1">
-                    <Tag className="w-3.5 h-3.5 text-gold-400" /> {coupon.code}
+                  <span className="bg-gold-500/20 text-gold-300 border border-gold-500/40 text-xs font-bold px-2.5 py-0.5 rounded-md flex items-center gap-1">
+                    <Tag className="w-3 h-3 text-gold-400" /> {coupon.code}
                   </span>
-                  <span className="text-[10px] text-slate-400">Expires {coupon.expiry}</span>
+                  <span className="text-[10px] text-slate-400">Min: ₹{coupon.minAmount.toLocaleString()}</span>
                 </div>
 
                 <div>
-                  <h3 className="text-white font-serif font-bold text-lg">{coupon.description}</h3>
-                  <p className="text-xs text-slate-400 mt-1">
-                    Min Order Value: ₹{coupon.minAmount.toLocaleString()}
-                  </p>
+                  <h4 className="text-white font-semibold text-xs">{coupon.description}</h4>
                 </div>
 
                 <button
@@ -138,9 +135,9 @@ export default function HomePage() {
                     navigator.clipboard.writeText(coupon.code);
                     alert(`Coupon code ${coupon.code} copied to clipboard!`);
                   }}
-                  className="w-full bg-slate-800 hover:bg-gold-500 hover:text-black text-slate-200 text-xs py-2.5 rounded-xl font-semibold transition-colors"
+                  className="w-full bg-slate-800 hover:bg-gold-500 hover:text-black text-slate-200 text-[11px] py-1.5 rounded-lg font-semibold transition-colors"
                 >
-                  Copy Promo Code
+                  Copy Code
                 </button>
               </div>
             ))}
