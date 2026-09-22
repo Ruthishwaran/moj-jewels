@@ -44,6 +44,7 @@ export default function AdminDashboard() {
     categories,
     addCategory,
     deleteCategory,
+    addReview,
     registeredUsers,
     deleteUserAccount,
     approveWholesaleUser,
@@ -58,6 +59,14 @@ export default function AdminDashboard() {
 
   // Product Modal State
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
+  
+  // Admin Review Modal State
+  const [isAddReviewOpen, setIsAddReviewOpen] = useState(false);
+  const [adminRevProductId, setAdminRevProductId] = useState('');
+  const [adminRevName, setAdminRevName] = useState('');
+  const [adminRevRating, setAdminRevRating] = useState(5);
+  const [adminRevComment, setAdminRevComment] = useState('');
+  const [adminRevMsg, setAdminRevMsg] = useState(null);
   const [newProdTitle, setNewProdTitle] = useState('');
   const [newProdCategory, setNewProdCategory] = useState(categories && categories[1] ? categories[1] : 'Rings');
   const [newProdPrice, setNewProdPrice] = useState('');
@@ -842,14 +851,153 @@ export default function AdminDashboard() {
               <Sparkles className="w-5 h-5 text-gold-400" /> Jewelry Product Inventory
             </h2>
 
-            <button
-              onClick={() => setIsAddProductOpen(true)}
-              className="btn-gold-shimmer px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5"
-            >
-              <Plus className="w-4 h-4 text-black" />
-              <span>Add New Jewelry Item</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  if (products.length > 0) setAdminRevProductId(products[0].id);
+                  setIsAddReviewOpen(true);
+                }}
+                className="bg-amber-500/20 hover:bg-amber-500 hover:text-black border border-amber-500/40 text-amber-300 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors"
+              >
+                <Star className="w-4 h-4 text-amber-400" />
+                <span>Add Verified Review</span>
+              </button>
+
+              <button
+                onClick={() => setIsAddProductOpen(true)}
+                className="btn-gold-shimmer px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5"
+              >
+                <Plus className="w-4 h-4 text-black" />
+                <span>Add New Jewelry Item</span>
+              </button>
+            </div>
           </div>
+
+          {/* Admin Add Verified Review Modal */}
+          {isAddReviewOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+              <div className="glass-card p-6 md:p-8 rounded-2xl border border-gold-500/40 max-w-md w-full space-y-4 shadow-2xl relative">
+                <button
+                  onClick={() => setIsAddReviewOpen(false)}
+                  className="absolute top-4 right-4 text-slate-400 hover:text-white p-1"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+
+                <div className="border-b border-slate-800 pb-3">
+                  <h3 className="text-lg font-serif font-bold text-white flex items-center gap-2">
+                    <Star className="w-5 h-5 text-amber-400 fill-current" /> Add Verified Customer Review
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-0.5">Post an authentic customer review with rating and description.</p>
+                </div>
+
+                <form
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    if (!adminRevProductId || !adminRevName || !adminRevComment) {
+                      alert('Please complete all review fields.');
+                      return;
+                    }
+                    const res = await addReview({
+                      productId: adminRevProductId,
+                      userName: adminRevName.trim(),
+                      userEmail: 'admin-verified@mojjewels.com',
+                      rating: Number(adminRevRating),
+                      comment: adminRevComment.trim(),
+                      isVerifiedBuyer: true,
+                      isAdminAdded: true
+                    });
+                    setAdminRevMsg(res);
+                    if (res.success) {
+                      setTimeout(() => {
+                        setIsAddReviewOpen(false);
+                        setAdminRevName('');
+                        setAdminRevComment('');
+                        setAdminRevMsg(null);
+                      }, 1200);
+                    }
+                  }}
+                  className="space-y-4 text-xs"
+                >
+                  <div>
+                    <label className="text-slate-300 font-medium block mb-1">Select Product</label>
+                    <select
+                      value={adminRevProductId}
+                      onChange={(e) => setAdminRevProductId(e.target.value)}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white"
+                    >
+                      {products.map((prod) => (
+                        <option key={prod.id} value={prod.id}>
+                          {prod.title} (₹{prod.price?.toLocaleString()})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-slate-300 font-medium block mb-1">Customer / Reviewer Name</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Ananya Sharma"
+                      value={adminRevName}
+                      onChange={(e) => setAdminRevName(e.target.value)}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-slate-300 font-medium block mb-1">Star Rating (1 to 5 Stars)</label>
+                    <select
+                      value={adminRevRating}
+                      onChange={(e) => setAdminRevRating(Number(e.target.value))}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-gold-300 font-bold"
+                    >
+                      <option value="5">⭐⭐⭐⭐⭐ (5 Stars - Excellent)</option>
+                      <option value="4">⭐⭐⭐⭐ (4 Stars - Very Good)</option>
+                      <option value="3">⭐⭐⭐ (3 Stars - Good)</option>
+                      <option value="2">⭐⭐ (2 Stars - Average)</option>
+                      <option value="1">⭐ (1 Star - Poor)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-slate-300 font-medium block mb-1">Review Description / Feedback</label>
+                    <textarea
+                      required
+                      rows={3}
+                      placeholder="e.g. Stunning matte gold finish! The choker set arrived in tamper-proof packaging. Highly recommended!"
+                      value={adminRevComment}
+                      onChange={(e) => setAdminRevComment(e.target.value)}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
+                    />
+                  </div>
+
+                  {adminRevMsg && (
+                    <p className={`text-xs font-semibold ${adminRevMsg.success ? 'text-emerald-400' : 'text-rose-400'}`}>
+                      {adminRevMsg.message}
+                    </p>
+                  )}
+
+                  <div className="flex gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsAddReviewOpen(false)}
+                      className="flex-1 bg-slate-900 hover:bg-slate-800 text-slate-300 py-2.5 rounded-xl border border-slate-700 font-semibold"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="flex-1 btn-gold-shimmer py-2.5 rounded-xl font-bold text-black"
+                    >
+                      Post Review
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {products.map((p) => (

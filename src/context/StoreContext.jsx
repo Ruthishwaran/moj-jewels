@@ -56,6 +56,7 @@ export const StoreProvider = ({ children }) => {
   const [registeredUsers, setRegisteredUsers] = useState([]);
   const [coupons, setCoupons] = useState([]);
   const [usedCoupons, setUsedCoupons] = useState([]);
+  const [reviews, setReviews] = useState([]);
   const [categories, setCategories] = useState([
     'All', 'Rings', 'Necklaces', 'Earrings', 'Bracelets', 'Antique Sets', 'Temple Jewellery', 'Bridal Sets'
   ]);
@@ -193,6 +194,18 @@ export const StoreProvider = ({ children }) => {
       err => console.warn('UsedCoupons listener error:', err)
     );
     unsubs.push(ucUnsub);
+
+    // Real-time listener: Reviews
+    const revUnsub = onSnapshot(
+      collection(db, 'reviews'),
+      snap => {
+        const data = snap.docs.map(d => ({ ...d.data(), id: d.id }));
+        data.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        setReviews(data);
+      },
+      err => console.warn('Reviews listener error:', err)
+    );
+    unsubs.push(revUnsub);
 
     // Real-time listener: Config (categories, banners, payment)
     const cfgUnsub = onSnapshot(
@@ -509,6 +522,73 @@ export const StoreProvider = ({ children }) => {
   const isInWishlist = (productId) =>
     Array.isArray(wishlist) && wishlist.some(item => item && item.id === productId);
 
+  // ===== REVIEWS SYSTEM =====
+  const canUserReviewProduct = (productId) => {
+    if (!user || !user.email) {
+      return { allowed: false, reason: 'Please sign in to submit a customer review.' };
+    }
+    const userEmail = user.email.toLowerCase();
+    const safeReviews = Array.isArray(reviews) ? reviews : [];
+    const alreadyReviewed = safeReviews.some(
+      r => String(r.productId) === String(productId) && r.userEmail?.toLowerCase() === userEmail
+    );
+    if (alreadyReviewed) {
+      return { allowed: false, reason: 'You have already submitted a review for this product.' };
+    }
+
+    const safeOrders = Array.isArray(orders) ? orders : [];
+    const hasDeliveredOrder = safeOrders.some(ord => {
+      const isUserOrder = (ord.customerEmail?.toLowerCase() === userEmail) || (ord.email?.toLowerCase() === userEmail);
+      const isDelivered = ord.orderStatus === 'Delivered' || ord.status === 'Delivered';
+      const containsItem = Array.isArray(ord.items) && ord.items.some(it => String(it.id) === String(productId));
+      return isUserOrder && isDelivered && containsItem;
+    });
+
+    if (!hasDeliveredOrder) {
+      return {
+        allowed: false,
+        reason: 'Verified Buyer Requirement: You can only submit a review after your order for this item is marked Delivered.'
+      };
+    }
+
+    return { allowed: true };
+  };
+
+  const addReview = async ({ productId, userName, userEmail, rating, comment, isVerifiedBuyer = true, isAdminAdded = false }) => {
+    try {
+      const newRevDoc = doc(collection(db, 'reviews'));
+      const revData = {
+        id: newRevDoc.id,
+        productId: String(productId),
+        userName: userName || user?.name || 'Customer',
+        userEmail: userEmail || user?.email || '',
+        rating: Number(rating) || 5,
+        comment: comment || '',
+        isVerifiedBuyer: Boolean(isVerifiedBuyer),
+        isAdminAdded: Boolean(isAdminAdded),
+        createdAt: Date.now(),
+        dateStr: new Date().toLocaleDateString()
+      };
+      await setDoc(newRevDoc, revData);
+
+      // Recalculate Product average rating & count
+      const currentProds = Array.isArray(products) ? products : [];
+      const prod = currentProds.find(p => String(p.id) === String(productId));
+      if (prod) {
+        const prodReviews = [...(reviews || []).filter(r => String(r.productId) === String(productId)), revData];
+        const avgRating = (prodReviews.reduce((acc, r) => acc + (r.rating || 5), 0) / prodReviews.length).toFixed(1);
+        await updateDoc(doc(db, 'products', String(productId)), {
+          rating: Number(avgRating),
+          reviewsCount: prodReviews.length
+        });
+      }
+      return { success: true, message: 'Thank you! Your review has been submitted successfully. ✨' };
+    } catch (err) {
+      console.error('Add review error:', err);
+      return { success: false, message: 'Failed to submit review. Please try again.' };
+    }
+  };
+
   // ===== COUPONS APPLICATION =====
   const applyCouponCode = (code) => {
     if (!code) return { success: false, message: 'Please enter a coupon code.' };
@@ -745,7 +825,9 @@ export const StoreProvider = ({ children }) => {
       removeCoupon,
       subtotal,
       discountAmount,
-      grandTotal,
+      reviews: Array.isArray(reviews) ? reviews : [],
+      addReview,
+      canUserReviewProduct,
       isAppInstallable,
       installPwaApp,
       isInstallModalOpen,

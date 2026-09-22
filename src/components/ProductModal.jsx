@@ -244,7 +244,145 @@ export default function ProductModal() {
             </div>
           </div>
         </div>
+
+        {/* ── CUSTOMER REVIEWS & RATINGS SECTION ── */}
+        <ProductReviewsSection productId={id} />
       </div>
+    </div>
+  );
+}
+
+// Subcomponent: Product Reviews Section
+function ProductReviewsSection({ productId }) {
+  const { reviews, addReview, canUserReviewProduct, user } = useStore();
+  const [newRating, setNewRating] = useState(5);
+  const [newComment, setNewComment] = useState('');
+  const [feedback, setFeedback] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const productReviews = (reviews || []).filter(r => String(r.productId) === String(productId));
+  const reviewEligibility = canUserReviewProduct(productId);
+
+  const handleSubmitReview = async (e) => {
+    e.preventDefault();
+    if (!newComment.trim()) return;
+
+    setIsSubmitting(true);
+    const res = await addReview({
+      productId,
+      userName: user?.name || 'Customer',
+      userEmail: user?.email || '',
+      rating: newRating,
+      comment: newComment.trim(),
+      isVerifiedBuyer: true
+    });
+    setIsSubmitting(false);
+
+    setFeedback(res);
+    if (res.success) {
+      setNewComment('');
+    }
+  };
+
+  return (
+    <div className="bg-slate-950 p-6 md:p-8 border-t border-slate-800 space-y-6">
+      <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div>
+          <h3 className="text-xl font-serif font-bold text-white flex items-center gap-2">
+            <Star className="w-5 h-5 text-amber-400 fill-current" /> Customer Reviews & Ratings
+          </h3>
+          <p className="text-xs text-slate-400 mt-0.5">
+            {productReviews.length === 0
+              ? 'No customer reviews yet. Be the first verified buyer to leave a review!'
+              : `${productReviews.length} verified customer review${productReviews.length > 1 ? 's' : ''}`}
+          </p>
+        </div>
+      </div>
+
+      {/* Review Submission Form / Notice */}
+      <div className="glass-card p-4 rounded-xl border border-slate-800">
+        {reviewEligibility.allowed ? (
+          <form onSubmit={handleSubmitReview} className="space-y-3">
+            <span className="text-xs font-bold text-gold-300 block">Write a Verified Customer Review</span>
+            
+            <div className="flex items-center space-x-2 text-xs">
+              <span className="text-slate-400 font-medium">Your Rating:</span>
+              <div className="flex items-center space-x-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setNewRating(star)}
+                    className="p-1 text-amber-400 focus:outline-none"
+                  >
+                    <Star className={`w-5 h-5 ${star <= newRating ? 'fill-current' : 'text-slate-700'}`} />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <textarea
+              required
+              rows={2}
+              placeholder="Share your feedback on quality, finish, and packaging..."
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-gold-400"
+            />
+
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="btn-gold-shimmer px-5 py-2.5 rounded-xl text-xs font-bold shadow-md"
+            >
+              {isSubmitting ? 'Submitting...' : 'Submit Verified Review'}
+            </button>
+
+            {feedback && (
+              <p className={`text-xs font-semibold ${feedback.success ? 'text-emerald-400' : 'text-rose-400'}`}>
+                {feedback.message}
+              </p>
+            )}
+          </form>
+        ) : (
+          <div className="flex items-center gap-2 text-xs text-slate-400">
+            <ShieldCheck className="w-4 h-4 text-gold-400 shrink-0" />
+            <span>{reviewEligibility.reason}</span>
+          </div>
+        )}
+      </div>
+
+      {/* List of Reviews */}
+      {productReviews.length > 0 && (
+        <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
+          {productReviews.map((rev) => (
+            <div key={rev.id} className="bg-slate-900/80 border border-slate-800 rounded-xl p-4 space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <div className="flex items-center space-x-2">
+                  <span className="font-bold text-white">{rev.userName}</span>
+                  {rev.isVerifiedBuyer && (
+                    <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase flex items-center gap-1">
+                      <ShieldCheck className="w-3 h-3" /> Verified Buyer
+                    </span>
+                  )}
+                </div>
+                <span className="text-[10px] text-slate-500">{rev.dateStr || 'Recently'}</span>
+              </div>
+
+              <div className="flex items-center space-x-1 text-amber-400">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star
+                    key={star}
+                    className={`w-3.5 h-3.5 ${star <= (rev.rating || 5) ? 'fill-current' : 'text-slate-700'}`}
+                  />
+                ))}
+              </div>
+
+              <p className="text-xs text-slate-300 leading-relaxed">{rev.comment}</p>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
