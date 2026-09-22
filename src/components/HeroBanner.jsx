@@ -35,11 +35,11 @@ export default function HeroBanner() {
     }))
   ];
 
-  // 3-Second Auto-Slideshow Timer
+  // 5-Second Auto-Slideshow Timer for Banners
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlideIndex((prev) => (prev + 1) % slideList.length);
-    }, 3000);
+    }, 5000);
     return () => clearInterval(timer);
   }, [slideList.length]);
 
