@@ -1,6 +1,6 @@
 import React from 'react';
 import { useStore } from '../context/StoreContext';
-import { Heart, ShoppingBag, Star, Eye, ShieldCheck } from 'lucide-react';
+import { Heart, ShoppingBag, Star, ShieldCheck, CheckCircle } from 'lucide-react';
 
 export default function ProductCard({ product }) {
   const {
@@ -21,12 +21,13 @@ export default function ProductCard({ product }) {
   const reviewsCount = product.reviewsCount || 1;
   const stock = product.stock || 5;
   const karat = product.karat || 'Premium Hallmarked';
-  // Multi-image list & 3-second auto slideshow
+
   const imageList = Array.isArray(product.images) && product.images.length > 0
     ? product.images
     : [product.image || '/images/moj_logo.jpg'];
 
   const [currentImgIdx, setCurrentImgIdx] = React.useState(0);
+  const [addedFlash, setAddedFlash] = React.useState(false);
 
   React.useEffect(() => {
     if (imageList.length <= 1) return;
@@ -37,36 +38,42 @@ export default function ProductCard({ product }) {
   }, [imageList.length]);
 
   const activeImage = imageList[currentImgIdx] || imageList[0];
-
   const isWishlisted = isInWishlist(id);
-
   const discountPercent = (originalPrice > price && originalPrice > 0)
     ? Math.round(((originalPrice - price) / originalPrice) * 100)
     : 0;
-
   const isOutOfStock = stock <= 0;
+
+  const handleAddToCart = (e) => {
+    e.stopPropagation();
+    if (isOutOfStock) return;
+    addToCart(product);
+    setAddedFlash(true);
+    setTimeout(() => setAddedFlash(false), 1200);
+  };
 
   return (
     <div className="glass-card rounded-2xl overflow-hidden border border-slate-800 hover:border-gold-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-gold-500/10 group flex flex-col h-full">
-      {/* Product Image Area (Auto 3-Second Multi-Image Slideshow) */}
-      <div 
+
+      {/* ── Product Image ── */}
+      <div
         onClick={() => setSelectedProduct(product)}
         className="relative aspect-square overflow-hidden bg-slate-950 cursor-pointer"
       >
         <img
           src={activeImage}
           alt={title}
-          className={`w-full h-full object-cover group-hover:scale-108 transition-all duration-700 ${isOutOfStock ? 'grayscale opacity-60' : ''}`}
+          className={`w-full h-full object-cover group-hover:scale-105 transition-all duration-700 ${isOutOfStock ? 'grayscale opacity-60' : ''}`}
           onError={(e) => { e.target.src = '/images/moj_logo.jpg'; }}
         />
+
+        {/* Image dots */}
         {imageList.length > 1 && (
-          <div className="absolute bottom-2 right-2 flex gap-1 z-10">
+          <div className="absolute bottom-14 left-1/2 -translate-x-1/2 flex gap-1 z-10">
             {imageList.map((_, idx) => (
               <span
                 key={idx}
-                className={`w-1.5 h-1.5 rounded-full transition-all ${
-                  idx === currentImgIdx ? 'bg-gold-400 w-3' : 'bg-white/50'
-                }`}
+                className={`h-1.5 rounded-full transition-all ${idx === currentImgIdx ? 'bg-gold-400 w-4' : 'bg-white/50 w-1.5'}`}
               />
             ))}
           </div>
@@ -74,95 +81,91 @@ export default function ProductCard({ product }) {
 
         {/* Discount Badge */}
         {discountPercent > 0 && !isOutOfStock && (
-          <span className="absolute top-3 left-3 bg-gradient-to-r from-amber-600 to-gold-500 text-black font-bold text-[11px] px-2.5 py-1 rounded-full shadow-md uppercase tracking-wider">
+          <span className="absolute top-3 left-3 bg-gradient-to-r from-amber-600 to-gold-500 text-black font-bold text-[11px] px-2.5 py-1 rounded-full shadow-md uppercase tracking-wider z-10">
             {discountPercent}% OFF
           </span>
         )}
 
-        {/* Out of Stock Red Badge */}
+        {/* Out of Stock Badge */}
         {isOutOfStock && (
-          <span className="absolute top-3 left-3 bg-rose-600 text-white font-bold text-[11px] px-3 py-1 rounded-full shadow-lg uppercase tracking-wider animate-pulse">
+          <span className="absolute top-3 left-3 bg-rose-600 text-white font-bold text-[11px] px-3 py-1 rounded-full shadow-lg uppercase tracking-wider animate-pulse z-10">
             OUT OF STOCK
           </span>
         )}
 
-        {/* Wishlist Heart + Add to Bag Buttons (visible on mobile) */}
-        <div className="absolute top-3 right-3 flex flex-col gap-2">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              toggleWishlist(product);
-            }}
-            className={`p-2.5 rounded-full backdrop-blur-md transition-transform active:scale-90 shadow-md ${
-              isWishlisted
-                ? 'bg-rose-500/90 text-white'
-                : 'bg-black/40 text-slate-300 hover:text-white hover:bg-black/70'
-            }`}
-            aria-label="Toggle Wishlist"
-          >
-            <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-current text-white' : ''}`} />
-          </button>
+        {/* Wishlist Heart — top right */}
+        <button
+          onClick={(e) => { e.stopPropagation(); toggleWishlist(product); }}
+          className={`absolute top-3 right-3 z-10 p-2.5 rounded-full backdrop-blur-md transition-all active:scale-90 shadow-lg ${
+            isWishlisted
+              ? 'bg-rose-500 text-white scale-110'
+              : 'bg-black/50 text-white hover:bg-rose-500/80'
+          }`}
+          aria-label="Wishlist"
+        >
+          <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-current' : ''}`} />
+        </button>
 
-          {/* Add to Bag button — visible on mobile right on the image */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              if (!isOutOfStock) addToCart(product);
-            }}
-            disabled={isOutOfStock}
-            aria-label="Add to Cart"
-            className={`p-2.5 rounded-full backdrop-blur-md transition-transform active:scale-90 shadow-md ${
-              isOutOfStock
-                ? 'bg-black/40 text-slate-600 cursor-not-allowed'
-                : 'bg-gold-500/90 text-black hover:bg-gold-400'
-            }`}
-            title={isOutOfStock ? 'Out of Stock' : 'Add to Bag'}
-          >
-            <ShoppingBag className="w-4 h-4" />
-          </button>
-        </div>
-
-        {/* View Details Hover Button */}
-        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none group-hover:pointer-events-auto">
-          <button
-            onClick={() => setSelectedProduct(product)}
-            className="bg-gold-500 hover:bg-gold-400 text-black font-semibold text-xs px-4 py-2.5 rounded-xl shadow-xl flex items-center space-x-1.5 transform translate-y-2 group-hover:translate-y-0 transition-all"
-          >
-            <Eye className="w-4 h-4" />
-            <span>View Details</span>
-          </button>
-        </div>
+        {/* ── ADD TO BAG BUTTON — Bottom strip of image, always visible ── */}
+        <button
+          onClick={handleAddToCart}
+          disabled={isOutOfStock}
+          className={`absolute bottom-0 left-0 right-0 z-10 flex items-center justify-center gap-2 py-3 font-bold text-sm transition-all duration-200 active:scale-98 ${
+            isOutOfStock
+              ? 'bg-slate-800/90 text-slate-500 cursor-not-allowed'
+              : addedFlash
+                ? 'bg-emerald-500 text-white'
+                : 'bg-gold-500/95 hover:bg-gold-400 text-black backdrop-blur-sm'
+          }`}
+        >
+          {addedFlash ? (
+            <>
+              <CheckCircle className="w-4 h-4" />
+              <span>Added to Bag!</span>
+            </>
+          ) : isOutOfStock ? (
+            <>
+              <ShoppingBag className="w-4 h-4" />
+              <span>Out of Stock</span>
+            </>
+          ) : (
+            <>
+              <ShoppingBag className="w-4 h-4" />
+              <span>Add to Bag</span>
+            </>
+          )}
+        </button>
       </div>
 
-      {/* Product Details Area */}
-      <div className="p-5 flex flex-col flex-1 justify-between space-y-3">
+      {/* ── Product Info ── */}
+      <div
+        className="p-4 flex flex-col flex-1 justify-between space-y-2 cursor-pointer"
+        onClick={() => setSelectedProduct(product)}
+      >
         <div>
-          <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
+          <div className="flex items-center justify-between text-xs mb-1">
             <span className="text-gold-400 font-medium uppercase tracking-wider text-[10px]">{category}</span>
             <span className="flex items-center text-amber-400 gap-1 font-semibold">
-              <Star className="w-3.5 h-3.5 fill-current text-amber-400" />
+              <Star className="w-3 h-3 fill-current" />
               {rating} <span className="text-slate-500 font-normal">({reviewsCount})</span>
             </span>
           </div>
 
-          <h3 
-            onClick={() => setSelectedProduct(product)}
-            className="text-white font-serif font-semibold text-base line-clamp-1 hover:text-gold-300 cursor-pointer transition-colors"
-          >
+          <h3 className="text-white font-serif font-semibold text-sm line-clamp-2 hover:text-gold-300 transition-colors leading-snug">
             {title}
           </h3>
 
-          <div className="flex items-center gap-1.5 text-[11px] text-slate-400 mt-1">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-            <span>{karat}</span>
+          <div className="flex items-center gap-1.5 text-[10px] text-slate-400 mt-1">
+            <ShieldCheck className="w-3 h-3 text-emerald-400 flex-shrink-0" />
+            <span className="line-clamp-1">{karat}</span>
           </div>
         </div>
 
-        {/* Price & Add to Cart */}
-        <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between">
+        {/* Price row */}
+        <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between">
           <div>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-white font-bold text-lg font-sans">
+              <span className="text-white font-bold text-base font-sans">
                 ₹{price.toLocaleString()}
               </span>
               {originalPrice > price && (
@@ -172,24 +175,22 @@ export default function ProductCard({ product }) {
               )}
             </div>
             {isOutOfStock ? (
-              <span className="text-[10px] text-rose-400 font-bold uppercase">Out of Stock (0 units)</span>
+              <span className="text-[10px] text-rose-400 font-bold uppercase">Out of Stock</span>
             ) : (
-              <span className="text-[10px] text-emerald-400">In Stock ({stock} units)</span>
+              <span className="text-[10px] text-emerald-400">{stock} units left</span>
             )}
           </div>
 
+          {/* Small wishlist echo at bottom */}
           <button
-            onClick={() => !isOutOfStock && addToCart(product)}
-            disabled={isOutOfStock}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all text-xs font-semibold ${
-              isOutOfStock
-                ? 'bg-slate-800 text-slate-600 border border-slate-700 cursor-not-allowed'
-                : 'bg-gold-500/10 hover:bg-gold-500 hover:text-black text-gold-400 border border-gold-500/40 active:scale-95'
+            onClick={(e) => { e.stopPropagation(); toggleWishlist(product); }}
+            className={`p-2 rounded-full border transition-all ${
+              isWishlisted
+                ? 'border-rose-500 bg-rose-500/10 text-rose-400'
+                : 'border-slate-700 text-slate-500 hover:border-rose-400 hover:text-rose-400'
             }`}
-            title={isOutOfStock ? 'Item Out of Stock' : 'Add to Cart'}
           >
-            <ShoppingBag className="w-4 h-4" />
-            <span className="hidden sm:inline">Add</span>
+            <Heart className={`w-3.5 h-3.5 ${isWishlisted ? 'fill-current' : ''}`} />
           </button>
         </div>
       </div>
