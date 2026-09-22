@@ -91,23 +91,7 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 bg-[#0b0f19]/95 backdrop-blur-md border-b border-gold-500/20 shadow-2xl">
-      {/* Top Banner Bar */}
-      <div className="bg-gradient-to-r from-amber-900 via-gold-600 to-amber-900 text-[#0b0f19] px-4 py-1.5 text-xs font-semibold tracking-wider">
-        <div className="container mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Sparkles className="w-3.5 h-3.5 text-[#0b0f19]" />
-            <span>WHOLESALE & RETAIL • Use Coupon <strong className="underline">ROYAL10</strong> for 10% OFF</span>
-          </div>
-          <div className="hidden md:flex items-center space-x-6 text-[11px]">
-            <a href={whatsappUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 hover:underline font-bold text-white">
-              <WhatsAppIcon className="w-3.5 h-3.5" color="#25D366" /> WhatsApp DM (+91 82488 75865)
-            </a>
-            <span className="flex items-center gap-1">
-              <CheckCircle2 className="w-3.5 h-3.5" /> Premium Imitation & Antique Collections
-            </span>
-          </div>
-        </div>
-      </div>
+
 
       {/* Main Header */}
       <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-3">

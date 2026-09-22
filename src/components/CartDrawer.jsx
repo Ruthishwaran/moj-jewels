@@ -13,6 +13,7 @@ export default function CartDrawer() {
     discountAmount,
     grandTotal,
     appliedCoupon,
+    coupons,
     applyCouponCode,
     removeCoupon,
     setCurrentPage,
@@ -181,18 +182,49 @@ export default function CartDrawer() {
                   </div>
                 )}
 
-                {appliedCoupon && (
-                  <div className="mt-2 flex items-center justify-between bg-gold-500/10 border border-gold-500/30 rounded-lg p-2 text-xs">
-                    <span className="text-gold-300 font-semibold flex items-center gap-1">
-                      <Sparkles className="w-3.5 h-3.5 text-gold-400" /> Code <strong>{appliedCoupon.code}</strong> Applied
+                {appliedCoupon ? (
+                  <div className="mt-2 flex items-center justify-between bg-emerald-950/60 border border-emerald-500/40 rounded-xl p-2.5 text-xs">
+                    <span className="text-emerald-300 font-semibold flex items-center gap-1">
+                      <Sparkles className="w-3.5 h-3.5 text-emerald-400" /> Code <strong>{appliedCoupon.code}</strong> Applied (-₹{discountAmount.toLocaleString()})
                     </span>
                     <button
                       onClick={removeCoupon}
-                      className="text-rose-400 text-[10px] hover:underline"
+                      className="text-rose-400 text-[10px] font-bold hover:underline"
                     >
                       Remove
                     </button>
                   </div>
+                ) : (
+                  /* ── Available Store Coupons (1-Tap Select in Shopping Bag) ── */
+                  Array.isArray(coupons) && coupons.filter(c => c.active !== false).length > 0 && (
+                    <div className="mt-2 space-y-1">
+                      <span className="text-[10px] text-gold-400 uppercase font-bold tracking-wider block">Tap to Select Coupon:</span>
+                      <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pt-0.5">
+                        {coupons.filter(c => c.active !== false).map((c) => {
+                          const isEligible = subtotal >= (c.minAmount || 0);
+                          return (
+                            <button
+                              key={c.code}
+                              type="button"
+                              onClick={() => {
+                                const res = applyCouponCode(c.code);
+                                setCouponFeedback(res);
+                              }}
+                              className={`text-[10px] px-2.5 py-1 rounded-lg border font-bold flex items-center gap-1 transition-all ${
+                                isEligible
+                                  ? 'bg-slate-900 border-gold-500/40 text-gold-300 hover:bg-gold-500 hover:text-black'
+                                  : 'bg-slate-950/60 border-slate-800 text-slate-500'
+                              }`}
+                              title={isEligible ? `Apply ${c.code}` : `Min order ₹${c.minAmount}`}
+                            >
+                              <Tag className="w-3 h-3" />
+                              <span>{c.code} ({c.discountType === 'percent' ? `${c.discountValue}% OFF` : `₹${c.discountValue} OFF`})</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )
                 )}
               </div>
 

@@ -133,32 +133,7 @@ export default function HeroBanner() {
               Discover timeless beauty crafted for you. Order direct via manual UPI QR or connect on WhatsApp & Instagram for custom bridal & antique sets.
             </p>
 
-            {/* Coupons Strip */}
-            <div className="pt-2">
-              <span className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold block mb-2 flex items-center gap-1.5">
-                <Tag className="w-3.5 h-3.5 text-gold-400" /> Active Coupon Offers:
-              </span>
-              <div className="flex flex-wrap gap-2.5">
-                {coupons.map((c) => (
-                  <div 
-                    key={c.code}
-                    className="bg-slate-900/90 border border-gold-500/40 rounded-xl px-3 py-1.5 flex items-center space-x-2.5 shadow-md"
-                  >
-                    <div>
-                      <span className="text-xs font-bold text-gold-300 block">{c.code}</span>
-                      <span className="text-[10px] text-slate-400">{c.description}</span>
-                    </div>
-                    <button
-                      onClick={() => copyCoupon(c.code)}
-                      className="p-1 rounded-md bg-gold-500/20 hover:bg-gold-500/40 text-gold-300 transition-colors"
-                      title="Copy Code"
-                    >
-                      {copiedCode === c.code ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
+
 
             {/* CTA Buttons */}
             <div className="flex flex-wrap gap-3 pt-2">
