@@ -13,7 +13,9 @@ import {
   ArrowRight,
   ArrowLeft,
   Sparkles,
-  ShoppingBag
+  ShoppingBag,
+  Tag,
+  X
 } from 'lucide-react';
 
 export default function CheckoutPage() {
@@ -23,6 +25,9 @@ export default function CheckoutPage() {
     discountAmount,
     grandTotal,
     appliedCoupon,
+    coupons,
+    applyCouponCode,
+    removeCoupon,
     paymentConfig,
     placeOrder,
     setCurrentPage,
@@ -32,6 +37,8 @@ export default function CheckoutPage() {
   const [step, setStep] = useState(1); // 1: Shipping, 2: Payment, 3: Confirmation
   const [createdOrder, setCreatedOrder] = useState(null);
   const [copiedUpi, setCopiedUpi] = useState(false);
+  const [couponInput, setCouponInput] = useState('');
+  const [couponMsg, setCouponMsg] = useState(null);
 
   // Form Fields
   const [customerName, setCustomerName] = useState(user?.name || '');
@@ -264,6 +271,123 @@ export default function CheckoutPage() {
                     <span className="text-slate-200 font-bold">₹{(item.price * item.quantity).toLocaleString()}</span>
                   </div>
                 ))}
+              </div>
+
+              {/* ── COUPON DISCOUNTS SECTION ── */}
+              <div className="border-t border-slate-800 pt-3 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-gold-300 flex items-center gap-1.5">
+                    <Tag className="w-3.5 h-3.5 text-gold-400" /> Apply Promo Code
+                  </span>
+                </div>
+
+                {appliedCoupon ? (
+                  <div className="bg-emerald-950/60 border border-emerald-500/40 p-2.5 rounded-xl flex items-center justify-between text-xs">
+                    <div>
+                      <span className="text-emerald-300 font-bold font-mono">{appliedCoupon.code} Applied!</span>
+                      <span className="text-[10px] text-emerald-400 block">
+                        Saved ₹{discountAmount.toLocaleString()}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => { removeCoupon(); setCouponMsg(null); }}
+                      className="text-slate-400 hover:text-rose-400 p-1"
+                      title="Remove Coupon"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      if (!couponInput.trim()) return;
+                      const res = applyCouponCode(couponInput);
+                      setCouponMsg(res);
+                      if (res.success) setCouponInput('');
+                    }}
+                    className="flex gap-2"
+                  >
+                    <input
+                      type="text"
+                      placeholder="ENTER COUPON CODE"
+                      value={couponInput}
+                      onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                      className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white uppercase placeholder-slate-500 focus:outline-none focus:border-gold-400"
+                    />
+                    <button
+                      type="submit"
+                      className="bg-gold-500 hover:bg-gold-400 text-black text-xs font-bold px-3 py-1.5 rounded-xl transition-colors shrink-0"
+                    >
+                      Apply
+                    </button>
+                  </form>
+                )}
+
+                {couponMsg && !appliedCoupon && (
+                  <p className={`text-[11px] font-semibold ${couponMsg.success ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    {couponMsg.message}
+                  </p>
+                )}
+
+                {/* Eligible Coupons List for 1-Tap Apply */}
+                {Array.isArray(coupons) && coupons.filter(c => c.active !== false).length > 0 && (
+                  <div className="space-y-2 pt-1">
+                    <span className="text-[10px] text-slate-400 uppercase font-semibold block">Available Store Coupons:</span>
+                    <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                      {coupons.filter(c => c.active !== false).map((c) => {
+                        const isEligible = subtotal >= (c.minAmount || 0);
+                        const isCurrent = appliedCoupon?.code === c.code;
+
+                        return (
+                          <div
+                            key={c.code}
+                            className={`p-2 rounded-xl border flex items-center justify-between text-xs transition-colors ${
+                              isCurrent
+                                ? 'bg-emerald-950/40 border-emerald-500/50'
+                                : isEligible
+                                ? 'bg-slate-900/80 border-gold-500/30 hover:border-gold-400'
+                                : 'bg-slate-950/50 border-slate-800 opacity-60'
+                            }`}
+                          >
+                            <div>
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-mono font-bold text-white text-xs">{c.code}</span>
+                                <span className="text-emerald-400 font-bold text-[10px]">
+                                  {c.discountType === 'percent' ? `${c.discountValue}% OFF` : `₹${c.discountValue} OFF`}
+                                </span>
+                              </div>
+                              <span className="text-[10px] text-slate-400 block">
+                                Min order ₹{(c.minAmount || 0).toLocaleString()}
+                              </span>
+                            </div>
+
+                            {isCurrent ? (
+                              <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded-full">
+                                Active ✓
+                              </span>
+                            ) : isEligible ? (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const res = applyCouponCode(c.code);
+                                  setCouponMsg(res);
+                                }}
+                                className="bg-gold-500/20 hover:bg-gold-500 text-gold-300 hover:text-black border border-gold-500/40 px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all"
+                              >
+                                Apply 1-Tap
+                              </button>
+                            ) : (
+                              <span className="text-[9px] text-slate-500">
+                                Need ₹{((c.minAmount || 0) - subtotal).toLocaleString()} more
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="border-t border-slate-800 pt-3 space-y-2 text-xs">

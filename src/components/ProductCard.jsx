@@ -96,18 +96,41 @@ export default function ProductCard({ product }) {
           </span>
         )}
 
-        {/* Wishlist Heart — top right */}
-        <button
-          onClick={(e) => { e.stopPropagation(); toggleWishlist(product); }}
-          className={`absolute top-3 right-3 z-10 p-2.5 rounded-full backdrop-blur-md transition-all active:scale-90 shadow-lg ${
-            isWishlisted
-              ? 'bg-rose-500 text-white scale-110'
-              : 'bg-black/50 text-white hover:bg-rose-500/80'
-          }`}
-          aria-label="Wishlist"
-        >
-          <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-current' : ''}`} />
-        </button>
+        {/* Wishlist Heart + Cart Bag — top right stacked */}
+        <div className="absolute top-3 right-3 z-10 flex flex-col gap-2">
+          {/* Heart / Wishlist */}
+          <button
+            onClick={(e) => { e.stopPropagation(); toggleWishlist(product); }}
+            className={`p-2.5 rounded-full backdrop-blur-md transition-all active:scale-90 shadow-lg ${
+              isWishlisted
+                ? 'bg-rose-500 text-white scale-110'
+                : 'bg-black/50 text-white hover:bg-rose-500/80'
+            }`}
+            aria-label="Wishlist"
+          >
+            <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-current' : ''}`} />
+          </button>
+
+          {/* Cart Bag — always visible on mobile */}
+          <button
+            onClick={(e) => { e.stopPropagation(); handleAddToCart(e); }}
+            disabled={isOutOfStock}
+            aria-label="Add to Cart"
+            className={`p-2.5 rounded-full backdrop-blur-md transition-all active:scale-90 shadow-lg ${
+              isOutOfStock
+                ? 'bg-black/40 text-slate-600 cursor-not-allowed'
+                : addedFlash
+                  ? 'bg-emerald-500 text-white scale-110'
+                  : 'bg-gold-500/90 text-black hover:bg-gold-400'
+            }`}
+            title={isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
+          >
+            {addedFlash
+              ? <CheckCircle className="w-4 h-4" />
+              : <ShoppingBag className="w-4 h-4" />
+            }
+          </button>
+        </div>
 
         {/* ── ADD TO BAG / CHECKOUT STRIP — Bottom of image, always visible ── */}
         {addedFlash ? (

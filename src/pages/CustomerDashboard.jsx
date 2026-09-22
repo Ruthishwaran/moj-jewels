@@ -1,15 +1,24 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useStore } from '../context/StoreContext';
-import { User, Package, Heart, Tag, Truck, ShieldCheck, ShoppingBag, Clock } from 'lucide-react';
+import { User, Package, Heart, Tag, Truck, ShieldCheck, ShoppingBag, Clock, Copy, Check, Sparkles } from 'lucide-react';
 
 export default function CustomerDashboard() {
   const { user, orders, wishlist, coupons, setCurrentPage, setIsAuthModalOpen, logoutCustomer } = useStore();
+  const [copiedCode, setCopiedCode] = useState(null);
 
   const currentUser = user || { name: 'Valued Customer', email: 'guest@mojjewels.com', role: 'customer' };
   const safeOrders = Array.isArray(orders) ? orders : [];
   const myOrders = user?.email
     ? safeOrders.filter(o => o.customerEmail?.toLowerCase() === user.email.toLowerCase() || o.email?.toLowerCase() === user.email.toLowerCase())
     : safeOrders;
+
+  const safeCoupons = Array.isArray(coupons) ? coupons.filter(c => c.active !== false) : [];
+
+  const handleCopyCoupon = (code) => {
+    navigator.clipboard.writeText(code);
+    setCopiedCode(code);
+    setTimeout(() => setCopiedCode(null), 2000);
+  };
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-5xl space-y-8">
@@ -58,6 +67,55 @@ export default function CustomerDashboard() {
           </div>
         </div>
       </div>
+
+      {/* ── COMPACT COUPONS SECTION (Decreased Size) ── */}
+      {safeCoupons.length > 0 && (
+        <div className="glass-card p-4 rounded-xl border border-gold-500/20 space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-bold text-gold-300 uppercase tracking-wider flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-gold-400" /> Exclusive Offers & Coupons
+            </h3>
+            <span className="text-[10px] text-slate-400">1-Tap Copy Code</span>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {safeCoupons.map((c) => (
+              <div
+                key={c.code}
+                className="bg-slate-900/90 border border-gold-500/30 rounded-lg px-3 py-1.5 flex items-center gap-2 text-xs hover:border-gold-400 transition-colors"
+              >
+                <Tag className="w-3.5 h-3.5 text-gold-400 shrink-0" />
+                <div>
+                  <span className="font-mono font-bold text-white text-xs mr-1">{c.code}</span>
+                  <span className="text-emerald-400 text-[11px] font-semibold">
+                    ({c.discountType === 'percent' ? `${c.discountValue}% OFF` : `₹${c.discountValue} OFF`})
+                  </span>
+                  <span className="text-slate-400 text-[10px] block">
+                    Min order ₹{c.minAmount?.toLocaleString() || 0}
+                  </span>
+                </div>
+                <button
+                  onClick={() => handleCopyCoupon(c.code)}
+                  className="ml-1 bg-gold-500/20 hover:bg-gold-500/30 text-gold-300 p-1 rounded transition-colors text-[10px] font-bold flex items-center gap-1"
+                  title="Copy Coupon Code"
+                >
+                  {copiedCode === c.code ? (
+                    <>
+                      <Check className="w-3 h-3 text-emerald-400" />
+                      <span className="text-emerald-400">Copied</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3 h-3 text-gold-400" />
+                      <span>Copy</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="space-y-6">
@@ -109,16 +167,41 @@ export default function CustomerDashboard() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-                  <div className="md:col-span-8 space-y-2">
-                    {ord.items.map((it) => (
-                      <div key={it.id} className="flex items-center space-x-3 text-xs">
-                        <img src={it.image} alt="" className="w-12 h-12 object-cover rounded-lg bg-slate-950" />
-                        <div>
-                          <h4 className="text-white font-semibold">{it.title}</h4>
-                          <span className="text-slate-400 text-[10px]">Qty: {it.quantity} x ₹{it.price.toLocaleString()}</span>
+                  {/* ── 2-ROW / 2-COLUMN IMAGE GRID FOR ORDER ITEMS ── */}
+                  <div className="md:col-span-8">
+                    <span className="text-[10px] text-slate-400 uppercase font-semibold block mb-2">
+                      Purchased Items ({ord.items?.length || 0})
+                    </span>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+                      {ord.items.map((it) => (
+                        <div
+                          key={it.id}
+                          className="relative rounded-xl overflow-hidden bg-slate-950 border border-slate-800/80 group hover:border-gold-500/50 transition-all shadow-md"
+                        >
+                          <div className="aspect-square w-full relative overflow-hidden">
+                            <img
+                              src={it.image}
+                              alt={it.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                            {/* Quantity Pill Badge */}
+                            <span className="absolute top-1.5 right-1.5 bg-gold-500 text-black text-[10px] font-bold px-1.5 py-0.5 rounded-md shadow">
+                              x{it.quantity}
+                            </span>
+                          </div>
+
+                          {/* Item Details Bottom Overlay */}
+                          <div className="p-1.5 bg-slate-900/90 border-t border-slate-800 text-left">
+                            <h4 className="text-white font-medium text-[11px] truncate" title={it.title}>
+                              {it.title}
+                            </h4>
+                            <span className="text-gold-400 font-bold text-[10px] block">
+                              ₹{(it.price * it.quantity).toLocaleString()}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
 
                   <div className="md:col-span-4 text-right space-y-2 border-t md:border-t-0 border-slate-800 pt-3 md:pt-0">
@@ -143,3 +226,4 @@ export default function CustomerDashboard() {
     </div>
   );
 }
+
