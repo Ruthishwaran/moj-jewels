@@ -59,22 +59,22 @@ export default function HeroBanner() {
       <div className="container mx-auto px-4 space-y-8 relative z-10">
         
         {/* 5-Second Dynamic Auto-Slideshow Hero Frame */}
-        <div className="relative rounded-2xl overflow-hidden gold-border-glow shadow-2xl group min-h-[220px] md:min-h-[380px] bg-slate-950">
+        <div className="relative rounded-2xl overflow-hidden gold-border-glow shadow-2xl group min-h-[160px] sm:min-h-[220px] md:min-h-[380px] bg-slate-950">
           <img
             key={currentSlide.id}
             src={currentSlide.imageUrl}
             alt={currentSlide.title}
-            className="w-full h-full min-h-[220px] max-h-[420px] object-cover rounded-2xl transition-all duration-700 transform group-hover:scale-102"
+            className="w-full h-auto min-h-[160px] sm:min-h-[220px] max-h-[300px] sm:max-h-[380px] md:max-h-[440px] object-cover rounded-2xl transition-all duration-700 transform group-hover:scale-102"
           />
 
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6 md:p-10">
-            <span className="inline-block self-start bg-gold-500 text-black text-[10px] md:text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-2 shadow-md">
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent flex flex-col justify-end p-4 sm:p-6 md:p-10">
+            <span className="inline-block self-start bg-gold-500 text-black text-[9px] sm:text-[10px] md:text-xs font-bold px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full uppercase tracking-wider mb-1.5 shadow-md">
               {currentSlide.badge}
             </span>
-            <h2 className="text-xl md:text-3xl font-serif font-bold text-white drop-shadow-md">
+            <h2 className="text-base sm:text-xl md:text-3xl font-serif font-bold text-white drop-shadow-md line-clamp-1">
               {currentSlide.title}
             </h2>
-            <p className="text-gold-300 text-xs md:text-sm font-medium tracking-wide">
+            <p className="text-gold-300 text-[10px] sm:text-xs md:text-sm font-medium tracking-wide line-clamp-1">
               {currentSlide.tagline}
             </p>
           </div>

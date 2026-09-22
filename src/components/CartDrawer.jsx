@@ -26,8 +26,21 @@ export default function CartDrawer() {
   const isWholesaleAccount = user?.accountType === 'wholesale';
   const isWholesaleApproved = user?.isApproved !== false;
 
-  // Wholesale constraint rule: Min 5 total pcs OR min ₹25,000 subtotal
-  const isWholesaleValid = !isWholesaleAccount || !isWholesaleApproved || (totalCartQty >= 5 || subtotal >= 25000);
+  // Wholesale constraint rule:
+  // 1. Must be accepted/approved by Admin
+  // 2. Must have min 5 total items AND min ₹25,000 subtotal
+  let isWholesaleCanOrder = true;
+  let wholesaleReason = '';
+
+  if (isWholesaleAccount) {
+    if (!isWholesaleApproved) {
+      isWholesaleCanOrder = false;
+      wholesaleReason = 'Pending Admin Acceptance';
+    } else if (totalCartQty < 5 || subtotal < 25000) {
+      isWholesaleCanOrder = false;
+      wholesaleReason = 'Min 5 Items & ₹25k Required';
+    }
+  }
 
   if (!isCartOpen) return null;
 
@@ -188,16 +201,16 @@ export default function CartDrawer() {
                 <div className="bg-amber-500/10 border border-amber-500/30 p-2.5 rounded-xl text-[11px] text-amber-200 flex items-start gap-2">
                   <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                   <p>
-                    <strong>Wholesale Account Pending Approval:</strong> Your wholesale tier is awaiting Admin approval. You can place retail orders now or contact WhatsApp <strong className="text-gold-300">+91 82488 75865</strong>.
+                    <strong>Wholesale Account Awaiting Admin Acceptance:</strong> Your wholesale account must be accepted by Admin before placing bulk orders. Contact WhatsApp <strong className="text-gold-300">+91 82488 75865</strong> for instant acceptance.
                   </p>
                 </div>
               )}
 
-              {isWholesaleAccount && isWholesaleApproved && !isWholesaleValid && (
+              {isWholesaleAccount && isWholesaleApproved && !isWholesaleCanOrder && (
                 <div className="bg-rose-500/20 border border-rose-500/40 p-2.5 rounded-xl text-[11px] text-rose-300 flex items-start gap-2">
                   <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
                   <p>
-                    <strong>Wholesale Bulk Requirement:</strong> Wholesale orders require a minimum of <strong>5 items</strong> or <strong>₹25,000 order total</strong> (Current: {totalCartQty} items, ₹{subtotal.toLocaleString()}).
+                    <strong>Wholesale Bulk Requirement:</strong> Approved wholesale partners must order a minimum of <strong>5 items</strong> AND <strong>₹25,000 order total</strong> (Current: {totalCartQty} items, ₹{subtotal.toLocaleString()}).
                   </p>
                 </div>
               )}
@@ -226,15 +239,15 @@ export default function CartDrawer() {
 
               <button
                 onClick={handleProceedToCheckout}
-                disabled={!isWholesaleValid}
+                disabled={!isWholesaleCanOrder}
                 className={`w-full py-3.5 rounded-xl text-sm font-semibold flex items-center justify-center space-x-2 shadow-xl transition-all ${
-                  isWholesaleValid
+                  isWholesaleCanOrder
                     ? 'btn-gold-shimmer text-black cursor-pointer'
                     : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed opacity-75'
                 }`}
               >
-                <span>{isWholesaleValid ? 'Proceed to Checkout' : 'Wholesale Min Order Not Met (Min 5 items / ₹25k)'}</span>
-                {isWholesaleValid && <ArrowRight className="w-4 h-4" />}
+                <span>{isWholesaleCanOrder ? 'Proceed to Checkout' : `Order Restricted (${wholesaleReason})`}</span>
+                {isWholesaleCanOrder && <ArrowRight className="w-4 h-4" />}
               </button>
             </div>
           )}

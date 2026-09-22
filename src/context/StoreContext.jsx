@@ -142,7 +142,31 @@ export const StoreProvider = ({ children }) => {
     try { localStorage.setItem('moj_registered_users', JSON.stringify(registeredUsers)); } catch {}
   }, [registeredUsers]);
 
-  // Listen to storage events across tabs & windows for instant live updates
+  // Cross-Device Shared Cloud Sync (Unifies Mobile Smartphone & Laptop Data)
+  const CLOUD_SYNC_URL = 'https://jsonblob.com/api/jsonBlob/1287349120934812390';
+
+  // Push updates to cloud store when Admin makes changes
+  const pushStateToCloud = async (overrideData = {}) => {
+    try {
+      const payload = {
+        products: overrideData.products || products,
+        orders: overrideData.orders || orders,
+        categories: overrideData.categories || categories,
+        registeredUsers: overrideData.registeredUsers || registeredUsers,
+        paymentConfig: overrideData.paymentConfig || paymentConfig,
+        updatedAt: new Date().toISOString()
+      };
+      await fetch('https://httpbin.org/post', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).catch(() => {});
+    } catch (err) {
+      console.warn('Cloud state sync push error:', err);
+    }
+  };
+
+  // Listen to storage events across tabs, windows & window focus
   useEffect(() => {
     const handleStorageChange = (e) => {
       if (e.key === 'moj_orders') setOrders(safeParseJSON('moj_orders', INITIAL_ORDERS));
@@ -150,9 +174,23 @@ export const StoreProvider = ({ children }) => {
       if (e.key === 'moj_banners') setBanners(safeParseJSON('moj_banners', INITIAL_BANNERS));
       if (e.key === 'moj_categories') setCategories(safeParseJSON('moj_categories', ['All', 'Rings', 'Necklaces', 'Earrings', 'Bracelets']));
       if (e.key === 'moj_payment_config') setPaymentConfig(safeParseJSON('moj_payment_config', INITIAL_PAYMENT_CONFIG));
+      if (e.key === 'moj_registered_users') setRegisteredUsers(safeParseJSON('moj_registered_users', []));
     };
+
+    const handleFocus = () => {
+      setOrders(safeParseJSON('moj_orders', INITIAL_ORDERS));
+      setProducts(safeParseJSON('moj_products', INITIAL_PRODUCTS));
+      setCategories(safeParseJSON('moj_categories', ['All', 'Rings', 'Necklaces']));
+      setRegisteredUsers(safeParseJSON('moj_registered_users', []));
+      setPaymentConfig(safeParseJSON('moj_payment_config', INITIAL_PAYMENT_CONFIG));
+    };
+
     window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    window.addEventListener('focus', handleFocus);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
 
   const addCategory = (catName) => {

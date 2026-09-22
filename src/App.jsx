@@ -42,22 +42,18 @@ function MainContent() {
 
   return (
     <div className="min-h-screen flex flex-col justify-between bg-[#0b0f19] text-slate-100">
-      {/* 100% Free PWA Install Prompt Banner */}
+      {/* PWA Install Prompt Banner */}
       {!isAdminView && showPwaBanner && (
-        <div className="bg-gradient-to-r from-slate-900 via-amber-950 to-slate-900 border-b border-gold-500/30 px-4 py-2 text-xs flex items-center justify-between text-slate-200">
+        <div className="bg-gradient-to-r from-slate-900 via-amber-950 to-slate-900 border-b border-gold-500/30 px-4 py-1.5 text-xs flex items-center justify-between text-slate-200">
           <div className="flex items-center space-x-2">
-            <span className="bg-gold-500 text-black text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">
-              100% FREE APP
-            </span>
-            <span className="hidden sm:inline text-gold-300 font-semibold">Install MOJ Jewels Web App for Instant Orders & Push Deals!</span>
-            <span className="sm:hidden text-gold-300 font-semibold">Install MOJ Jewels Mobile App</span>
+            <span className="text-gold-300 font-semibold">Install MOJ App for instant mobile ordering & deals</span>
           </div>
           <div className="flex items-center space-x-2">
             <button
               onClick={installPwaApp}
               className="bg-gold-500 hover:bg-gold-400 text-black font-bold px-3 py-1 rounded-lg shadow-md transition-colors text-[11px]"
             >
-              Install App 📲
+              Install MOJ App 📲
             </button>
             <button
               onClick={() => setShowPwaBanner(false)}

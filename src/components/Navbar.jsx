@@ -86,7 +86,7 @@ export default function Navbar() {
                 MOJ <span className="text-gold-400 font-sans text-base sm:text-xl font-light">JEWELS</span>
               </h1>
               <p className="text-[8px] sm:text-[9px] tracking-widest text-gold-300 uppercase font-medium">
-                Timeless Beauty Made For You 🩷 • Gudiyatham, Vellore
+                Timeless Beauty Made For You 🩷
               </p>
             </div>
           </div>
@@ -132,11 +132,11 @@ export default function Navbar() {
           <button
             onClick={installPwaApp}
             className="flex items-center space-x-1 bg-gradient-to-r from-gold-500/20 to-gold-400/10 hover:from-gold-500/30 text-gold-300 border border-gold-500/40 px-2.5 py-1.5 rounded-full text-xs font-semibold shadow-inner transition-all"
-            title="Install App Free"
+            title="Install App"
           >
             <Download className="w-3.5 h-3.5 text-gold-400 animate-bounce" />
-            <span className="hidden sm:inline">Install App</span>
-            <span className="bg-gold-500 text-black text-[9px] font-bold px-1.5 py-0.5 rounded-full">FREE</span>
+            <span className="hidden sm:inline">Install MOJ App</span>
+            <span className="sm:hidden text-[10px]">Install MOJ App</span>
           </button>
 
           {/* Wishlist Icon */}
@@ -199,11 +199,11 @@ export default function Navbar() {
             className="fixed inset-0 bg-black/70 backdrop-blur-sm animate-fade-in"
           />
 
-          {/* Left Drawer (Full Screen Height & 75vw Width) */}
-          <div className="relative z-10 w-72 sm:w-80 max-w-[75vw] bg-[#0b0f19] border-r border-gold-500/30 h-screen top-0 bottom-0 p-5 flex flex-col justify-between overflow-y-auto shadow-2xl animate-slide-right">
+          {/* Left Drawer (Full Screen Height & 80vw Width) */}
+          <div className="relative z-10 w-72 sm:w-80 max-w-[80vw] bg-[#0b0f19] border-r border-gold-500/30 h-screen top-0 bottom-0 p-5 flex flex-col justify-between overflow-y-auto shadow-2xl animate-slide-right">
             <div>
               {/* Header */}
-              <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-6">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
                 <div className="flex items-center space-x-2">
                   <div className="w-8 h-8 rounded-full bg-white p-0.5 border border-gold-500/40">
                     <img src="/images/moj_logo.jpg" alt="" className="w-full h-full object-cover rounded-full" />
@@ -218,8 +218,66 @@ export default function Navbar() {
                 </button>
               </div>
 
+              {/* User Profile Card Section in Mobile Menu */}
+              <div className="mb-6 p-3.5 bg-slate-900/90 rounded-2xl border border-gold-500/30 space-y-2">
+                {user ? (
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-7 h-7 rounded-full bg-gold-500 text-black font-bold flex items-center justify-center text-xs">
+                          {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                        </div>
+                        <div>
+                          <strong className="text-white text-xs block font-semibold">{user.name}</strong>
+                          <span className="text-[10px] text-slate-400 block line-clamp-1">{user.email}</span>
+                        </div>
+                      </div>
+                      <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border uppercase ${
+                        user.accountType === 'wholesale' ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' : 'bg-slate-800 text-slate-300 border-slate-700'
+                      }`}>
+                        {user.accountType === 'wholesale' ? 'Wholesale' : 'Retail'}
+                      </span>
+                    </div>
+
+                    <div className="pt-3 flex gap-2 border-t border-slate-800 mt-2">
+                      <button
+                        onClick={() => {
+                          setCurrentPage('customer-dashboard');
+                          setMobileMenuOpen(false);
+                        }}
+                        className="flex-1 bg-gold-500/20 hover:bg-gold-500 hover:text-black text-gold-300 text-xs py-1.5 rounded-lg font-semibold border border-gold-500/30 transition-colors"
+                      >
+                        My Account & Orders
+                      </button>
+                      <button
+                        onClick={() => {
+                          logoutCustomer();
+                          setMobileMenuOpen(false);
+                        }}
+                        className="bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-800 text-xs px-3 py-1.5 rounded-lg font-medium"
+                      >
+                        Log Out
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center space-y-2 py-1">
+                    <p className="text-xs text-slate-300 font-medium">Access your saved wishlist & live orders</p>
+                    <button
+                      onClick={() => {
+                        setIsAuthModalOpen(true);
+                        setMobileMenuOpen(false);
+                      }}
+                      className="w-full btn-gold-shimmer py-2 rounded-xl text-xs font-bold shadow-md"
+                    >
+                      Sign In / Create Account
+                    </button>
+                  </div>
+                )}
+              </div>
+
               {/* Navigation Links */}
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <span className="text-[10px] font-bold uppercase text-gold-400 tracking-wider block">Store Menu</span>
                 
                 <button
@@ -245,28 +303,16 @@ export default function Navbar() {
                   <CheckCircle2 className="w-4 h-4 text-gold-400" />
                   <span>Track Order Status</span>
                 </button>
-
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    if (user) setCurrentPage('customer-dashboard');
-                    else setIsAuthModalOpen(true);
-                  }}
-                  className="w-full flex items-center space-x-3 text-left py-2.5 px-3 rounded-xl bg-slate-900/60 hover:bg-gold-500/10 text-white font-medium text-xs border border-slate-800"
-                >
-                  <User className="w-4 h-4 text-gold-400" />
-                  <span>{user ? 'My Profile & Orders' : 'Customer Account / Sign In'}</span>
-                </button>
               </div>
 
               {/* Dynamic Categories Section */}
-              <div className="mt-8 space-y-3">
+              <div className="mt-6 space-y-2">
                 <span className="text-[10px] font-bold uppercase text-gold-400 tracking-wider block">Shop Categories</span>
                 {(categories || ['Rings', 'Necklaces', 'Earrings', 'Bracelets']).filter(c => c !== 'All').map((cat) => (
                   <button
                     key={cat}
                     onClick={() => { setCurrentPage('shop'); setMobileMenuOpen(false); }}
-                    className="w-full text-left py-2 text-slate-300 hover:text-gold-300 text-xs pl-3 border-l-2 border-slate-800 hover:border-gold-400 block transition-colors"
+                    className="w-full text-left py-1.5 text-slate-300 hover:text-gold-300 text-xs pl-3 border-l-2 border-slate-800 hover:border-gold-400 block transition-colors"
                   >
                     {cat} Collection
                   </button>

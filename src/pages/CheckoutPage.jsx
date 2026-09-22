@@ -64,7 +64,6 @@ export default function CheckoutPage() {
   const totalCartQty = (cart || []).reduce((acc, item) => acc + (item.quantity || 1), 0);
   const isWholesaleAccount = user?.accountType === 'wholesale';
   const isWholesaleApproved = user?.isApproved !== false;
-  const isWholesaleValid = !isWholesaleAccount || !isWholesaleApproved || (totalCartQty >= 5 || subtotal >= 25000);
 
   const handleNextToPayment = (e) => {
     e.preventDefault();
@@ -72,9 +71,15 @@ export default function CheckoutPage() {
       alert('Please fill out all address details.');
       return;
     }
-    if (!isWholesaleValid) {
-      alert('Wholesale Order Requirement: Wholesale partner accounts must order at least 5 total items or ₹25,000 subtotal value.');
-      return;
+    if (isWholesaleAccount) {
+      if (!isWholesaleApproved) {
+        alert('Wholesale Account Pending Admin Acceptance: Your account must be accepted by Store Admin before placing bulk orders. Contact WhatsApp +91 82488 75865.');
+        return;
+      }
+      if (totalCartQty < 5 || subtotal < 25000) {
+        alert('Wholesale Bulk Requirement: Approved wholesale partners must order at least 5 total items AND ₹25,000 order total.');
+        return;
+      }
     }
     setStep(2);
   };
