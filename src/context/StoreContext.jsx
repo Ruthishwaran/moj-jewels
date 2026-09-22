@@ -466,21 +466,23 @@ export const StoreProvider = ({ children }) => {
   // ===== CART FUNCTIONS (session only, device-local) =====
   const addToCart = (product, quantity = 1) => {
     if (!product) return;
-    const maxStock = typeof product.stock === 'number' ? product.stock : (parseInt(product.stock) || 0);
+    const stockVal = product.stock !== undefined && product.stock !== null && product.stock !== ''
+      ? parseInt(product.stock, 10)
+      : 10;
+    const maxStock = !isNaN(stockVal) ? stockVal : 10;
 
     if (maxStock <= 0) {
-      alert(`Sorry! "${product.title}" is currently OUT OF STOCK.`);
+      alert(`Sorry! "${product.title || 'This item'}" is currently OUT OF STOCK.`);
       return;
     }
 
-    let isStockExceeded = false;
     setCart(prev => {
       const safePrev = Array.isArray(prev) ? prev : [];
       const existing = safePrev.find(item => item.id === product.id);
       const currentQty = existing ? existing.quantity : 0;
 
       if (currentQty + quantity > maxStock) {
-        isStockExceeded = true;
+        alert(`Stock Limit Reached! Maximum ${maxStock} units available for this item.`);
         return safePrev;
       }
 
@@ -492,20 +494,15 @@ export const StoreProvider = ({ children }) => {
       return [...safePrev, { ...product, quantity }];
     });
 
-    if (isStockExceeded) {
-      const existingInCart = (cart || []).find(i => i.id === product.id);
-      const currQty = existingInCart ? existingInCart.quantity : 0;
-      alert(`Stock Limit Reached! Only ${maxStock} units available. You already have ${currQty} in your bag.`);
-      return;
-    }
     setIsCartOpen(true);
   };
 
   const updateCartQty = (productId, delta) => {
     const targetProduct = (products || []).find(p => p.id === productId);
-    const maxStock = targetProduct
-      ? (typeof targetProduct.stock === 'number' ? targetProduct.stock : parseInt(targetProduct.stock) || 10)
+    const stockVal = targetProduct && targetProduct.stock !== undefined && targetProduct.stock !== null && targetProduct.stock !== ''
+      ? parseInt(targetProduct.stock, 10)
       : 10;
+    const maxStock = !isNaN(stockVal) ? stockVal : 10;
 
     setCart(prev => (Array.isArray(prev) ? prev : []).map(item => {
       if (item.id === productId) {

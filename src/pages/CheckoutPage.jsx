@@ -383,7 +383,7 @@ export default function CheckoutPage() {
                               <div className="flex items-center gap-1.5">
                                 <span className="font-mono font-bold text-white text-xs">{c.code}</span>
                                 <span className="text-emerald-400 font-bold text-[10px]">
-                                  {c.discountType === 'percent' ? `${c.discountValue}% OFF` : `₹${c.discountValue} OFF`}
+                                  {c.discountType === 'percentage' ? `${c.value}% OFF` : `₹${c.value} OFF`}
                                 </span>
                               </div>
                               <span className="text-[10px] text-slate-400 block">

@@ -88,7 +88,7 @@ export default function CustomerDashboard() {
                 <div>
                   <span className="font-mono font-bold text-white text-xs mr-1">{c.code}</span>
                   <span className="text-emerald-400 text-[11px] font-semibold">
-                    ({c.discountType === 'percent' ? `${c.discountValue}% OFF` : `₹${c.discountValue} OFF`})
+                    ({c.discountType === 'percentage' ? `${c.value}% OFF` : `₹${c.value} OFF`})
                   </span>
                   <span className="text-slate-400 text-[10px] block">
                     Min order ₹{c.minAmount?.toLocaleString() || 0}

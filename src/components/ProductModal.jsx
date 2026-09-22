@@ -53,7 +53,10 @@ export default function ProductModal() {
     : [selectedProduct.image || '/images/moj_logo.jpg'];
   const activeImage = imageList[activeImgIndex] || imageList[0];
 
-  const stock = typeof selectedProduct.stock === 'number' ? selectedProduct.stock : (parseInt(selectedProduct.stock) || 0);
+  const stockVal = selectedProduct.stock !== undefined && selectedProduct.stock !== null && selectedProduct.stock !== ''
+    ? parseInt(selectedProduct.stock, 10)
+    : 10;
+  const stock = !isNaN(stockVal) ? stockVal : 10;
   const isOutOfStock = stock <= 0;
 
   const isWishlisted = isInWishlist(id);

@@ -218,7 +218,7 @@ export default function CartDrawer() {
                               title={isEligible ? `Apply ${c.code}` : `Min order ₹${c.minAmount}`}
                             >
                               <Tag className="w-3 h-3" />
-                              <span>{c.code} ({c.discountType === 'percent' ? `${c.discountValue}% OFF` : `₹${c.discountValue} OFF`})</span>
+                              <span>{c.code} ({c.discountType === 'percentage' ? `${c.value}% OFF` : `₹${c.value} OFF`})</span>
                             </button>
                           );
                         })}

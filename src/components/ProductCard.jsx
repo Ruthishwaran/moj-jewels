@@ -21,7 +21,10 @@ export default function ProductCard({ product }) {
   const originalPrice = typeof product.originalPrice === 'number' ? product.originalPrice : (parseFloat(product.originalPrice) || price);
   const rating = product.rating || 5.0;
   const reviewsCount = product.reviewsCount || 1;
-  const stock = product.stock || 5;
+  const stockVal = product.stock !== undefined && product.stock !== null && product.stock !== ''
+    ? parseInt(product.stock, 10)
+    : 10;
+  const stock = !isNaN(stockVal) ? stockVal : 10;
   const karat = product.karat || 'Premium Hallmarked';
 
   const imageList = Array.isArray(product.images) && product.images.length > 0
