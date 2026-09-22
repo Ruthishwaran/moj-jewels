@@ -168,6 +168,28 @@ export const StoreProvider = ({ children }) => {
       snap => {
         const data = snap.docs.map(d => ({ ...d.data(), id: d.id }));
         setRegisteredUsers(data);
+
+        // Auto logout & redirect if logged-in user account was deleted by Admin
+        try {
+          const savedStr = localStorage.getItem('moj_customer_user');
+          if (savedStr) {
+            const savedUser = JSON.parse(savedStr);
+            if (savedUser && savedUser.id) {
+              const exists = data.some(
+                u => u.id === savedUser.id || (u.email && u.email.toLowerCase() === savedUser.email?.toLowerCase())
+              );
+              if (!exists) {
+                localStorage.removeItem('moj_customer_user');
+                setUser(null);
+                setIsAuthModalOpen(true);
+                setCurrentPage('home');
+                alert('Your account has been deleted by Store Admin. Please create an account to continue.');
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('User deletion check error:', e);
+        }
       },
       err => console.warn('Users listener error:', err)
     );
@@ -835,7 +857,8 @@ export const StoreProvider = ({ children }) => {
       searchQuery,
       setSearchQuery,
       selectedCategory,
-      setSelectedCategory
+      setSelectedCategory,
+      playOrderSuccessSound
     }}>
       {children}
     </StoreContext.Provider>

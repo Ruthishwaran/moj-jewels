@@ -118,7 +118,9 @@ export default function AdminDashboard() {
   const safeProducts = Array.isArray(products) ? products : [];
   const safeCoupons = Array.isArray(coupons) ? coupons : [];
 
-  const pendingVerifications = safeOrders.filter(o => o?.paymentStatus === 'Pending Verification');
+  const pendingVerifications = safeOrders
+    .filter(o => o?.paymentStatus === 'Pending Verification')
+    .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
   const verifiedOrders = safeOrders.filter(o => o?.paymentStatus === 'Verified' || o?.orderStatus === 'Shipped' || o?.orderStatus === 'Delivered');
   const shippedOrders = safeOrders.filter(o => o?.orderStatus === 'Shipped');
   const deliveredOrders = safeOrders.filter(o => o?.orderStatus === 'Delivered');
@@ -236,6 +238,72 @@ export default function AdminDashboard() {
         <table><thead>${tableHeader}</thead><tbody>${tableRows}</tbody></table>
       </body></html>`;
     const w = window.open('', '_blank', 'width=900,height=700');
+    w.document.write(html);
+    w.document.close();
+    setTimeout(() => w.print(), 500);
+  };
+
+  // ── Download Pending Payment Orders PDF ──
+  const downloadPendingPdf = () => {
+    const now = new Date().toLocaleString('en-IN');
+    const sortedPending = [...pendingVerifications].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+    const tableRows = sortedPending.map((o, idx) => `
+      <tr>
+        <td style="font-weight:bold;text-align:center;">${idx + 1}</td>
+        <td style="font-weight:bold;font-family:monospace;color:#92400e;">${o.id}</td>
+        <td>${o.date ? new Date(o.date).toLocaleString('en-IN') : ''}</td>
+        <td>
+          <strong>${o.customerName || 'N/A'}</strong><br/>
+          <span style="color:#333">${o.customerPhone || ''}</span><br/>
+          <span style="color:#666;font-size:10px">${o.customerEmail || ''}</span>
+        </td>
+        <td style="font-size:10px;max-width:200px">${o.shippingAddress || 'N/A'}</td>
+        <td style="font-weight:bold;font-family:monospace;color:#047857">${o.transactionId || 'N/A'}</td>
+        <td style="font-weight:bold;color:#1e293b">₹${(o.total || 0).toLocaleString()}</td>
+        <td style="font-size:11px">${(o.items || []).map(i => `${i.title} (x${i.quantity})`).join('<br/>')}</td>
+        <td style="font-size:10px;font-style:italic">${o.notes || '-'}</td>
+      </tr>
+    `).join('');
+
+    const html = `<!DOCTYPE html><html><head><title>Pending Orders Verification Report - MOJ Jewels</title>
+      <style>
+        body{font-family:'Segoe UI',Arial,sans-serif;padding:24px;color:#111;font-size:12px;background:#fff;}
+        h1{color:#92400e;font-size:20px;margin:0 0 4px 0;}
+        p{color:#555;margin:0 0 16px 0;}
+        table{width:100%;border-collapse:collapse;margin-top:12px;}
+        th,td{border:1px solid #cbd5e1;padding:8px 10px;text-align:left;vertical-align:top;}
+        th{background:#f59e0b;color:#000;font-weight:bold;text-transform:uppercase;font-size:10px;}
+        tr:nth-child(even){background:#fef9ee;}
+        .header-bar{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #f59e0b;padding-bottom:12px;margin-bottom:16px;}
+        .badge{background:#fef3c7;color:#92400e;padding:4px 12px;border-radius:12px;font-weight:bold;font-size:11px;border:1px solid #fde68a;}
+        @media print{button{display:none} body{padding:0;}}
+      </style></head>
+      <body>
+        <div class="header-bar">
+          <div>
+            <h1>MOJ Jewels — Pending Payment Verification Desk</h1>
+            <p>Generated on ${now} &nbsp;|&nbsp; Total Pending Verifications: ${sortedPending.length}</p>
+          </div>
+          <div class="badge">MANUAL VERIFICATION REPORT</div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Order ID</th>
+              <th>Order Date & Time</th>
+              <th>Customer Info</th>
+              <th>Shipping Address</th>
+              <th>Customer Submitted UTR</th>
+              <th>Amount</th>
+              <th>Items Ordered</th>
+              <th>Customer Notes</th>
+            </tr>
+          </thead>
+          <tbody>${tableRows || '<tr><td colspan="9" style="text-align:center;padding:20px;">No pending orders found</td></tr>'}</tbody>
+        </table>
+      </body></html>`;
+    const w = window.open('', '_blank', 'width=1000,height=750');
     w.document.write(html);
     w.document.close();
     setTimeout(() => w.print(), 500);
@@ -509,13 +577,24 @@ export default function AdminDashboard() {
       {/* TAB 1: Manual Payment Verification Desk */}
       {activeTab === 'payments' && (
         <div className="space-y-6 animate-fade-in">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-serif font-bold text-white flex items-center gap-2">
-              <QrCode className="w-5 h-5 text-amber-400" /> Pending UTR Transaction Verifications
-            </h2>
-            <span className="text-xs text-slate-400">
-              Inspect customer submitted transaction IDs and approve orders.
-            </span>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-card p-4 rounded-2xl border border-amber-500/30">
+            <div>
+              <h2 className="text-xl font-serif font-bold text-white flex items-center gap-2">
+                <QrCode className="w-5 h-5 text-amber-400" /> Pending UTR Transaction Verifications
+              </h2>
+              <span className="text-xs text-amber-200/70">
+                Sorted Date-Wise (Newest First) &bull; Inspect customer submitted transaction IDs and approve orders.
+              </span>
+            </div>
+            {pendingVerifications.length > 0 && (
+              <button
+                onClick={downloadPendingPdf}
+                className="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/50 px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-md active:scale-95 whitespace-nowrap"
+              >
+                <Download className="w-4 h-4 text-amber-400" />
+                <span>Download Pending Orders PDF</span>
+              </button>
+            )}
           </div>
 
           {pendingVerifications.length === 0 ? (

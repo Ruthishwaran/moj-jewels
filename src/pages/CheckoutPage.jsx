@@ -30,6 +30,7 @@ export default function CheckoutPage() {
     removeCoupon,
     paymentConfig,
     placeOrder,
+    playOrderSuccessSound,
     setCurrentPage,
     user
   } = useStore();
@@ -39,6 +40,7 @@ export default function CheckoutPage() {
   const [copiedUpi, setCopiedUpi] = useState(false);
   const [couponInput, setCouponInput] = useState('');
   const [couponMsg, setCouponMsg] = useState(null);
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
   // Form Fields
   const [customerName, setCustomerName] = useState(user?.name || '');
@@ -74,10 +76,25 @@ export default function CheckoutPage() {
 
   const handleNextToPayment = (e) => {
     e.preventDefault();
-    if (!shippingAddress || !city || !pincode) {
+    if (!shippingAddress.trim() || !city.trim() || !pincode.trim()) {
       alert('Please fill out all address details.');
       return;
     }
+
+    // Validation 1: City must be letters & spaces only
+    const cityRegex = /^[A-Za-z\s]+$/;
+    if (!cityRegex.test(city.trim())) {
+      alert('Invalid City Name: City must contain letters only (no numbers or special characters).');
+      return;
+    }
+
+    // Validation 2: Pincode must be exactly 6 digits numbers only
+    const pincodeRegex = /^\d{6}$/;
+    if (!pincodeRegex.test(pincode.trim())) {
+      alert('Invalid Pincode: Pincode must be a 6-digit number (e.g. 560001).');
+      return;
+    }
+
     if (isWholesaleAccount) {
       if (!isWholesaleApproved) {
         alert('Wholesale Account Pending Admin Acceptance: Your account must be accepted by Store Admin before placing bulk orders. Contact WhatsApp +91 82488 75865.');
@@ -91,26 +108,35 @@ export default function CheckoutPage() {
     setStep(2);
   };
 
-  const handleCompleteOrder = (e) => {
+  const handleCompleteOrder = async (e) => {
     e.preventDefault();
     if (!transactionId.trim()) {
       alert('Please enter your 12-digit UTR / Transaction Reference ID from your UPI app.');
       return;
     }
 
-    const fullAddress = `${shippingAddress}, ${city} - ${pincode}`;
-    const newOrd = placeOrder({
-      customerName,
-      customerPhone,
-      customerEmail,
-      shippingAddress: fullAddress,
-      paymentMethod: 'Manual UPI QR',
-      transactionId: transactionId.trim(),
-      notes: notes || 'Submitted by customer'
-    });
+    try {
+      setIsPlacingOrder(true);
+      const fullAddress = `${shippingAddress.trim()}, ${city.trim()} - ${pincode.trim()}`;
+      const newOrd = await placeOrder({
+        customerName: customerName.trim(),
+        customerPhone: customerPhone.trim(),
+        customerEmail: customerEmail.trim(),
+        shippingAddress: fullAddress,
+        paymentMethod: 'Manual UPI QR',
+        transactionId: transactionId.trim(),
+        notes: notes || 'Submitted by customer'
+      });
 
-    setCreatedOrder(newOrd);
-    setStep(3);
+      setCreatedOrder(newOrd);
+      if (playOrderSuccessSound) playOrderSuccessSound();
+      setStep(3);
+    } catch (err) {
+      console.error('Order placement failed:', err);
+      alert('Order placement encountered an error. Please try again.');
+    } finally {
+      setIsPlacingOrder(false);
+    }
   };
 
   const copyUpiId = () => {
@@ -223,9 +249,10 @@ export default function CheckoutPage() {
                     required
                     placeholder="e.g. Bangalore"
                     value={city}
-                    onChange={(e) => setCity(e.target.value)}
+                    onChange={(e) => setCity(e.target.value.replace(/[^A-Za-z\s]/g, ''))}
                     className="w-full bg-slate-900 border border-slate-700/80 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-gold-400"
                   />
+                  <span className="text-[10px] text-slate-400 mt-0.5 block">Letters & spaces only</span>
                 </div>
 
                 <div>
@@ -233,11 +260,13 @@ export default function CheckoutPage() {
                   <input
                     type="text"
                     required
+                    maxLength={6}
                     placeholder="e.g. 560001"
                     value={pincode}
-                    onChange={(e) => setPincode(e.target.value)}
-                    className="w-full bg-slate-900 border border-slate-700/80 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-gold-400"
+                    onChange={(e) => setPincode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    className="w-full bg-slate-900 border border-slate-700/80 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-gold-400 font-mono"
                   />
+                  <span className="text-[10px] text-slate-400 mt-0.5 block">6-digit number</span>
                 </div>
               </div>
 
@@ -543,54 +572,72 @@ export default function CheckoutPage() {
 
       {/* STEP 3: Order Confirmation Screen */}
       {step === 3 && createdOrder && (
-        <div className="glass-card p-8 rounded-2xl border border-emerald-500/40 text-center space-y-6 max-w-xl mx-auto animate-fade-in shadow-2xl">
-          <div className="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/50 flex items-center justify-center mx-auto text-emerald-400">
-            <CheckCircle2 className="w-10 h-10" />
+        <div className="glass-card p-8 md:p-10 rounded-2xl border-2 border-emerald-500/50 text-center space-y-6 max-w-xl mx-auto animate-fade-in shadow-2xl relative overflow-hidden">
+          {/* Animated Glowing Ripple Blue/Emerald Tick Badge */}
+          <div className="relative w-20 h-20 mx-auto flex items-center justify-center">
+            <div className="absolute inset-0 rounded-full bg-emerald-500/20 animate-ping" />
+            <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-400 p-0.5 shadow-xl flex items-center justify-center relative z-10">
+              <div className="w-full h-full bg-slate-950 rounded-full flex items-center justify-center">
+                <CheckCircle2 className="w-12 h-12 text-emerald-400 stroke-[2.5]" />
+              </div>
+            </div>
           </div>
 
           <div className="space-y-2">
-            <span className="bg-gold-500 text-black font-bold text-[10px] px-3 py-1 rounded-full uppercase tracking-wider">
-              ORDER RECEIVED & RECORDED
+            <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold text-[10px] px-3 py-1 rounded-full uppercase tracking-wider inline-flex items-center gap-1">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> ORDER PLACED & PAYMENT RECORDED
             </span>
             <h2 className="text-3xl font-serif font-bold text-white">
-              Thank You, {createdOrder.customerName}!
+              Thank You, {createdOrder.customerName}! 🎉
             </h2>
             <p className="text-xs text-slate-300">
-              Your order has been recorded under Order ID <strong className="text-gold-400 font-mono">{createdOrder.id}</strong>
+              Your order has been recorded under Order ID <strong className="text-gold-400 font-mono text-sm">{createdOrder.id}</strong>
             </p>
           </div>
 
-          <div className="bg-slate-900/90 p-4 rounded-xl border border-slate-800 text-left text-xs space-y-2">
+          <div className="bg-slate-900/90 p-5 rounded-xl border border-slate-800 text-left text-xs space-y-3">
             <div className="flex justify-between border-b border-slate-800 pb-2">
-              <span className="text-slate-400">Order ID:</span>
+              <span className="text-slate-400">Order Reference:</span>
               <strong className="text-gold-300 font-mono text-sm">{createdOrder.id}</strong>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-400">Transaction ID (UTR):</span>
-              <span className="text-white font-mono">{createdOrder.transactionId}</span>
+              <span className="text-slate-400">Transaction ID / UTR:</span>
+              <span className="text-white font-mono font-bold">{createdOrder.transactionId}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-400">Total Amount:</span>
-              <span className="text-white font-bold">₹{createdOrder.total.toLocaleString()}</span>
+              <span className="text-slate-400">Total Amount Paid:</span>
+              <span className="gold-gradient-text font-bold text-base">₹{createdOrder.total?.toLocaleString()}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-400">Verification Status:</span>
-              <span className="bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded font-semibold text-[10px]">
+              <span className="text-slate-400">Shipping Address:</span>
+              <span className="text-slate-200 max-w-[220px] text-right line-clamp-2">{createdOrder.shippingAddress}</span>
+            </div>
+            <div className="flex justify-between items-center pt-2 border-t border-slate-800">
+              <span className="text-slate-400">Payment Verification:</span>
+              <span className="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-3 py-1 rounded-full font-bold text-[10px]">
                 {createdOrder.paymentStatus}
               </span>
             </div>
           </div>
 
+          <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 text-xs text-slate-300 space-y-1 text-left">
+            <span className="text-gold-400 font-bold text-[11px] block">📦 What Happens Next?</span>
+            <p className="text-slate-400 text-[11px]">
+              Our Admin team will verify your payment UTR within 15–30 minutes and update your order to <strong className="text-white">Confirmed</strong>. Insured express courier dispatch will follow.
+            </p>
+          </div>
+
           <div className="pt-2 flex flex-col sm:flex-row gap-3">
             <button
               onClick={() => setCurrentPage('track')}
-              className="flex-1 btn-gold-shimmer py-3 rounded-xl text-xs font-semibold"
+              className="flex-1 btn-gold-shimmer py-3.5 rounded-xl text-xs font-bold shadow-lg flex items-center justify-center gap-1.5"
             >
-              Track Order Status Live
+              <CheckCircle2 className="w-4 h-4 text-black" />
+              <span>Track Order Status Live</span>
             </button>
             <button
               onClick={() => setCurrentPage('shop')}
-              className="flex-1 bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 py-3 rounded-xl text-xs font-semibold"
+              className="flex-1 bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 py-3.5 rounded-xl text-xs font-semibold transition-colors"
             >
               Continue Shopping
             </button>
