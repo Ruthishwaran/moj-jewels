@@ -1,13 +1,15 @@
 import React from 'react';
 import { useStore } from '../context/StoreContext';
-import { Heart, ShoppingBag, Star, ShieldCheck, CheckCircle } from 'lucide-react';
+import { Heart, ShoppingBag, Star, ShieldCheck, CheckCircle, ArrowRight } from 'lucide-react';
 
 export default function ProductCard({ product }) {
   const {
     addToCart,
     toggleWishlist,
     isInWishlist,
-    setSelectedProduct
+    setSelectedProduct,
+    setCurrentPage,
+    setIsCartOpen
   } = useStore();
 
   if (!product) return null;
@@ -49,8 +51,9 @@ export default function ProductCard({ product }) {
     if (isOutOfStock) return;
     addToCart(product);
     setAddedFlash(true);
-    setTimeout(() => setAddedFlash(false), 1200);
+    setTimeout(() => setAddedFlash(false), 2500);
   };
+
 
   return (
     <div className="glass-card rounded-2xl overflow-hidden border border-slate-800 hover:border-gold-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-gold-500/10 group flex flex-col h-full">
@@ -106,35 +109,34 @@ export default function ProductCard({ product }) {
           <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-current' : ''}`} />
         </button>
 
-        {/* ── ADD TO BAG BUTTON — Bottom strip of image, always visible ── */}
-        <button
-          onClick={handleAddToCart}
-          disabled={isOutOfStock}
-          className={`absolute bottom-0 left-0 right-0 z-10 flex items-center justify-center gap-2 py-3 font-bold text-sm transition-all duration-200 active:scale-98 ${
-            isOutOfStock
-              ? 'bg-slate-800/90 text-slate-500 cursor-not-allowed'
-              : addedFlash
-                ? 'bg-emerald-500 text-white'
-                : 'bg-gold-500/95 hover:bg-gold-400 text-black backdrop-blur-sm'
-          }`}
-        >
-          {addedFlash ? (
-            <>
-              <CheckCircle className="w-4 h-4" />
-              <span>Added to Bag!</span>
-            </>
-          ) : isOutOfStock ? (
-            <>
-              <ShoppingBag className="w-4 h-4" />
-              <span>Out of Stock</span>
-            </>
-          ) : (
-            <>
-              <ShoppingBag className="w-4 h-4" />
-              <span>Add to Bag</span>
-            </>
-          )}
-        </button>
+        {/* ── ADD TO BAG / CHECKOUT STRIP — Bottom of image, always visible ── */}
+        {addedFlash ? (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setCurrentPage('checkout');
+            }}
+            className="absolute bottom-0 left-0 right-0 z-10 flex items-center justify-center gap-2 py-3 font-bold text-sm bg-emerald-500 text-white animate-pulse"
+          >
+            <CheckCircle className="w-4 h-4" />
+            <span>Added! Go to Checkout</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        ) : (
+          <button
+            onClick={handleAddToCart}
+            disabled={isOutOfStock}
+            className={`absolute bottom-0 left-0 right-0 z-10 flex items-center justify-center gap-2 py-3 font-bold text-sm transition-all duration-200 ${
+              isOutOfStock
+                ? 'bg-slate-800/90 text-slate-500 cursor-not-allowed'
+                : 'bg-gold-500/95 hover:bg-gold-400 text-black backdrop-blur-sm active:scale-98'
+            }`}
+          >
+            <ShoppingBag className="w-4 h-4" />
+            <span>{isOutOfStock ? 'Out of Stock' : 'Add to Bag'}</span>
+          </button>
+        )}
+
       </div>
 
       {/* ── Product Info ── */}

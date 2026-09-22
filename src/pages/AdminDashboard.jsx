@@ -18,7 +18,12 @@ import {
   Search,
   Sparkles,
   Settings,
-  User
+  User,
+  Download,
+  FileText,
+  BarChart2,
+  Calendar,
+  RefreshCw
 } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -112,10 +117,120 @@ export default function AdminDashboard() {
 
   // Profit & Loss Financial Calculations
   const totalRevenue = verifiedOrders.reduce((acc, o) => acc + (o?.total || 0), 0);
-  const estimatedCOGS = Math.round(totalRevenue * 0.62); // 62% estimated Cost of Goods
+  const estimatedCOGS = Math.round(totalRevenue * 0.62);
   const grossProfit = totalRevenue - estimatedCOGS;
   const marginPercent = totalRevenue > 0 ? ((grossProfit / totalRevenue) * 100).toFixed(1) : 0;
   const avgOrderValue = verifiedOrders.length > 0 ? Math.round(totalRevenue / verifiedOrders.length) : 0;
+
+  // ── Monthly Analytics Calculation ──
+  const monthlyMap = {};
+  safeOrders.forEach(ord => {
+    if (!ord.date) return;
+    const d = new Date(ord.date);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    const label = d.toLocaleString('default', { month: 'long', year: 'numeric' });
+    if (!monthlyMap[key]) monthlyMap[key] = { label, orders: 0, revenue: 0, profit: 0, delivered: 0 };
+    monthlyMap[key].orders++;
+    const rev = ord.total || 0;
+    monthlyMap[key].revenue += rev;
+    monthlyMap[key].profit += Math.round(rev * 0.38);
+    if (ord.orderStatus === 'Delivered') monthlyMap[key].delivered++;
+  });
+  const monthlyRows = Object.entries(monthlyMap).sort((a, b) => b[0].localeCompare(a[0])).map(([, v]) => v);
+
+  // ── Weekly Analytics (last 8 weeks) ──
+  const weeklyMap = {};
+  safeOrders.forEach(ord => {
+    if (!ord.date) return;
+    const d = new Date(ord.date);
+    const dayOfWeek = d.getDay();
+    const monday = new Date(d);
+    monday.setDate(d.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+    const key = monday.toISOString().split('T')[0];
+    if (!weeklyMap[key]) weeklyMap[key] = { label: `Week of ${monday.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}`, orders: 0, revenue: 0, profit: 0 };
+    weeklyMap[key].orders++;
+    const rev = ord.total || 0;
+    weeklyMap[key].revenue += rev;
+    weeklyMap[key].profit += Math.round(rev * 0.38);
+  });
+  const weeklyRows = Object.entries(weeklyMap).sort((a, b) => b[0].localeCompare(a[0])).slice(0, 8).map(([, v]) => v);
+
+  // ── CSV Export ──
+  const downloadOrdersCSV = () => {
+    const headers = ['Order ID','Date','Customer Name','Phone','Email','Shipping Address','Items','Subtotal','Discount','Total','Coupon','Payment Status','Order Status','Courier','Tracking No.','Transaction ID','Notes'];
+    const rows = safeOrders.map(o => [
+      o.id,
+      o.date ? new Date(o.date).toLocaleString('en-IN') : '',
+      o.customerName || '',
+      o.customerPhone || '',
+      o.customerEmail || '',
+      (o.shippingAddress || '').replace(/,/g, ';'),
+      (o.items || []).map(i => `${i.title} x${i.quantity}`).join(' | '),
+      o.subtotal || 0,
+      o.discount || 0,
+      o.total || 0,
+      o.couponCode || '',
+      o.paymentStatus || '',
+      o.orderStatus || '',
+      o.courierPartner || '',
+      o.trackingNumber || '',
+      o.transactionId || '',
+      o.notes || ''
+    ]);
+    const csv = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, "'")}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `MOJ-Jewels-Orders-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // ── PDF Print ──
+  const printReport = (type) => {
+    const now = new Date().toLocaleString('en-IN');
+    const reportTitle = type === 'monthly' ? 'Monthly Business Analysis Report' : type === 'weekly' ? 'Weekly Business Analysis Report' : 'Full Order Report';
+    const tableRows = type === 'monthly'
+      ? monthlyRows.map(r => `<tr><td>${r.label}</td><td>${r.orders}</td><td>₹${r.revenue.toLocaleString()}</td><td>₹${r.profit.toLocaleString()}</td><td>${r.orders > 0 ? (r.profit / r.revenue * 100).toFixed(1) : 0}%</td><td>${r.delivered}</td></tr>`).join('')
+      : type === 'weekly'
+      ? weeklyRows.map(r => `<tr><td>${r.label}</td><td>${r.orders}</td><td>₹${r.revenue.toLocaleString()}</td><td>₹${r.profit.toLocaleString()}</td></tr>`).join('')
+      : safeOrders.map(o => `<tr><td>${o.id}</td><td>${o.date ? new Date(o.date).toLocaleDateString('en-IN') : ''}</td><td>${o.customerName || ''}</td><td>${o.customerPhone || ''}</td><td>${(o.items || []).map(i => `${i.title} x${i.quantity}`).join(', ')}</td><td>₹${(o.total || 0).toLocaleString()}</td><td>${o.paymentStatus || ''}</td><td>${o.orderStatus || ''}</td><td>${o.courierPartner || '-'} ${o.trackingNumber || ''}</td></tr>`).join('');
+    const tableHeader = type === 'monthly'
+      ? '<tr><th>Month</th><th>Orders</th><th>Revenue</th><th>Est. Profit</th><th>Margin%</th><th>Delivered</th></tr>'
+      : type === 'weekly'
+      ? '<tr><th>Week</th><th>Orders</th><th>Revenue</th><th>Est. Profit</th></tr>'
+      : '<tr><th>Order ID</th><th>Date</th><th>Customer</th><th>Phone</th><th>Items</th><th>Total</th><th>Payment</th><th>Status</th><th>Courier</th></tr>';
+    const html = `<!DOCTYPE html><html><head><title>${reportTitle} - MOJ Jewels</title>
+      <style>body{font-family:Arial,sans-serif;padding:24px;color:#111;font-size:12px}
+      h1{color:#92400e;font-size:20px;margin-bottom:4px}p{color:#555;margin-bottom:16px}
+      table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:8px 10px;text-align:left}
+      th{background:#f59e0b;color:#000;font-weight:bold}tr:nth-child(even){background:#fef9ee}
+      .summary{display:flex;gap:20px;margin-bottom:20px;flex-wrap:wrap}
+      .card{border:1px solid #ddd;border-radius:8px;padding:12px 16px;min-width:120px}
+      .card h3{margin:0;font-size:11px;color:#666;text-transform:uppercase}
+      .card p{margin:4px 0 0;font-size:18px;font-weight:bold;color:#92400e}
+      @media print{button{display:none}}</style></head>
+      <body>
+        <h1>MOJ Jewels — ${reportTitle}</h1>
+        <p>Generated on ${now} &nbsp;|&nbsp; Total Orders: ${safeOrders.length} &nbsp;|&nbsp; Verified Revenue: ₹${totalRevenue.toLocaleString()} &nbsp;|&nbsp; Est. Profit: ₹${grossProfit.toLocaleString()} (${marginPercent}%)</p>
+        <div class="summary">
+          <div class="card"><h3>Total Orders</h3><p>${safeOrders.length}</p></div>
+          <div class="card"><h3>Verified Revenue</h3><p>₹${totalRevenue.toLocaleString()}</p></div>
+          <div class="card"><h3>Est. Gross Profit</h3><p>₹${grossProfit.toLocaleString()}</p></div>
+          <div class="card"><h3>Profit Margin</h3><p>${marginPercent}%</p></div>
+          <div class="card"><h3>Delivered</h3><p>${deliveredOrders.length}</p></div>
+          <div class="card"><h3>Pending</h3><p>${pendingVerifications.length}</p></div>
+        </div>
+        <table><thead>${tableHeader}</thead><tbody>${tableRows}</tbody></table>
+      </body></html>`;
+    const w = window.open('', '_blank', 'width=900,height=700');
+    w.document.write(html);
+    w.document.close();
+    setTimeout(() => w.print(), 500);
+  };
 
   // Handle Local File Selection (Laptop / Mobile Local Storage) with Auto-Compression
   const handleImageFileUpload = async (e) => {
@@ -367,6 +482,18 @@ export default function AdminDashboard() {
         >
           <Settings className="w-4 h-4" />
           <span>GPay QR & Bank Config</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('reports')}
+          className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all ${
+            activeTab === 'reports'
+              ? 'bg-emerald-600 text-white shadow-lg'
+              : 'bg-slate-900 border border-emerald-800/50 text-emerald-300 hover:text-white'
+          }`}
+        >
+          <BarChart2 className="w-4 h-4" />
+          <span>Reports & Analytics</span>
         </button>
       </div>
 
@@ -1291,6 +1418,180 @@ export default function AdminDashboard() {
                 </div>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* ── TAB: Reports & Analytics ── */}
+      {activeTab === 'reports' && (
+        <div className="space-y-8 animate-fade-in">
+
+          {/* Header + Download Buttons */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-serif font-bold text-white flex items-center gap-2">
+                <BarChart2 className="w-5 h-5 text-emerald-400" /> Business Analytics & Reports
+              </h2>
+              <p className="text-xs text-slate-400 mt-1">Monthly & weekly breakdown of orders, revenue and estimated profit.</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => printReport('monthly')}
+                className="flex items-center gap-2 bg-emerald-700 hover:bg-emerald-600 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow transition-colors"
+              >
+                <FileText className="w-4 h-4" /> Monthly PDF
+              </button>
+              <button
+                onClick={() => printReport('weekly')}
+                className="flex items-center gap-2 bg-blue-700 hover:bg-blue-600 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow transition-colors"
+              >
+                <Calendar className="w-4 h-4" /> Weekly PDF
+              </button>
+              <button
+                onClick={() => printReport('orders')}
+                className="flex items-center gap-2 bg-amber-600 hover:bg-amber-500 text-black font-bold text-xs px-4 py-2.5 rounded-xl shadow transition-colors"
+              >
+                <FileText className="w-4 h-4" /> All Orders PDF
+              </button>
+              <button
+                onClick={downloadOrdersCSV}
+                className="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow transition-colors"
+              >
+                <Download className="w-4 h-4" /> Download CSV
+              </button>
+            </div>
+          </div>
+
+          {/* Summary Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { label: 'Total Orders', value: safeOrders.length, color: 'text-white', border: 'border-slate-700' },
+              { label: 'Verified Revenue', value: `₹${totalRevenue.toLocaleString()}`, color: 'text-emerald-400', border: 'border-emerald-800/50' },
+              { label: 'Est. Gross Profit', value: `₹${grossProfit.toLocaleString()}`, color: 'text-gold-300', border: 'border-amber-800/50' },
+              { label: 'Profit Margin', value: `${marginPercent}%`, color: 'text-blue-300', border: 'border-blue-800/50' },
+            ].map(c => (
+              <div key={c.label} className={`glass-card p-4 rounded-xl border ${c.border} text-center`}>
+                <p className="text-slate-400 text-[10px] uppercase font-semibold">{c.label}</p>
+                <p className={`font-bold text-xl mt-1 ${c.color}`}>{c.value}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Monthly Breakdown Table */}
+          <div className="glass-card rounded-2xl border border-slate-800 overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-800 flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-emerald-400" />
+              <h3 className="text-white font-bold text-sm">Monthly Breakdown</h3>
+            </div>
+            {monthlyRows.length === 0 ? (
+              <div className="p-10 text-center text-slate-500 text-sm">No orders yet. Monthly data will appear once orders are placed.</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead className="bg-slate-900/80">
+                    <tr className="text-slate-400 uppercase text-[10px]">
+                      <th className="px-4 py-3 text-left">Month</th>
+                      <th className="px-4 py-3 text-right">Orders</th>
+                      <th className="px-4 py-3 text-right">Revenue</th>
+                      <th className="px-4 py-3 text-right">Est. Profit (38%)</th>
+                      <th className="px-4 py-3 text-right">Margin</th>
+                      <th className="px-4 py-3 text-right">Delivered</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {monthlyRows.map((row, i) => (
+                      <tr key={i} className="border-t border-slate-800/60 hover:bg-slate-900/40">
+                        <td className="px-4 py-3 font-semibold text-white">{row.label}</td>
+                        <td className="px-4 py-3 text-right text-slate-300">{row.orders}</td>
+                        <td className="px-4 py-3 text-right text-emerald-400 font-bold">₹{row.revenue.toLocaleString()}</td>
+                        <td className="px-4 py-3 text-right text-gold-300 font-bold">₹{row.profit.toLocaleString()}</td>
+                        <td className="px-4 py-3 text-right text-blue-300">{row.revenue > 0 ? (row.profit / row.revenue * 100).toFixed(1) : 0}%</td>
+                        <td className="px-4 py-3 text-right text-slate-300">{row.delivered}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* Weekly Breakdown Table */}
+          <div className="glass-card rounded-2xl border border-slate-800 overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-800 flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-blue-400" />
+              <h3 className="text-white font-bold text-sm">Weekly Breakdown (Last 8 Weeks)</h3>
+            </div>
+            {weeklyRows.length === 0 ? (
+              <div className="p-10 text-center text-slate-500 text-sm">No weekly data available yet.</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead className="bg-slate-900/80">
+                    <tr className="text-slate-400 uppercase text-[10px]">
+                      <th className="px-4 py-3 text-left">Week</th>
+                      <th className="px-4 py-3 text-right">Orders</th>
+                      <th className="px-4 py-3 text-right">Revenue</th>
+                      <th className="px-4 py-3 text-right">Est. Profit</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {weeklyRows.map((row, i) => (
+                      <tr key={i} className="border-t border-slate-800/60 hover:bg-slate-900/40">
+                        <td className="px-4 py-3 font-semibold text-white">{row.label}</td>
+                        <td className="px-4 py-3 text-right text-slate-300">{row.orders}</td>
+                        <td className="px-4 py-3 text-right text-emerald-400 font-bold">₹{row.revenue.toLocaleString()}</td>
+                        <td className="px-4 py-3 text-right text-gold-300 font-bold">₹{row.profit.toLocaleString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* Data Management / Cleanup */}
+          <div className="glass-card p-6 rounded-2xl border border-rose-800/50 space-y-4">
+            <div className="flex items-center gap-2">
+              <RefreshCw className="w-4 h-4 text-rose-400" />
+              <h3 className="text-white font-bold text-sm">Data Management & Cleanup</h3>
+            </div>
+            <p className="text-xs text-slate-400">Permanently delete test or demo data from the store. All deletions sync instantly across all devices via Firebase.</p>
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={() => {
+                  if (window.confirm('Delete ALL orders permanently? This cannot be undone.')) {
+                    safeOrders.forEach(o => {
+                      import('../firebase').then(({ db }) => {
+                        import('firebase/firestore').then(({ doc, deleteDoc }) => deleteDoc(doc(db, 'orders', o.id)));
+                      });
+                    });
+                  }
+                }}
+                className="flex items-center gap-2 bg-rose-900/60 hover:bg-rose-800 border border-rose-700/60 text-rose-200 font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors"
+              >
+                <Trash2 className="w-4 h-4" /> Delete All Orders
+              </button>
+              <button
+                onClick={() => {
+                  if (window.confirm('Delete ALL products permanently? This cannot be undone.')) {
+                    safeProducts.forEach(p => deleteProduct(p.id));
+                  }
+                }}
+                className="flex items-center gap-2 bg-rose-900/60 hover:bg-rose-800 border border-rose-700/60 text-rose-200 font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors"
+              >
+                <Trash2 className="w-4 h-4" /> Delete All Products
+              </button>
+              <button
+                onClick={() => {
+                  if (window.confirm('Delete ALL registered customer accounts?')) {
+                    (registeredUsers || []).forEach(u => deleteUserAccount(u.id));
+                  }
+                }}
+                className="flex items-center gap-2 bg-rose-900/60 hover:bg-rose-800 border border-rose-700/60 text-rose-200 font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors"
+              >
+                <Trash2 className="w-4 h-4" /> Delete All Customer Accounts
+              </button>
+            </div>
           </div>
         </div>
       )}
