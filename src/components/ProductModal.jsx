@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../context/StoreContext';
-import { X, Heart, ShoppingBag, Star, ShieldCheck, Truck } from 'lucide-react';
+import { X, Heart, ShoppingBag, Star, ShieldCheck, Truck, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function ProductModal() {
   const {
@@ -14,6 +14,11 @@ export default function ProductModal() {
   const [quantity, setQuantity] = useState(1);
   const [activeImgIndex, setActiveImgIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+
+  // Reset active image index on product change
+  React.useEffect(() => {
+    setActiveImgIndex(0);
+  }, [selectedProduct?.id]);
 
   // Auto 3-second slideshow for multi-image gallery
   React.useEffect(() => {
@@ -76,7 +81,7 @@ export default function ProductModal() {
             onMouseLeave={() => setIsPaused(false)}
             className="flex flex-col bg-slate-950 p-4 space-y-3"
           >
-            <div className="relative aspect-square w-full rounded-xl overflow-hidden border border-slate-800 bg-slate-900">
+            <div className="relative aspect-square w-full rounded-xl overflow-hidden border border-slate-800 bg-slate-900 group/viewer">
               <img
                 src={activeImage}
                 alt={title}
@@ -90,6 +95,26 @@ export default function ProductModal() {
                 <span className="absolute top-3 left-3 bg-rose-600 text-white font-bold text-xs px-3 py-1 rounded-full uppercase shadow-md animate-pulse">
                   OUT OF STOCK
                 </span>
+              )}
+
+              {/* Manual Slide Controls for Multi-Images */}
+              {imageList.length > 1 && (
+                <>
+                  <button
+                    onClick={() => setActiveImgIndex(prev => (prev - 1 + imageList.length) % imageList.length)}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/90 text-white p-1.5 rounded-full border border-white/20 transition-all opacity-80 hover:opacity-100"
+                    title="Previous Photo"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setActiveImgIndex(prev => (prev + 1) % imageList.length)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/90 text-white p-1.5 rounded-full border border-white/20 transition-all opacity-80 hover:opacity-100"
+                    title="Next Photo"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </>
               )}
             </div>
 

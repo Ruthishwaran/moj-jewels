@@ -21,7 +21,22 @@ export default function ProductCard({ product }) {
   const reviewsCount = product.reviewsCount || 1;
   const stock = product.stock || 5;
   const karat = product.karat || 'Premium Hallmarked';
-  const image = product.image || '/images/moj_logo.jpg';
+  // Multi-image list & 3-second auto slideshow
+  const imageList = Array.isArray(product.images) && product.images.length > 0
+    ? product.images
+    : [product.image || '/images/moj_logo.jpg'];
+
+  const [currentImgIdx, setCurrentImgIdx] = React.useState(0);
+
+  React.useEffect(() => {
+    if (imageList.length <= 1) return;
+    const timer = setInterval(() => {
+      setCurrentImgIdx(prev => (prev + 1) % imageList.length);
+    }, 3000);
+    return () => clearInterval(timer);
+  }, [imageList.length]);
+
+  const activeImage = imageList[currentImgIdx] || imageList[0];
 
   const isWishlisted = isInWishlist(id);
 
@@ -33,17 +48,29 @@ export default function ProductCard({ product }) {
 
   return (
     <div className="glass-card rounded-2xl overflow-hidden border border-slate-800 hover:border-gold-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-gold-500/10 group flex flex-col h-full">
-      {/* Product Image Area */}
+      {/* Product Image Area (Auto 3-Second Multi-Image Slideshow) */}
       <div 
         onClick={() => setSelectedProduct(product)}
         className="relative aspect-square overflow-hidden bg-slate-950 cursor-pointer"
       >
         <img
-          src={image}
+          src={activeImage}
           alt={title}
-          className={`w-full h-full object-cover group-hover:scale-108 transition-transform duration-500 ${isOutOfStock ? 'grayscale opacity-60' : ''}`}
+          className={`w-full h-full object-cover group-hover:scale-108 transition-all duration-700 ${isOutOfStock ? 'grayscale opacity-60' : ''}`}
           onError={(e) => { e.target.src = '/images/moj_logo.jpg'; }}
         />
+        {imageList.length > 1 && (
+          <div className="absolute bottom-2 right-2 flex gap-1 z-10">
+            {imageList.map((_, idx) => (
+              <span
+                key={idx}
+                className={`w-1.5 h-1.5 rounded-full transition-all ${
+                  idx === currentImgIdx ? 'bg-gold-400 w-3' : 'bg-white/50'
+                }`}
+              />
+            ))}
+          </div>
+        )}
 
         {/* Discount Badge */}
         {discountPercent > 0 && !isOutOfStock && (

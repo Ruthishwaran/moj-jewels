@@ -14,6 +14,7 @@ export const INITIAL_PRODUCTS = [
     bestseller: true,
     type: 'Wholesale & Retail',
     image: '/images/moj_banner_1.jpg',
+    images: ['/images/moj_banner_1.jpg', '/images/moj_banner_2.jpg', '/images/moj_logo.jpg'],
     description: 'Exquisite bridal antique necklace with matching Jhumkas. Handcrafted premium imitation jewelry for wedding & royal festive occasions.'
   },
   {
@@ -31,6 +32,7 @@ export const INITIAL_PRODUCTS = [
     bestseller: true,
     type: 'Wholesale & Retail',
     image: '/images/moj_banner_2.jpg',
+    images: ['/images/moj_banner_2.jpg', '/images/moj_banner_1.jpg', '/images/moj_logo.jpg'],
     description: 'Traditional temple jewelry featuring goddess motif and Zambian ruby-emerald stones with pearl drops.'
   },
   {
@@ -48,6 +50,7 @@ export const INITIAL_PRODUCTS = [
     bestseller: false,
     type: 'Retail',
     image: '/images/moj_logo.jpg',
+    images: ['/images/moj_logo.jpg', '/images/moj_banner_1.jpg', '/images/moj_banner_2.jpg'],
     description: 'Timeless floral design ring in rose gold finish holding a brilliant solitaire stone. Designed for daily elegance.'
   },
   {
@@ -65,6 +68,7 @@ export const INITIAL_PRODUCTS = [
     bestseller: true,
     type: 'Wholesale & Retail',
     image: '/images/moj_banner_1.jpg',
+    images: ['/images/moj_banner_1.jpg', '/images/moj_logo.jpg', '/images/moj_banner_2.jpg'],
     description: 'Classic South Indian peacock carved Jhumkas with pearl tassels. Hypoallergenic premium brass alloy.'
   },
   {
@@ -82,6 +86,7 @@ export const INITIAL_PRODUCTS = [
     bestseller: true,
     type: 'Wholesale & Retail',
     image: '/images/moj_banner_2.jpg',
+    images: ['/images/moj_banner_2.jpg', '/images/moj_banner_1.jpg', '/images/moj_logo.jpg'],
     description: 'Set of 4 handcrafted antique gold bangles studded with kemp ruby stones. Perfect for festive sarees.'
   },
   {
@@ -99,6 +104,7 @@ export const INITIAL_PRODUCTS = [
     bestseller: false,
     type: 'Wholesale & Retail',
     image: '/images/moj_banner_1.jpg',
+    images: ['/images/moj_banner_1.jpg', '/images/moj_banner_2.jpg', '/images/moj_logo.jpg'],
     description: 'Dazzling American Diamond choker set with matching drop earrings. Platinum rhodium polish for diamond-like shine.'
   }
 ];
