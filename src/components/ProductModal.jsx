@@ -15,7 +15,7 @@ export default function ProductModal() {
   const [activeImgIndex, setActiveImgIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
-  // Auto 5-second slideshow for multi-image gallery
+  // Auto 3-second slideshow for multi-image gallery
   React.useEffect(() => {
     if (!selectedProduct) return;
     const list = Array.isArray(selectedProduct?.images) && selectedProduct.images.length > 0
@@ -25,7 +25,7 @@ export default function ProductModal() {
 
     const timer = setInterval(() => {
       setActiveImgIndex(prev => (prev + 1) % list.length);
-    }, 5000);
+    }, 3000);
     return () => clearInterval(timer);
   }, [selectedProduct, isPaused]);
 

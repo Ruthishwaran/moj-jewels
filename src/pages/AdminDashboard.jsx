@@ -772,10 +772,9 @@ export default function AdminDashboard() {
                         onChange={(e) => setNewProdCategory(e.target.value)}
                         className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white"
                       >
-                        <option value="Rings">Rings</option>
-                        <option value="Necklaces">Necklaces</option>
-                        <option value="Earrings">Earrings</option>
-                        <option value="Bracelets">Bracelets</option>
+                        {(categories || ['Rings', 'Necklaces', 'Earrings', 'Bracelets', 'Antique Sets', 'Temple Jewellery', 'Bridal Sets']).filter(c => c !== 'All').map(cat => (
+                          <option key={cat} value={cat}>{cat}</option>
+                        ))}
                       </select>
                     </div>
 
