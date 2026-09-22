@@ -168,33 +168,5 @@ export const INITIAL_PAYMENT_CONFIG = {
   instructions: 'Scan QR code using Google Pay, PhonePe, Paytm or any UPI app. Pay exact total amount, then enter your 12-digit UTR/Transaction Reference ID below.'
 };
 
-export const INITIAL_ORDERS = [
-  {
-    id: 'MOJ-98421',
-    date: '2026-09-20T10:30:00Z',
-    customerName: 'Ananya Sharma',
-    customerPhone: '+91 98765 43210',
-    customerEmail: 'ananya@example.com',
-    shippingAddress: 'Flat 402, Royal Residency, M.G. Road, Bangalore, 560001',
-    items: [
-      {
-        id: 'prod-1',
-        title: 'Bridal Antique Gold & Kundan Choker Set',
-        price: 8500,
-        quantity: 1,
-        image: '/images/moj_banner_1.jpg'
-      }
-    ],
-    subtotal: 8500,
-    discount: 850,
-    total: 7650,
-    couponCode: 'ROYAL10',
-    paymentMethod: 'Manual UPI QR',
-    transactionId: '426918371902',
-    paymentStatus: 'Pending Verification',
-    orderStatus: 'Placed',
-    courierPartner: '',
-    trackingNumber: '',
-    notes: 'Paid via GPay at 10:28 AM'
-  }
-];
+// Orders start empty — all orders come from real customers via Firestore
+export const INITIAL_ORDERS = [];

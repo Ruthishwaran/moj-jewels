@@ -24,7 +24,7 @@ export default function AuthModal() {
 
   if (!isAuthModalOpen) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg('');
     setSuccessMsg('');
@@ -34,7 +34,7 @@ export default function AuthModal() {
         setErrorMsg('Please fill in all required fields.');
         return;
       }
-      const res = registerCustomer({ name, email, password, phone, accountType });
+      const res = await registerCustomer({ name, email, password, phone, accountType });
       if (!res.success) {
         setErrorMsg(res.message);
         return;

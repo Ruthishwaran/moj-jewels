@@ -19,8 +19,23 @@ import AdminLoginPage from './pages/AdminLoginPage';
 import { ShieldCheck, LogOut } from 'lucide-react';
 
 function MainContent() {
-  const { currentPage, setCurrentPage, isAdminAuthenticated, logoutAdmin, isAppInstallable, installPwaApp, isInstallModalOpen, setIsInstallModalOpen } = useStore();
+  const { currentPage, setCurrentPage, isAdminAuthenticated, logoutAdmin, isAppInstallable, installPwaApp, isInstallModalOpen, setIsInstallModalOpen, isLoading } = useStore();
   const [showPwaBanner, setShowPwaBanner] = useState(true);
+
+  // Loading screen while Firestore syncs data
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#0b0f19] flex items-center justify-center flex-col gap-5">
+        <div style={{ width: 56, height: 56, border: '4px solid rgba(212,175,55,0.2)', borderTopColor: '#d4af37', borderRadius: '50%', animation: 'spin 0.9s linear infinite' }} />
+        <div className="text-center">
+          <p className="text-gold-400 font-serif text-lg font-bold tracking-widest">MOJ JEWELS</p>
+          <p className="text-slate-400 text-xs mt-1">Connecting to store...</p>
+        </div>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
+
 
   const renderPage = () => {
     try {
