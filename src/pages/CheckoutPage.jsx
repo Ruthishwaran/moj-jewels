@@ -15,7 +15,8 @@ import {
   Sparkles,
   ShoppingBag,
   Tag,
-  X
+  X,
+  Download
 } from 'lucide-react';
 
 export default function CheckoutPage() {
@@ -76,6 +77,49 @@ export default function CheckoutPage() {
   const isWholesaleAccount = user?.accountType === 'wholesale';
   const isWholesaleApproved = user?.isApproved !== false;
 
+  // Safe Payable Total calculation (ensures items are never ₹0 when subtotal > 0)
+  const payableTotal = (grandTotal !== undefined && grandTotal !== null && !isNaN(Number(grandTotal)) && Number(grandTotal) > 0)
+    ? Number(grandTotal)
+    : Math.max(0, (Number(subtotal) || 0) - (Number(discountAmount) || 0));
+
+  const handleDownloadQr = async () => {
+    try {
+      const qrUrl = paymentConfig?.qrImageUrl;
+      if (!qrUrl) {
+        alert('QR code image is not available yet.');
+        return;
+      }
+
+      if (qrUrl.startsWith('data:image')) {
+        const link = document.createElement('a');
+        link.href = qrUrl;
+        link.download = 'MOJ-Jewels-Payment-QR.png';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        const response = await fetch(qrUrl);
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = 'MOJ-Jewels-Payment-QR.png';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(blobUrl);
+      }
+    } catch (err) {
+      console.error('Direct QR download error:', err);
+      // Fallback: open image in new window to save
+      const link = document.createElement('a');
+      link.href = paymentConfig?.qrImageUrl;
+      link.target = '_blank';
+      link.download = 'MOJ-Jewels-Payment-QR.png';
+      link.click();
+    }
+  };
+
   const handleNextToPayment = (e) => {
     e.preventDefault();
     if (!shippingAddress.trim() || !city.trim() || !pincode.trim()) {
@@ -116,9 +160,10 @@ export default function CheckoutPage() {
       return; // Absolute lock against multiple rapid clicks
     }
 
-    const cleanTx = transactionId.trim();
-    if (!cleanTx) {
-      alert('Please enter your 12-digit UTR / Transaction Reference ID from your UPI app.');
+    // UPI Transaction / UTR ID must be strictly 12 digits mandatory
+    const cleanTx = transactionId.trim().replace(/\D/g, '');
+    if (!cleanTx || cleanTx.length !== 12) {
+      alert(`Invalid Transaction ID: UPI UTR / Transaction Reference ID must be exactly 12 numeric digits (e.g. 426918371902). You have entered ${cleanTx.length} digit${cleanTx.length === 1 ? '' : 's'}. Please enter all 12 digits to proceed.`);
       return;
     }
 
@@ -455,7 +500,7 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex justify-between text-base font-bold text-white pt-2 border-t border-slate-800">
                   <span>Total Amount Payable</span>
-                  <span className="gold-gradient-text">₹{(Number(grandTotal) || 0).toLocaleString()}</span>
+                  <span className="gold-gradient-text">₹{(Number(payableTotal) || 0).toLocaleString()}</span>
                 </div>
               </div>
             </div>
@@ -480,7 +525,7 @@ export default function CheckoutPage() {
             </div>
             <div className="text-right">
               <span className="text-[10px] text-slate-400 uppercase tracking-widest block">Exact Amount to Pay</span>
-              <span className="text-2xl font-bold gold-gradient-text">₹{(Number(grandTotal) || 0).toLocaleString()}</span>
+              <span className="text-2xl font-bold gold-gradient-text">₹{(Number(payableTotal) || 0).toLocaleString()}</span>
             </div>
           </div>
 
@@ -497,8 +542,15 @@ export default function CheckoutPage() {
                   className="w-full h-full object-contain"
                 />
               </div>
-              <p className="text-[11px] text-slate-400">
-                Scan with GPay, PhonePe, Paytm, BHIM or any banking app
+              <button
+                type="button"
+                onClick={handleDownloadQr}
+                className="w-full bg-gold-500/20 hover:bg-gold-500 text-gold-300 hover:text-black border border-gold-500/50 py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-md active:scale-95"
+              >
+                <Download className="w-4 h-4" /> Download QR Code Image
+              </button>
+              <p className="text-[10px] text-slate-400">
+                💡 On mobile? Download QR, then open Google Pay / PhonePe and select <strong>"Upload from Gallery"</strong> to scan!
               </p>
             </div>
 
@@ -542,20 +594,45 @@ export default function CheckoutPage() {
               {/* UTR Input Form */}
               <form onSubmit={handleCompleteOrder} className="space-y-4 pt-2">
                 <div>
-                  <label className="text-xs text-gold-300 font-semibold block mb-1 flex items-center gap-1">
-                    <Sparkles className="w-3.5 h-3.5" /> Enter 12-Digit Transaction / UTR Ref ID *
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs text-gold-300 font-semibold flex items-center gap-1">
+                      <Sparkles className="w-3.5 h-3.5" /> 12-Digit Transaction / UTR Ref ID *
+                    </label>
+                    <span className={`text-[11px] font-mono font-bold px-2 py-0.5 rounded-full ${
+                      transactionId.length === 12
+                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                        : 'bg-slate-800 text-slate-400 border border-slate-700'
+                    }`}>
+                      {transactionId.length}/12 Digits {transactionId.length === 12 ? '✓' : ''}
+                    </span>
+                  </div>
                   <input
                     type="text"
                     required
-                    placeholder="e.g. 426918371902 or UPI Ref No"
+                    inputMode="numeric"
+                    pattern="[0-9]{12}"
+                    maxLength={12}
+                    placeholder="e.g. 426918371902 (strictly 12 digits)"
                     value={transactionId}
-                    onChange={(e) => setTransactionId(e.target.value)}
-                    className="w-full bg-slate-900 border-2 border-gold-500/60 rounded-xl p-3 text-sm text-white font-mono focus:outline-none focus:border-gold-400 shadow-inner"
+                    onChange={(e) => {
+                      const numericVal = e.target.value.replace(/\D/g, '').slice(0, 12);
+                      setTransactionId(numericVal);
+                    }}
+                    className={`w-full bg-slate-900 border-2 rounded-xl p-3 text-sm text-white font-mono focus:outline-none shadow-inner tracking-wider ${
+                      transactionId.length === 12
+                        ? 'border-emerald-500/80 focus:border-emerald-400'
+                        : 'border-gold-500/60 focus:border-gold-400'
+                    }`}
                   />
-                  <span className="text-[10px] text-slate-400 mt-1 block">
-                    You can copy the UTR / Ref ID from your payment app after completing the transfer.
-                  </span>
+                  <div className="flex items-center justify-between text-[10px] mt-1 text-slate-400">
+                    <span>Copy 12-digit UTR from your GPay / PhonePe payment screen</span>
+                    {transactionId.length > 0 && transactionId.length < 12 && (
+                      <span className="text-amber-400 font-medium">Need {12 - transactionId.length} more digits</span>
+                    )}
+                    {transactionId.length === 12 && (
+                      <span className="text-emerald-400 font-bold">12-Digit UTR Ready ✓</span>
+                    )}
+                  </div>
                 </div>
 
                 <div>
@@ -578,10 +655,10 @@ export default function CheckoutPage() {
 
                 <button
                   type="submit"
-                  disabled={isPlacingOrder}
+                  disabled={isPlacingOrder || transactionId.trim().length !== 12}
                   className={`w-full py-4 rounded-xl font-bold text-sm flex items-center justify-center space-x-2 shadow-2xl transition-all ${
-                    isPlacingOrder
-                      ? 'bg-amber-600/70 text-black/70 cursor-not-allowed opacity-80'
+                    isPlacingOrder || transactionId.trim().length !== 12
+                      ? 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed opacity-80'
                       : 'btn-gold-shimmer text-black active:scale-[0.99]'
                   }`}
                 >
@@ -590,10 +667,12 @@ export default function CheckoutPage() {
                       <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
                       <span>Confirming Order...</span>
                     </>
+                  ) : transactionId.trim().length !== 12 ? (
+                    <span>Enter 12-Digit UTR to Submit Order ({transactionId.trim().length}/12)</span>
                   ) : (
                     <>
                       <CheckCircle2 className="w-5 h-5 text-black" />
-                      <span>Submit Payment & Finalize Order</span>
+                      <span>Submit Payment & Finalize Order (₹{(Number(payableTotal) || 0).toLocaleString()})</span>
                     </>
                   )}
                 </button>
@@ -651,6 +730,34 @@ export default function CheckoutPage() {
                 {createdOrder.paymentStatus}
               </span>
             </div>
+
+            {/* Ordered Items with Thumbnails in Confirmation Screen */}
+            {Array.isArray(createdOrder.items) && createdOrder.items.length > 0 && (
+              <div className="pt-3 border-t border-slate-800 space-y-2">
+                <span className="text-slate-400 font-semibold block text-[11px]">Ordered Jewelry Items:</span>
+                <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                  {createdOrder.items.map((item, idx) => (
+                    <div key={idx} className="flex items-center justify-between bg-slate-950/60 p-2 rounded-xl border border-slate-800">
+                      <div className="flex items-center space-x-2.5">
+                        <img
+                          src={item.image || '/images/hero_banner.jpg'}
+                          alt={item.title}
+                          className="w-10 h-10 object-cover rounded-lg border border-slate-700 bg-slate-900 shrink-0"
+                          onError={(e) => { e.target.src = '/images/hero_banner.jpg'; }}
+                        />
+                        <div>
+                          <p className="text-white font-semibold text-xs line-clamp-1">{item.title}</p>
+                          <span className="text-[10px] text-slate-400">Qty: {item.quantity || 1}</span>
+                        </div>
+                      </div>
+                      <span className="text-gold-300 font-bold text-xs">
+                        ₹{((Number(item.price) || 0) * (Number(item.quantity) || 1)).toLocaleString()}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 text-xs text-slate-300 space-y-1 text-left">

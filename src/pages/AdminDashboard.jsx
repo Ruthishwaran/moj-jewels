@@ -775,6 +775,41 @@ export default function AdminDashboard() {
                       </button>
                     </div>
                   </div>
+
+                  {/* Ordered Items with Thumbnails for Payment Desk */}
+                  <div className="border-t border-slate-800/80 pt-3">
+                    <span className="text-slate-400 text-[11px] font-semibold block mb-2">
+                      Ordered Products ({(ord.items || []).length} {(ord.items || []).length === 1 ? 'item' : 'items'}):
+                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                      {(ord.items || []).map((i, idx) => {
+                        const matchedProduct = (products || []).find(
+                          p => String(p.id) === String(i.id) || p.title?.toLowerCase() === i.title?.toLowerCase()
+                        );
+                        const itemImg = i.image || matchedProduct?.image || (matchedProduct?.images && matchedProduct.images[0]) || '/images/hero_banner.jpg';
+                        const itemPrice = Number(i.price || matchedProduct?.price || 0);
+                        const itemQty = Number(i.quantity || 1);
+
+                        return (
+                          <div key={idx} className="flex items-center gap-3 bg-slate-950/70 border border-slate-800 p-2.5 rounded-xl">
+                            <img
+                              src={itemImg}
+                              alt={i.title}
+                              className="w-12 h-12 object-cover rounded-lg border border-slate-700 bg-slate-900 shrink-0"
+                              onError={(e) => { e.target.src = '/images/hero_banner.jpg'; }}
+                            />
+                            <div className="min-w-0 flex-1 text-xs">
+                              <p className="text-white font-semibold line-clamp-1">{i.title}</p>
+                              <div className="flex items-center justify-between text-slate-400 text-[11px] mt-0.5">
+                                <span>Qty: <strong className="text-gold-300">{itemQty}</strong></span>
+                                <span className="text-slate-200 font-medium">₹{(itemPrice * itemQty).toLocaleString()}</span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -960,33 +995,48 @@ export default function AdminDashboard() {
                         const matchedProduct = (products || []).find(
                           p => String(p.id) === String(i.id) || p.title?.toLowerCase() === i.title?.toLowerCase()
                         );
+                        const itemImg = i.image || matchedProduct?.image || (matchedProduct?.images && matchedProduct.images[0]) || '/images/hero_banner.jpg';
+                        const itemPrice = Number(i.price || matchedProduct?.price || 0);
+                        const itemQty = Number(i.quantity || 1);
+
                         return (
-                          <div key={idx} className="flex items-center gap-2 bg-slate-900/90 border border-slate-700/80 px-2.5 py-1.5 rounded-xl">
-                            <span className="font-semibold text-white">{i.title} (x{i.quantity || 1})</span>
-                            {ord.orderStatus !== 'Delivered' && orderFilterTab !== 'Delivered' && (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  if (matchedProduct) {
-                                    handleOpenEditProduct(matchedProduct);
-                                  } else {
-                                    handleOpenEditProduct({
-                                      id: i.id || `prod-${Date.now()}`,
-                                      title: i.title,
-                                      price: i.price,
-                                      image: i.image,
-                                      category: i.category || 'Jewelry',
-                                      description: i.description || ''
-                                    });
-                                  }
-                                }}
-                                className="text-[11px] text-amber-300 hover:text-black hover:bg-amber-400 bg-amber-500/20 border border-amber-500/40 px-2 py-0.5 rounded-lg flex items-center gap-1 font-bold transition-all shadow-sm active:scale-95"
-                                title={`Edit "${i.title}" Product Catalog Details`}
-                              >
-                                <Edit className="w-3 h-3" />
-                                <span>Edit Product</span>
-                              </button>
-                            )}
+                          <div key={idx} className="flex items-center gap-3 bg-slate-900/90 border border-slate-700/80 p-2 rounded-xl">
+                            <img
+                              src={itemImg}
+                              alt={i.title}
+                              className="w-12 h-12 object-cover rounded-lg border border-slate-700 bg-slate-950 shrink-0"
+                              onError={(e) => { e.target.src = '/images/hero_banner.jpg'; }}
+                            />
+                            <div>
+                              <p className="font-semibold text-white line-clamp-1">{i.title}</p>
+                              <p className="text-slate-400 text-[11px]">
+                                Qty: <strong className="text-gold-300">{itemQty}</strong> &bull; ₹{(itemPrice * itemQty).toLocaleString()}
+                              </p>
+                              {ord.orderStatus !== 'Delivered' && orderFilterTab !== 'Delivered' && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (matchedProduct) {
+                                      handleOpenEditProduct(matchedProduct);
+                                    } else {
+                                      handleOpenEditProduct({
+                                        id: i.id || `prod-${Date.now()}`,
+                                        title: i.title,
+                                        price: i.price,
+                                        image: itemImg,
+                                        category: i.category || 'Jewelry',
+                                        description: i.description || ''
+                                      });
+                                    }
+                                  }}
+                                  className="mt-1 text-[11px] text-amber-300 hover:text-black hover:bg-amber-400 bg-amber-500/20 border border-amber-500/40 px-2 py-0.5 rounded-lg flex items-center gap-1 font-bold transition-all shadow-sm active:scale-95"
+                                  title={`Edit "${i.title}" Product Catalog Details`}
+                                >
+                                  <Edit className="w-3 h-3" />
+                                  <span>Edit Product</span>
+                                </button>
+                              )}
+                            </div>
                           </div>
                         );
                       })}

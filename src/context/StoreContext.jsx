@@ -792,13 +792,16 @@ export const StoreProvider = ({ children }) => {
   let discountAmount = 0;
   if (appliedCoupon) {
     const couponVal = Number(appliedCoupon.value || 0);
-    if (appliedCoupon.discountType === 'percentage') {
-      discountAmount = Math.round(((subtotal || 0) * couponVal) / 100);
-    } else {
-      discountAmount = couponVal;
+    const minVal = Number(appliedCoupon.minAmount || 0);
+    if (subtotal >= minVal) {
+      if (appliedCoupon.discountType === 'percentage') {
+        discountAmount = Math.round(((subtotal || 0) * couponVal) / 100);
+      } else {
+        discountAmount = couponVal;
+      }
     }
   }
-  discountAmount = Number(discountAmount || 0);
+  discountAmount = Math.min(subtotal, Math.max(0, Number(discountAmount || 0)));
   const grandTotal = Math.max(0, (subtotal || 0) - discountAmount);
 
   // ===== ORDER SOUND (Signature GPay Money Transaction Completed Chime) =====
@@ -1059,6 +1062,7 @@ export const StoreProvider = ({ children }) => {
       removeCoupon,
       subtotal,
       discountAmount,
+      grandTotal,
       reviews: Array.isArray(reviews) ? reviews : [],
       addReview,
       deleteReview,
