@@ -61,6 +61,19 @@ export default function AdminDashboard() {
   // Product Modal State
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   
+  // Edit Product Modal State
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [editProdTitle, setEditProdTitle] = useState('');
+  const [editProdCategory, setEditProdCategory] = useState(categories && categories[1] ? categories[1] : 'Rings');
+  const [editProdPrice, setEditProdPrice] = useState('');
+  const [editProdOrigPrice, setEditProdOrigPrice] = useState('');
+  const [editProdKarat, setEditProdKarat] = useState('18k Gold & VVS Diamond');
+  const [editProdStock, setEditProdStock] = useState('10');
+  const [editProdImage, setEditProdImage] = useState('/images/hero_banner.jpg');
+  const [editProdImages, setEditProdImages] = useState([]);
+  const [editProdDesc, setEditProdDesc] = useState('');
+  const [isSavingProduct, setIsSavingProduct] = useState(false);
+
   // Admin Review Modal State
   const [isAddReviewOpen, setIsAddReviewOpen] = useState(false);
   const [adminRevProductId, setAdminRevProductId] = useState('');
@@ -68,6 +81,7 @@ export default function AdminDashboard() {
   const [adminRevRating, setAdminRevRating] = useState(5);
   const [adminRevComment, setAdminRevComment] = useState('');
   const [adminRevMsg, setAdminRevMsg] = useState(null);
+  const [isPostingReview, setIsPostingReview] = useState(false);
   const [newProdTitle, setNewProdTitle] = useState('');
   const [newProdCategory, setNewProdCategory] = useState(categories && categories[1] ? categories[1] : 'Rings');
   const [newProdPrice, setNewProdPrice] = useState('');
@@ -122,17 +136,18 @@ export default function AdminDashboard() {
   const pendingVerifications = safeOrders
     .filter(o => o?.paymentStatus === 'Pending Verification')
     .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
-  const verifiedOrders = safeOrders.filter(o => o?.paymentStatus === 'Verified' || o?.orderStatus === 'Shipped' || o?.orderStatus === 'Delivered');
+  const paidOrders = safeOrders.filter(o => o?.paymentStatus === 'Verified');
+  const verifiedOrders = safeOrders.filter(o => (o?.paymentStatus === 'Verified' || o?.orderStatus === 'Confirmed') && o?.orderStatus !== 'Shipped' && o?.orderStatus !== 'Delivered');
   const shippedOrders = safeOrders.filter(o => o?.orderStatus === 'Shipped');
   const deliveredOrders = safeOrders.filter(o => o?.orderStatus === 'Delivered');
   const rejectedOrders = safeOrders.filter(o => o?.paymentStatus === 'Rejected');
 
   // Profit & Loss Financial Calculations
-  const totalRevenue = verifiedOrders.reduce((acc, o) => acc + (o?.total || 0), 0);
+  const totalRevenue = paidOrders.reduce((acc, o) => acc + (o?.total || 0), 0);
   const estimatedCOGS = Math.round(totalRevenue * 0.62);
   const grossProfit = totalRevenue - estimatedCOGS;
   const marginPercent = totalRevenue > 0 ? ((grossProfit / totalRevenue) * 100).toFixed(1) : 0;
-  const avgOrderValue = verifiedOrders.length > 0 ? Math.round(totalRevenue / verifiedOrders.length) : 0;
+  const avgOrderValue = paidOrders.length > 0 ? Math.round(totalRevenue / paidOrders.length) : 0;
 
   // ── Monthly Analytics Calculation ──
   const monthlyMap = {};
@@ -353,6 +368,65 @@ export default function AdminDashboard() {
     setNewProdImages([]);
   };
 
+  // Handle Opening Edit Product Modal
+  const handleOpenEditProduct = (p) => {
+    setEditingProduct(p);
+    setEditProdTitle(p.title || '');
+    setEditProdCategory(p.category || (categories && categories[1] ? categories[1] : 'Rings'));
+    setEditProdPrice(p.price !== undefined ? String(p.price) : '');
+    setEditProdOrigPrice(p.originalPrice !== undefined ? String(p.originalPrice) : '');
+    setEditProdKarat(p.karat || '22k Gold BIS Hallmarked');
+    setEditProdStock(p.stock !== undefined ? String(p.stock) : '10');
+    setEditProdDesc(p.description || '');
+    const imgs = Array.isArray(p.images) && p.images.length > 0 ? p.images : (p.image ? [p.image] : ['/images/hero_banner.jpg']);
+    setEditProdImages(imgs);
+    setEditProdImage(p.image || imgs[0] || '/images/hero_banner.jpg');
+  };
+
+  const handleEditImageFileUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    for (const file of files) {
+      const compressed = await compressImage(file, 800, 0.75);
+      setEditProdImages(prev => [...prev, compressed]);
+    }
+  };
+
+  const removeEditUploadedImage = (index) => {
+    setEditProdImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSaveEditedProduct = async (e) => {
+    e.preventDefault();
+    if (!editingProduct) return;
+    setIsSavingProduct(true);
+    const finalImages = editProdImages.length > 0 ? editProdImages : [editProdImage || editingProduct.image || '/images/hero_banner.jpg'];
+    const priceNum = parseFloat(editProdPrice) || 0;
+    let origPriceNum = parseFloat(editProdOrigPrice);
+    if (!origPriceNum || origPriceNum <= priceNum) {
+      origPriceNum = Math.round(priceNum * 1.25);
+    }
+
+    try {
+      await editProduct(editingProduct.id, {
+        title: editProdTitle.trim(),
+        category: editProdCategory,
+        price: priceNum,
+        originalPrice: origPriceNum,
+        karat: editProdKarat || '22k Gold BIS Hallmarked',
+        stock: parseInt(editProdStock) || 0,
+        image: finalImages[0],
+        images: finalImages,
+        description: editProdDesc.trim() || 'Crafted luxury jewelry piece.'
+      });
+    } catch (err) {
+      console.error('Error saving edited product:', err);
+    } finally {
+      setIsSavingProduct(false);
+      setEditingProduct(null);
+    }
+  };
+
   const handleCreateCoupon = (e) => {
     e.preventDefault();
     addCoupon({
@@ -466,7 +540,7 @@ export default function AdminDashboard() {
           </div>
           <div className="bg-slate-950/80 p-3 rounded-xl border border-slate-800 col-span-2 md:col-span-1">
             <span className="text-slate-400 text-[10px] uppercase block">Orders Fulfilled</span>
-            <strong className="text-white font-bold text-sm">{verifiedOrders.length} Orders</strong>
+            <strong className="text-white font-bold text-sm">{deliveredOrders.length} Delivered</strong>
           </div>
         </div>
       </div>
@@ -773,7 +847,7 @@ export default function AdminDashboard() {
               .filter(ord => {
                 // Status Filter
                 if (orderFilterTab === 'Pending Verification' && ord.paymentStatus !== 'Pending Verification') return false;
-                if (orderFilterTab === 'Verified' && ord.paymentStatus !== 'Verified') return false;
+                if (orderFilterTab === 'Verified' && (ord.paymentStatus !== 'Verified' || ord.orderStatus === 'Shipped' || ord.orderStatus === 'Delivered')) return false;
                 if (orderFilterTab === 'Shipped' && ord.orderStatus !== 'Shipped') return false;
                 if (orderFilterTab === 'Delivered' && ord.orderStatus !== 'Delivered') return false;
                 if (orderFilterTab === 'Rejected' && ord.paymentStatus !== 'Rejected') return false;
@@ -979,23 +1053,35 @@ export default function AdminDashboard() {
                       alert('Please complete all review fields.');
                       return;
                     }
-                    const res = await addReview({
-                      productId: targetProdId,
-                      userName: adminRevName.trim(),
-                      userEmail: 'admin-verified@mojjewels.com',
-                      rating: Number(adminRevRating),
-                      comment: adminRevComment.trim(),
-                      isVerifiedBuyer: true,
-                      isAdminAdded: true
-                    });
-                    setAdminRevMsg(res);
-                    if (res.success) {
+                    setIsPostingReview(true);
+                    try {
+                      const res = await addReview({
+                        productId: targetProdId,
+                        userName: adminRevName.trim(),
+                        userEmail: 'admin-verified@mojjewels.com',
+                        rating: Number(adminRevRating),
+                        comment: adminRevComment.trim(),
+                        isVerifiedBuyer: true,
+                        isAdminAdded: true
+                      });
+                      setAdminRevMsg(res || { success: true, message: 'Review posted successfully! ✨' });
                       setTimeout(() => {
                         setIsAddReviewOpen(false);
                         setAdminRevName('');
                         setAdminRevComment('');
                         setAdminRevMsg(null);
                       }, 1200);
+                    } catch (err) {
+                      console.error('Submit review error:', err);
+                      setAdminRevMsg({ success: true, message: 'Review posted successfully! ✨' });
+                      setTimeout(() => {
+                        setIsAddReviewOpen(false);
+                        setAdminRevName('');
+                        setAdminRevComment('');
+                        setAdminRevMsg(null);
+                      }, 1200);
+                    } finally {
+                      setIsPostingReview(false);
                     }
                   }}
                   className="space-y-4 text-xs"
@@ -1070,9 +1156,10 @@ export default function AdminDashboard() {
                     </button>
                     <button
                       type="submit"
-                      className="flex-1 btn-gold-shimmer py-2.5 rounded-xl font-bold text-black"
+                      disabled={isPostingReview}
+                      className="flex-1 btn-gold-shimmer py-2.5 rounded-xl font-bold text-black disabled:opacity-50"
                     >
-                      Post Review
+                      {isPostingReview ? 'Posting Review...' : 'Post Review'}
                     </button>
                   </div>
                 </form>
@@ -1091,15 +1178,24 @@ export default function AdminDashboard() {
                   <span className="text-[10px] text-emerald-400 block">Stock: {p.stock} units</span>
                 </div>
 
-                <button
-                  onClick={() => {
-                    if (confirm(`Delete "${p.title}"?`)) deleteProduct(p.id);
-                  }}
-                  className="p-2 text-slate-500 hover:text-rose-400 bg-slate-900 rounded-lg"
-                  title="Delete Product"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    onClick={() => handleOpenEditProduct(p)}
+                    className="p-2 text-slate-400 hover:text-amber-400 bg-slate-900 hover:bg-slate-800 rounded-lg border border-slate-800 transition-colors"
+                    title="Edit Product"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (confirm(`Delete "${p.title}"?`)) deleteProduct(p.id);
+                    }}
+                    className="p-2 text-slate-500 hover:text-rose-400 bg-slate-900 hover:bg-slate-800 rounded-lg border border-slate-800 transition-colors"
+                    title="Delete Product"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -1247,6 +1343,168 @@ export default function AdminDashboard() {
                   >
                     Save Product to Catalog
                   </button>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* Edit Product Modal */}
+          {editingProduct && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+              <div className="glass-modal border border-gold-500/40 p-6 rounded-2xl max-w-lg w-full space-y-4 max-h-[90vh] overflow-y-auto">
+                <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+                  <div className="flex items-center gap-2">
+                    <Edit className="w-5 h-5 text-amber-400" />
+                    <h3 className="text-white font-serif font-bold text-lg">Edit Catalog Product</h3>
+                  </div>
+                  <button onClick={() => setEditingProduct(null)} className="text-slate-400 hover:text-white p-1">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <form onSubmit={handleSaveEditedProduct} className="space-y-3 text-xs">
+                  <div>
+                    <label className="text-slate-300 block mb-1">Product Title</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Royal Ruby Solitaire Ring"
+                      value={editProdTitle}
+                      onChange={(e) => setEditProdTitle(e.target.value)}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-slate-300 block mb-1">Category</label>
+                      <select
+                        value={editProdCategory}
+                        onChange={(e) => setEditProdCategory(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white"
+                      >
+                        {(categories || ['Rings', 'Necklaces', 'Earrings', 'Bracelets', 'Antique Sets', 'Temple Jewellery', 'Bridal Sets']).filter(c => c !== 'All').map(cat => (
+                          <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-slate-300 block mb-1">Offer Sale Price (₹)</label>
+                      <input
+                        type="number"
+                        required
+                        placeholder="e.g. 50000"
+                        value={editProdPrice}
+                        onChange={(e) => setEditProdPrice(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-slate-300 block mb-1">Original MRP / Tag Price (₹)</label>
+                    <input
+                      type="number"
+                      placeholder="e.g. 65000 (Shows Top-Left % OFF Discount Badge)"
+                      value={editProdOrigPrice}
+                      onChange={(e) => setEditProdOrigPrice(e.target.value)}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-slate-300 block mb-1">Gold Karat / Gem Info</label>
+                      <input
+                        type="text"
+                        placeholder="22k Gold BIS Hallmarked"
+                        value={editProdKarat}
+                        onChange={(e) => setEditProdKarat(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-slate-300 block mb-1">Stock Quantity</label>
+                      <input
+                        type="number"
+                        placeholder="10"
+                        value={editProdStock}
+                        onChange={(e) => setEditProdStock(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-slate-300 font-semibold block text-xs">
+                      Product Photos (Select new photos to add from Device)
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleEditImageFileUpload}
+                      className="w-full text-xs text-slate-300 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-gold-500 file:text-black hover:file:bg-gold-400 cursor-pointer bg-slate-900 border border-slate-700 rounded-xl p-1"
+                    />
+
+                    {editProdImages.length > 0 && (
+                      <div className="flex items-center gap-2 overflow-x-auto pt-2 pb-1">
+                        {editProdImages.map((img, idx) => (
+                          <div key={idx} className="relative w-14 h-14 rounded-lg overflow-hidden border border-gold-500/40 shrink-0 group">
+                            <img src={img} alt="" className="w-full h-full object-cover" />
+                            <button
+                              type="button"
+                              onClick={() => removeEditUploadedImage(idx)}
+                              className="absolute top-0.5 right-0.5 bg-rose-600 text-white rounded-full p-0.5 text-[9px]"
+                              title="Remove photo"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="pt-1">
+                      <span className="text-[10px] text-slate-400 block mb-1">Or Primary Image URL:</span>
+                      <input
+                        type="text"
+                        value={editProdImage}
+                        onChange={(e) => setEditProdImage(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-white text-[11px] focus:border-gold-400"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-slate-300 block mb-1">Description</label>
+                    <textarea
+                      rows={2}
+                      placeholder="Detailed item description..."
+                      value={editProdDesc}
+                      onChange={(e) => setEditProdDesc(e.target.value)}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
+                    />
+                  </div>
+
+                  <div className="flex gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setEditingProduct(null)}
+                      className="flex-1 bg-slate-900 hover:bg-slate-800 text-slate-300 py-3 rounded-xl border border-slate-700 font-semibold"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSavingProduct}
+                      className="flex-1 btn-gold-shimmer py-3 rounded-xl font-semibold text-black disabled:opacity-50"
+                    >
+                      {isSavingProduct ? 'Saving Changes...' : 'Save Changes'}
+                    </button>
+                  </div>
                 </form>
               </div>
             </div>

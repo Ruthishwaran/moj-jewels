@@ -13,7 +13,8 @@ import {
   PhoneCall,
   Search,
   Tag,
-  ArrowRight
+  ArrowRight,
+  SlidersHorizontal
 } from 'lucide-react';
 import WhatsAppIcon from './WhatsAppIcon';
 
@@ -39,7 +40,10 @@ export default function Navbar() {
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [isMobileSearchFocused, setIsMobileSearchFocused] = useState(false);
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const searchRef = useRef(null);
+  const mobileSearchRef = useRef(null);
 
   const totalCartCount = (cart || []).reduce((acc, i) => acc + (i?.quantity || 0), 0);
   const wishlistCount = (wishlist || []).length;
@@ -71,6 +75,10 @@ export default function Navbar() {
       if (searchRef.current && !searchRef.current.contains(e.target)) {
         setIsSearchFocused(false);
       }
+      if (mobileSearchRef.current && !mobileSearchRef.current.contains(e.target)) {
+        setIsMobileSearchFocused(false);
+        setIsMobileFilterOpen(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -81,12 +89,15 @@ export default function Navbar() {
     setSearchQuery('');
     setCurrentPage('shop');
     setIsSearchFocused(false);
+    setIsMobileSearchFocused(false);
+    setIsMobileFilterOpen(false);
   };
 
   const handleSelectProduct = (product) => {
     setSelectedProduct(product);
     setCurrentPage('shop');
     setIsSearchFocused(false);
+    setIsMobileSearchFocused(false);
   };
 
   return (
@@ -294,6 +305,176 @@ export default function Navbar() {
             </button>
           )}
         </div>
+      </div>
+
+      {/* ── MOBILE SEARCH BAR WITH FILTER OPTION (Directly below Main Header) ── */}
+      <div className="md:hidden px-3.5 pb-2.5 pt-1 border-t border-slate-800/80 bg-[#0b0f19]" ref={mobileSearchRef}>
+        <div className="flex items-center gap-2">
+          {/* Search Input Box */}
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 text-gold-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search luxury jewels..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setIsMobileSearchFocused(true);
+              }}
+              onFocus={() => setIsMobileSearchFocused(true)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  setCurrentPage('shop');
+                  setIsMobileSearchFocused(false);
+                }
+              }}
+              className="w-full bg-slate-900 border border-gold-500/30 text-white text-xs rounded-xl pl-9 pr-7 py-2 focus:outline-none focus:border-gold-400 placeholder-slate-400 shadow-inner"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1 text-xs"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
+          {/* Filter Option Button */}
+          <button
+            type="button"
+            onClick={() => {
+              setIsMobileFilterOpen(!isMobileFilterOpen);
+              setIsMobileSearchFocused(false);
+            }}
+            className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-all ${
+              isMobileFilterOpen || (selectedCategory && selectedCategory !== 'All')
+                ? 'bg-gold-500 text-black border-gold-400 font-bold shadow-md'
+                : 'bg-slate-900 border-gold-500/30 text-gold-300 hover:text-white'
+            }`}
+            title="Filter Category"
+          >
+            <SlidersHorizontal className="w-3.5 h-3.5" />
+            <span className="text-[11px]">Filter</span>
+            {selectedCategory && selectedCategory !== 'All' && (
+              <span className="w-1.5 h-1.5 rounded-full bg-black ml-0.5"></span>
+            )}
+          </button>
+        </div>
+
+        {/* Mobile Filter Category Dropdown */}
+        {isMobileFilterOpen && (
+          <div className="mt-2 p-3 bg-[#0d1322] border border-gold-500/40 rounded-xl space-y-2 animate-fade-in shadow-2xl">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold text-gold-400 uppercase tracking-wider flex items-center gap-1">
+                <Tag className="w-3 h-3" /> Filter by Category
+              </span>
+              {selectedCategory !== 'All' && (
+                <button
+                  type="button"
+                  onClick={() => handleSelectCategory('All')}
+                  className="text-[10px] text-amber-400 hover:underline font-medium"
+                >
+                  Reset to All
+                </button>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto pt-1">
+              {(categories || ['All', 'Rings', 'Necklaces', 'Earrings', 'Bracelets', 'Antique Sets', 'Temple Jewellery', 'Bridal Sets']).map((cat) => (
+                <button
+                  type="button"
+                  key={cat}
+                  onClick={() => handleSelectCategory(cat)}
+                  className={`text-xs px-2.5 py-1 rounded-lg border font-medium transition-colors ${
+                    selectedCategory === cat
+                      ? 'bg-gold-500 text-black border-gold-400 font-bold shadow'
+                      : 'bg-slate-900 border-slate-700/80 text-slate-300 hover:text-gold-300'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Mobile Live Search Suggestions Dropdown */}
+        {isMobileSearchFocused && (
+          <div className="mt-2 bg-[#0d1322] border border-gold-500/40 rounded-xl shadow-2xl overflow-hidden z-50 animate-fade-in max-h-80 overflow-y-auto">
+            {/* Category Suggestions */}
+            <div className="p-2.5 border-b border-slate-800">
+              <span className="text-[10px] font-bold text-gold-400 uppercase tracking-wider block mb-1.5 flex items-center gap-1">
+                <Tag className="w-3 h-3" /> Related Categories
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {matchedCategories.map((cat) => (
+                  <button
+                    type="button"
+                    key={cat}
+                    onClick={() => handleSelectCategory(cat)}
+                    className={`text-xs px-2 py-0.5 rounded-lg border font-medium transition-colors ${
+                      selectedCategory === cat
+                        ? 'bg-gold-500 text-black border-gold-400 font-bold'
+                        : 'bg-slate-900 border-slate-700/80 text-slate-300 hover:text-gold-300'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Product Suggestions with Images */}
+            {query && (
+              <div className="p-2.5 space-y-2">
+                <span className="text-[10px] font-bold text-gold-400 uppercase tracking-wider block">
+                  Matching Jewels ({matchedProducts.length})
+                </span>
+                {matchedProducts.length === 0 ? (
+                  <p className="text-xs text-slate-400 py-2 text-center">No jewelry items found matching "{searchQuery}"</p>
+                ) : (
+                  <div className="space-y-1.5">
+                    {matchedProducts.map((p) => (
+                      <div
+                        key={p.id}
+                        onClick={() => handleSelectProduct(p)}
+                        className="flex items-center justify-between p-2 rounded-xl bg-slate-900/60 hover:bg-gold-500/10 border border-slate-800 hover:border-gold-500/40 cursor-pointer transition-colors"
+                      >
+                        <div className="flex items-center space-x-2.5 min-w-0">
+                          <img
+                            src={p.image}
+                            alt={p.title}
+                            className="w-9 h-9 object-cover rounded-lg bg-slate-950 border border-slate-800 shrink-0"
+                          />
+                          <div className="min-w-0">
+                            <h4 className="text-xs font-semibold text-white truncate">{p.title}</h4>
+                            <span className="text-[10px] text-slate-400 block truncate">{p.karat} • {p.category}</span>
+                          </div>
+                        </div>
+                        <span className="text-xs font-bold text-gold-400 shrink-0 ml-2">
+                          ₹{(Number(p?.price) || 0).toLocaleString()}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCurrentPage('shop');
+                    setIsMobileSearchFocused(false);
+                  }}
+                  className="w-full mt-2 bg-slate-900 hover:bg-gold-500 hover:text-black border border-gold-500/30 text-gold-300 text-xs py-2 rounded-xl font-bold flex items-center justify-center gap-1 transition-all"
+                >
+                  <span>View all results in Shop</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Slide-Out Left Drawer Menu (Mobile) */}
