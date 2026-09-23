@@ -123,7 +123,7 @@ export default function Footer() {
               </div>
               <div className="flex items-center space-x-2">
                 <MapPin className="w-4 h-4 text-gold-400 shrink-0" />
-                <span>Gudiyatham, Vellore - 635806</span>
+                <span>Vellore, Tamilnadu, India</span>
               </div>
             </div>
           </div>

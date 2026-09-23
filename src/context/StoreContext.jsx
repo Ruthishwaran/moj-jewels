@@ -701,6 +701,37 @@ export const StoreProvider = ({ children }) => {
     }
   };
 
+  const deleteReview = async (reviewId) => {
+    const currentList = Array.isArray(reviews) ? reviews : [];
+    const reviewToDelete = currentList.find(r => r.id === reviewId);
+    const updatedReviews = currentList.filter(r => r.id !== reviewId);
+    setReviews(updatedReviews);
+    try { localStorage.setItem('moj_reviews_cache', JSON.stringify(updatedReviews)); } catch (e) {}
+
+    try {
+      await setDoc(doc(db, 'config', 'reviews'), { list: updatedReviews }, { merge: true });
+    } catch (err) {
+      console.warn('deleteReview error:', err);
+    }
+
+    if (reviewToDelete && reviewToDelete.productId) {
+      const prodId = String(reviewToDelete.productId);
+      const remainingForProd = updatedReviews.filter(r => String(r.productId) === prodId);
+      const avgRating = remainingForProd.length > 0
+        ? Number((remainingForProd.reduce((acc, r) => acc + (Number(r.rating) || 5), 0) / remainingForProd.length).toFixed(1))
+        : 5.0;
+      const newCount = remainingForProd.length;
+
+      setProducts(prev => (Array.isArray(prev) ? prev : []).map(p =>
+        String(p.id) === prodId ? { ...p, rating: avgRating, reviewsCount: newCount } : p
+      ));
+
+      try {
+        await setDoc(doc(db, 'products', prodId), { rating: avgRating, reviewsCount: newCount }, { merge: true });
+      } catch (err) {}
+    }
+  };
+
   // ===== COUPONS APPLICATION =====
   const applyCouponCode = (code) => {
     if (!code) return { success: false, message: 'Please enter a coupon code.' };
@@ -990,6 +1021,7 @@ export const StoreProvider = ({ children }) => {
       discountAmount,
       reviews: Array.isArray(reviews) ? reviews : [],
       addReview,
+      deleteReview,
       canUserReviewProduct,
       isAppInstallable,
       installPwaApp,

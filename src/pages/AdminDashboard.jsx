@@ -45,7 +45,9 @@ export default function AdminDashboard() {
     categories,
     addCategory,
     deleteCategory,
+    reviews,
     addReview,
+    deleteReview,
     registeredUsers,
     deleteUserAccount,
     approveWholesaleUser,
@@ -97,6 +99,11 @@ export default function AdminDashboard() {
   const [selectedOrderDate, setSelectedOrderDate] = useState(''); // 'YYYY-MM-DD'
   const [dateQuickFilter, setDateQuickFilter] = useState('All'); // 'All', 'Today', 'Yesterday', 'Week'
 
+  // Reviews Management Filter State
+  const [reviewProductFilter, setReviewProductFilter] = useState('All');
+  const [reviewRatingFilter, setReviewRatingFilter] = useState('All');
+  const [reviewSearchQuery, setReviewSearchQuery] = useState('');
+
   // Coupon Modal State
   const [isAddCouponOpen, setIsAddCouponOpen] = useState(false);
   const [couponCode, setCouponCode] = useState('');
@@ -132,6 +139,19 @@ export default function AdminDashboard() {
   const safeOrders = Array.isArray(orders) ? orders : [];
   const safeProducts = Array.isArray(products) ? products : [];
   const safeCoupons = Array.isArray(coupons) ? coupons : [];
+  const safeReviews = Array.isArray(reviews) ? reviews : [];
+
+  const filteredReviews = safeReviews.filter((r) => {
+    if (reviewProductFilter !== 'All' && String(r.productId) !== String(reviewProductFilter)) return false;
+    if (reviewRatingFilter !== 'All' && String(r.rating) !== String(reviewRatingFilter)) return false;
+    if (reviewSearchQuery.trim()) {
+      const q = reviewSearchQuery.toLowerCase();
+      const matchName = (r.userName || '').toLowerCase().includes(q);
+      const matchComment = (r.comment || '').toLowerCase().includes(q);
+      if (!matchName && !matchComment) return false;
+    }
+    return true;
+  });
 
   const pendingVerifications = safeOrders
     .filter(o => o?.paymentStatus === 'Pending Verification')
@@ -613,6 +633,18 @@ export default function AdminDashboard() {
         </button>
 
         <button
+          onClick={() => setActiveTab('reviews')}
+          className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all ${
+            activeTab === 'reviews'
+              ? 'bg-amber-500 text-black shadow-lg'
+              : 'bg-slate-900 border border-slate-800 text-slate-300 hover:text-white'
+          }`}
+        >
+          <Star className="w-4 h-4 text-amber-400" />
+          <span>Customer Reviews ({reviews?.length || 0})</span>
+        </button>
+
+        <button
           onClick={() => setActiveTab('coupons')}
           className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all ${
             activeTab === 'coupons'
@@ -931,28 +963,30 @@ export default function AdminDashboard() {
                         return (
                           <div key={idx} className="flex items-center gap-2 bg-slate-900/90 border border-slate-700/80 px-2.5 py-1.5 rounded-xl">
                             <span className="font-semibold text-white">{i.title} (x{i.quantity || 1})</span>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                if (matchedProduct) {
-                                  handleOpenEditProduct(matchedProduct);
-                                } else {
-                                  handleOpenEditProduct({
-                                    id: i.id || `prod-${Date.now()}`,
-                                    title: i.title,
-                                    price: i.price,
-                                    image: i.image,
-                                    category: i.category || 'Jewelry',
-                                    description: i.description || ''
-                                  });
-                                }
-                              }}
-                              className="text-[11px] text-amber-300 hover:text-black hover:bg-amber-400 bg-amber-500/20 border border-amber-500/40 px-2 py-0.5 rounded-lg flex items-center gap-1 font-bold transition-all shadow-sm active:scale-95"
-                              title={`Edit "${i.title}" Product Catalog Details`}
-                            >
-                              <Edit className="w-3 h-3" />
-                              <span>Edit Product</span>
-                            </button>
+                            {ord.orderStatus !== 'Delivered' && orderFilterTab !== 'Delivered' && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (matchedProduct) {
+                                    handleOpenEditProduct(matchedProduct);
+                                  } else {
+                                    handleOpenEditProduct({
+                                      id: i.id || `prod-${Date.now()}`,
+                                      title: i.title,
+                                      price: i.price,
+                                      image: i.image,
+                                      category: i.category || 'Jewelry',
+                                      description: i.description || ''
+                                    });
+                                  }
+                                }}
+                                className="text-[11px] text-amber-300 hover:text-black hover:bg-amber-400 bg-amber-500/20 border border-amber-500/40 px-2 py-0.5 rounded-lg flex items-center gap-1 font-bold transition-all shadow-sm active:scale-95"
+                                title={`Edit "${i.title}" Product Catalog Details`}
+                              >
+                                <Edit className="w-3 h-3" />
+                                <span>Edit Product</span>
+                              </button>
+                            )}
                           </div>
                         );
                       })}
@@ -1057,147 +1091,6 @@ export default function AdminDashboard() {
               </button>
             </div>
           </div>
-
-          {/* Admin Add Verified Review Modal */}
-          {isAddReviewOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-              <div className="glass-card p-6 md:p-8 rounded-2xl border border-gold-500/40 max-w-md w-full space-y-4 shadow-2xl relative">
-                <button
-                  onClick={() => setIsAddReviewOpen(false)}
-                  className="absolute top-4 right-4 text-slate-400 hover:text-white p-1"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-
-                <div className="border-b border-slate-800 pb-3">
-                  <h3 className="text-lg font-serif font-bold text-white flex items-center gap-2">
-                    <Star className="w-5 h-5 text-amber-400 fill-current" /> Add Verified Customer Review
-                  </h3>
-                  <p className="text-xs text-slate-400 mt-0.5">Post an authentic customer review with rating and description.</p>
-                </div>
-
-                <form
-                  onSubmit={async (e) => {
-                    e.preventDefault();
-                    const targetProdId = adminRevProductId || (products[0] ? products[0].id : '');
-                    if (!targetProdId || !adminRevName.trim() || !adminRevComment.trim()) {
-                      alert('Please complete all review fields.');
-                      return;
-                    }
-                    setIsPostingReview(true);
-                    try {
-                      const res = await addReview({
-                        productId: targetProdId,
-                        userName: adminRevName.trim(),
-                        userEmail: 'admin-verified@mojjewels.com',
-                        rating: Number(adminRevRating),
-                        comment: adminRevComment.trim(),
-                        isVerifiedBuyer: true,
-                        isAdminAdded: true
-                      });
-                      setAdminRevMsg(res || { success: true, message: 'Review posted successfully! ✨' });
-                      setTimeout(() => {
-                        setIsAddReviewOpen(false);
-                        setAdminRevName('');
-                        setAdminRevComment('');
-                        setAdminRevMsg(null);
-                      }, 1200);
-                    } catch (err) {
-                      console.error('Submit review error:', err);
-                      setAdminRevMsg({ success: true, message: 'Review posted successfully! ✨' });
-                      setTimeout(() => {
-                        setIsAddReviewOpen(false);
-                        setAdminRevName('');
-                        setAdminRevComment('');
-                        setAdminRevMsg(null);
-                      }, 1200);
-                    } finally {
-                      setIsPostingReview(false);
-                    }
-                  }}
-                  className="space-y-4 text-xs"
-                >
-                  <div>
-                    <label className="text-slate-300 font-medium block mb-1">Select Product</label>
-                    <select
-                      value={adminRevProductId || (products[0] ? products[0].id : '')}
-                      onChange={(e) => setAdminRevProductId(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white"
-                    >
-                      {products.map((prod) => (
-                        <option key={prod.id} value={prod.id}>
-                          {prod.title} (₹{(Number(prod?.price) || 0).toLocaleString()})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="text-slate-300 font-medium block mb-1">Customer / Reviewer Name</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. Ananya Sharma"
-                      value={adminRevName}
-                      onChange={(e) => setAdminRevName(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-slate-300 font-medium block mb-1">Star Rating (1 to 5 Stars)</label>
-                    <select
-                      value={adminRevRating}
-                      onChange={(e) => setAdminRevRating(Number(e.target.value))}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-gold-300 font-bold"
-                    >
-                      <option value="5">⭐⭐⭐⭐⭐ (5 Stars - Excellent)</option>
-                      <option value="4">⭐⭐⭐⭐ (4 Stars - Very Good)</option>
-                      <option value="3">⭐⭐⭐ (3 Stars - Good)</option>
-                      <option value="2">⭐⭐ (2 Stars - Average)</option>
-                      <option value="1">⭐ (1 Star - Poor)</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="text-slate-300 font-medium block mb-1">Review Description / Feedback</label>
-                    <textarea
-                      required
-                      rows={3}
-                      placeholder="e.g. Stunning matte gold finish! The choker set arrived in tamper-proof packaging. Highly recommended!"
-                      value={adminRevComment}
-                      onChange={(e) => setAdminRevComment(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
-                    />
-                  </div>
-
-                  {adminRevMsg && (
-                    <p className={`text-xs font-semibold ${adminRevMsg.success ? 'text-emerald-400' : 'text-rose-400'}`}>
-                      {adminRevMsg.message}
-                    </p>
-                  )}
-
-                  <div className="flex gap-2 pt-2">
-                    <button
-                      type="button"
-                      onClick={() => setIsAddReviewOpen(false)}
-                      className="flex-1 bg-slate-900 hover:bg-slate-800 text-slate-300 py-2.5 rounded-xl border border-slate-700 font-semibold"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={isPostingReview}
-                      className="flex-1 btn-gold-shimmer py-2.5 rounded-xl font-bold text-black disabled:opacity-50"
-                    >
-                      {isPostingReview ? 'Posting Review...' : 'Post Review'}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          )}
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {products.map((p) => (
               <div key={p.id} className="glass-card p-4 rounded-xl border border-slate-800 flex gap-4 items-center">
@@ -1943,6 +1836,218 @@ export default function AdminDashboard() {
         </div>
       )}
 
+      {/* ── TAB: Customer Reviews Management ── */}
+      {activeTab === 'reviews' && (
+        <div className="glass-card p-6 md:p-8 rounded-2xl border border-amber-500/40 space-y-6 animate-fade-in">
+          {/* Header */}
+          <div className="border-b border-slate-800 pb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-2xl font-serif font-bold text-white flex items-center gap-2">
+                <Star className="w-6 h-6 text-amber-400 fill-amber-400" /> Customer Reviews Management ({safeReviews.length})
+              </h2>
+              <p className="text-xs text-slate-400 mt-1">
+                Moderate, inspect, filter, or delete customer reviews. Deleting recalculates product ratings and updates the live store instantly.
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setIsAddReviewOpen(true)}
+                className="btn-gold-shimmer px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 text-black shadow-lg active:scale-95"
+              >
+                <Plus className="w-4 h-4 text-black" />
+                <span>Add / Post Review</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Metrics Bar */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="bg-slate-900/90 p-3.5 rounded-xl border border-slate-800 text-center">
+              <span className="text-slate-400 text-[10px] uppercase block font-semibold">Total Reviews</span>
+              <strong className="text-white text-lg font-bold">{safeReviews.length}</strong>
+            </div>
+            <div className="bg-slate-900/90 p-3.5 rounded-xl border border-gold-500/30 text-center">
+              <span className="text-slate-400 text-[10px] uppercase block font-semibold">Average Store Rating</span>
+              <strong className="text-gold-300 text-lg font-bold">
+                {safeReviews.length > 0
+                  ? (safeReviews.reduce((acc, r) => acc + (Number(r.rating) || 5), 0) / safeReviews.length).toFixed(1)
+                  : '5.0'} ⭐
+              </strong>
+            </div>
+            <div className="bg-slate-900/90 p-3.5 rounded-xl border border-slate-800 text-center">
+              <span className="text-slate-400 text-[10px] uppercase block font-semibold">5-Star Testimonials</span>
+              <strong className="text-emerald-400 text-lg font-bold">
+                {safeReviews.filter(r => Number(r.rating) === 5).length}
+              </strong>
+            </div>
+            <div className="bg-slate-900/90 p-3.5 rounded-xl border border-slate-800 text-center">
+              <span className="text-slate-400 text-[10px] uppercase block font-semibold">Verified Purchases</span>
+              <strong className="text-blue-400 text-lg font-bold">
+                {safeReviews.filter(r => r.isVerifiedBuyer).length}
+              </strong>
+            </div>
+          </div>
+
+          {/* Filter Bar */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {/* Search Input */}
+            <div className="relative">
+              <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search reviewer or comment..."
+                value={reviewSearchQuery}
+                onChange={(e) => setReviewSearchQuery(e.target.value)}
+                className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-400"
+              />
+            </div>
+
+            {/* Filter by Product */}
+            <div>
+              <select
+                value={reviewProductFilter}
+                onChange={(e) => setReviewProductFilter(e.target.value)}
+                className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:border-amber-400"
+              >
+                <option value="All">All Products ({safeProducts.length})</option>
+                {safeProducts.map((p) => (
+                  <option key={p.id} value={p.id}>{p.title}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Filter by Rating */}
+            <div>
+              <select
+                value={reviewRatingFilter}
+                onChange={(e) => setReviewRatingFilter(e.target.value)}
+                className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:border-amber-400"
+              >
+                <option value="All">All Ratings (⭐ 1-5)</option>
+                <option value="5">⭐⭐⭐⭐⭐ (5 Stars Only)</option>
+                <option value="4">⭐⭐⭐⭐ (4 Stars Only)</option>
+                <option value="3">⭐⭐⭐ (3 Stars Only)</option>
+                <option value="2">⭐⭐ (2 Stars Only)</option>
+                <option value="1">⭐ (1 Star Only)</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Active filter reset prompt */}
+          {(reviewProductFilter !== 'All' || reviewRatingFilter !== 'All' || reviewSearchQuery) && (
+            <div className="flex items-center gap-2 text-xs text-slate-400">
+              <span>Showing {filteredReviews.length} matching reviews.</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setReviewProductFilter('All');
+                  setReviewRatingFilter('All');
+                  setReviewSearchQuery('');
+                }}
+                className="text-amber-400 hover:underline font-semibold text-xs ml-1"
+              >
+                Reset All Filters
+              </button>
+            </div>
+          )}
+
+          {/* Reviews Grid */}
+          {filteredReviews.length === 0 ? (
+            <div className="text-center py-12 border border-dashed border-slate-800 rounded-2xl">
+              <Star className="w-10 h-10 text-slate-600 mx-auto mb-2 opacity-50" />
+              <p className="text-slate-400 text-sm font-semibold">No reviews matching the selected filters.</p>
+              <p className="text-slate-600 text-xs mt-1">Try resetting the filters or add a new review using the button above.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {filteredReviews.map((rev) => {
+                const prod = safeProducts.find(p => String(p.id) === String(rev.productId));
+                return (
+                  <div key={rev.id} className="p-4 bg-slate-900/90 rounded-2xl border border-slate-800/80 flex flex-col justify-between gap-3 hover:border-amber-500/40 transition-all">
+                    <div>
+                      {/* Top Bar: Reviewer Info + Rating */}
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-bold text-white text-sm">{rev.userName || 'Customer'}</span>
+                            {rev.isVerifiedBuyer && (
+                              <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                                <Check className="w-3 h-3" /> Verified Buyer
+                              </span>
+                            )}
+                            {rev.isAdminAdded && (
+                              <span className="bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[9px] font-bold px-2 py-0.5 rounded-full">
+                                👑 Admin Added
+                              </span>
+                            )}
+                          </div>
+                          {rev.userEmail && (
+                            <span className="text-slate-500 text-[11px] block">{rev.userEmail}</span>
+                          )}
+                        </div>
+
+                        {/* Stars */}
+                        <div className="flex items-center gap-0.5 bg-slate-950 px-2 py-1 rounded-lg border border-slate-800 shrink-0">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                              key={star}
+                              className={`w-3.5 h-3.5 ${
+                                star <= (Number(rev.rating) || 5)
+                                  ? 'text-amber-400 fill-amber-400'
+                                  : 'text-slate-700'
+                              }`}
+                            />
+                          ))}
+                          <span className="text-amber-300 font-bold text-xs ml-1">{Number(rev.rating || 5).toFixed(1)}</span>
+                        </div>
+                      </div>
+
+                      {/* Product Tag */}
+                      {prod && (
+                        <div className="flex items-center gap-2 bg-slate-950/60 border border-slate-800 px-2.5 py-1.5 rounded-xl mb-2.5">
+                          <img
+                            src={prod.image || '/images/hero_banner.jpg'}
+                            alt=""
+                            className="w-7 h-7 object-cover rounded-md shrink-0"
+                          />
+                          <span className="text-xs text-amber-200/90 font-medium truncate">
+                            {prod.title}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Review Comment */}
+                      <p className="text-xs text-slate-300 italic leading-relaxed bg-slate-950/30 p-2.5 rounded-xl border border-slate-800/40">
+                        "{rev.comment}"
+                      </p>
+                    </div>
+
+                    {/* Bottom Action Bar */}
+                    <div className="flex items-center justify-between pt-2 border-t border-slate-800/60 text-[11px] text-slate-500">
+                      <span>{rev.dateStr || (rev.createdAt ? new Date(rev.createdAt).toLocaleDateString('en-IN') : 'Recent')}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (window.confirm(`Delete review from "${rev.userName}"? This will recalculate the product rating.`)) {
+                            deleteReview(rev.id);
+                          }
+                        }}
+                        className="text-rose-400 hover:text-white hover:bg-rose-600/30 border border-rose-500/30 px-2.5 py-1 rounded-lg flex items-center gap-1 font-semibold transition-all active:scale-95"
+                        title="Delete Review"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Delete Review</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* ── TAB: Reports & Analytics ── */}
       {activeTab === 'reports' && (
         <div className="space-y-8 animate-fade-in">
@@ -2113,6 +2218,146 @@ export default function AdminDashboard() {
                 <Trash2 className="w-4 h-4" /> Delete All Customer Accounts
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Global Admin Add Verified Review Modal */}
+      {isAddReviewOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+          <div className="glass-card p-6 md:p-8 rounded-2xl border border-gold-500/40 max-w-md w-full space-y-4 shadow-2xl relative">
+            <button
+              onClick={() => setIsAddReviewOpen(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white p-1"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="border-b border-slate-800 pb-3">
+              <h3 className="text-lg font-serif font-bold text-white flex items-center gap-2">
+                <Star className="w-5 h-5 text-amber-400 fill-current" /> Add Verified Customer Review
+              </h3>
+              <p className="text-xs text-slate-400 mt-0.5">Post an authentic customer review with rating and description.</p>
+            </div>
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const targetProdId = adminRevProductId || (products[0] ? products[0].id : '');
+                if (!targetProdId || !adminRevName.trim() || !adminRevComment.trim()) {
+                  alert('Please complete all review fields.');
+                  return;
+                }
+                setIsPostingReview(true);
+                try {
+                  const res = await addReview({
+                    productId: targetProdId,
+                    userName: adminRevName.trim(),
+                    userEmail: 'admin-verified@mojjewels.com',
+                    rating: Number(adminRevRating),
+                    comment: adminRevComment.trim(),
+                    isVerifiedBuyer: true,
+                    isAdminAdded: true
+                  });
+                  setAdminRevMsg(res || { success: true, message: 'Review posted successfully! ✨' });
+                  setTimeout(() => {
+                    setIsAddReviewOpen(false);
+                    setAdminRevName('');
+                    setAdminRevComment('');
+                    setAdminRevMsg(null);
+                  }, 1200);
+                } catch (err) {
+                  console.error('Submit review error:', err);
+                  setAdminRevMsg({ success: true, message: 'Review posted successfully! ✨' });
+                  setTimeout(() => {
+                    setIsAddReviewOpen(false);
+                    setAdminRevName('');
+                    setAdminRevComment('');
+                    setAdminRevMsg(null);
+                  }, 1200);
+                } finally {
+                  setIsPostingReview(false);
+                }
+              }}
+              className="space-y-4 text-xs"
+            >
+              <div>
+                <label className="text-slate-300 font-medium block mb-1">Select Product</label>
+                <select
+                  value={adminRevProductId || (products[0] ? products[0].id : '')}
+                  onChange={(e) => setAdminRevProductId(e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white"
+                >
+                  {products.map((prod) => (
+                    <option key={prod.id} value={prod.id}>
+                      {prod.title} (₹{(Number(prod?.price) || 0).toLocaleString()})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-slate-300 font-medium block mb-1">Customer / Reviewer Name</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Ananya Sharma"
+                  value={adminRevName}
+                  onChange={(e) => setAdminRevName(e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
+                />
+              </div>
+
+              <div>
+                <label className="text-slate-300 font-medium block mb-1">Star Rating (1 to 5 Stars)</label>
+                <select
+                  value={adminRevRating}
+                  onChange={(e) => setAdminRevRating(Number(e.target.value))}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-gold-300 font-bold"
+                >
+                  <option value="5">⭐⭐⭐⭐⭐ (5 Stars - Excellent)</option>
+                  <option value="4">⭐⭐⭐⭐ (4 Stars - Very Good)</option>
+                  <option value="3">⭐⭐⭐ (3 Stars - Good)</option>
+                  <option value="2">⭐⭐ (2 Stars - Average)</option>
+                  <option value="1">⭐ (1 Star - Poor)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-slate-300 font-medium block mb-1">Review Description / Feedback</label>
+                <textarea
+                  required
+                  rows={3}
+                  placeholder="e.g. Stunning matte gold finish! The choker set arrived in tamper-proof packaging. Highly recommended!"
+                  value={adminRevComment}
+                  onChange={(e) => setAdminRevComment(e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
+                />
+              </div>
+
+              {adminRevMsg && (
+                <p className={`text-xs font-semibold ${adminRevMsg.success ? 'text-emerald-400' : 'text-rose-400'}`}>
+                  {adminRevMsg.message}
+                </p>
+              )}
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsAddReviewOpen(false)}
+                  className="flex-1 bg-slate-900 hover:bg-slate-800 text-slate-300 py-2.5 rounded-xl border border-slate-700 font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isPostingReview}
+                  className="flex-1 btn-gold-shimmer py-2.5 rounded-xl font-bold text-black disabled:opacity-50"
+                >
+                  {isPostingReview ? 'Posting Review...' : 'Post Review'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
