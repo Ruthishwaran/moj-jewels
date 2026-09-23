@@ -103,51 +103,71 @@ export default function CartDrawer() {
                 </button>
               </div>
             ) : (
-              (cart || []).map((item) => (
-                <div key={item.id} className="flex gap-4 p-3 bg-slate-900/60 rounded-xl border border-slate-800">
-                  <img
-                    src={item.image}
-                    alt={item.title}
-                    className="w-20 h-20 object-cover rounded-lg bg-slate-950 border border-slate-800"
-                  />
-                  <div className="flex-1 flex flex-col justify-between">
-                    <div>
-                      <div className="flex justify-between items-start">
-                        <h4 className="text-white text-xs font-semibold line-clamp-1">{item.title}</h4>
-                        <button
-                          onClick={() => removeFromCart(item.id)}
-                          className="text-slate-500 hover:text-rose-400 p-1"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                      <span className="text-[10px] text-gold-400 font-medium">{item.karat}</span>
-                    </div>
+              (cart || []).map((item, idx) => {
+                const itemKey = item.cartItemId || `${item.id}-${idx}`;
+                return (
+                  <div key={itemKey} className="flex gap-4 p-3 bg-slate-900/60 rounded-xl border border-slate-800">
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="w-20 h-20 object-cover rounded-lg bg-slate-950 border border-slate-800 shrink-0"
+                    />
+                    <div className="flex-1 flex flex-col justify-between min-w-0">
+                      <div>
+                        <div className="flex justify-between items-start gap-1">
+                          <h4 className="text-white text-xs font-semibold line-clamp-1">{item.title}</h4>
+                          <button
+                            onClick={() => removeFromCart(item.cartItemId || item.id)}
+                            className="text-slate-500 hover:text-rose-400 p-1 shrink-0"
+                            title="Remove item"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                        <span className="text-[10px] text-gold-400 font-medium block">{item.karat}</span>
 
-                    <div className="flex items-center justify-between mt-2">
-                      <div className="flex items-center bg-slate-950 border border-slate-800 rounded-lg px-2 py-0.5 text-xs">
-                        <button
-                          onClick={() => updateCartQty(item.id, -1)}
-                          className="text-slate-400 hover:text-white px-1"
-                        >
-                          -
-                        </button>
-                        <span className="px-2 text-white font-semibold">{item.quantity}</span>
-                        <button
-                          onClick={() => updateCartQty(item.id, 1)}
-                          className="text-slate-400 hover:text-white px-1"
-                        >
-                          +
-                        </button>
+                        {/* Selected Variants */}
+                        {(item.selectedColor || item.selectedSize) && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {item.selectedColor && (
+                              <span className="text-[10px] text-gold-300 bg-gold-500/10 border border-gold-500/30 px-1.5 py-0.5 rounded-md font-medium">
+                                Color: {item.selectedColor}
+                              </span>
+                            )}
+                            {item.selectedSize && (
+                              <span className="text-[10px] text-slate-300 bg-slate-800 border border-slate-700 px-1.5 py-0.5 rounded-md font-medium">
+                                Size: {item.selectedSize}
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
 
-                      <span className="text-white font-bold text-sm">
-                        ₹{((Number(item?.price) || 0) * (Number(item?.quantity) || 1)).toLocaleString()}
-                      </span>
+                      <div className="flex items-center justify-between mt-2">
+                        <div className="flex items-center bg-slate-950 border border-slate-800 rounded-lg px-2 py-0.5 text-xs">
+                          <button
+                            onClick={() => updateCartQty(item.cartItemId || item.id, -1)}
+                            className="text-slate-400 hover:text-white px-1"
+                          >
+                            -
+                          </button>
+                          <span className="px-2 text-white font-semibold">{item.quantity}</span>
+                          <button
+                            onClick={() => updateCartQty(item.cartItemId || item.id, 1)}
+                            className="text-slate-400 hover:text-white px-1"
+                          >
+                            +
+                          </button>
+                        </div>
+
+                        <span className="text-white font-bold text-sm">
+                          ₹{((Number(item?.price) || 0) * (Number(item?.quantity) || 1)).toLocaleString()}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
 

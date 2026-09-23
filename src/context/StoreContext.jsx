@@ -522,11 +522,19 @@ export const StoreProvider = ({ children }) => {
   };
 
   // ===== CART FUNCTIONS (session only, device-local) =====
-  const addToCart = (product, quantity = 1) => {
+  const addToCart = (product, quantity = 1, options = {}) => {
     if (!product) return;
+    const selectedColor = options.selectedColor || product.selectedColor || '';
+    const selectedSize = options.selectedSize || product.selectedSize || '';
+    const prodId = product.id || `prod-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+    const cartItemId = options.cartItemId || `${prodId}_${selectedColor || 'standard'}_${selectedSize || 'standard'}`;
+
     const safeProduct = {
       ...product,
-      id: product.id || `prod-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      cartItemId,
+      selectedColor,
+      selectedSize,
+      id: prodId,
       title: product.title || 'MOJ Fine Jewelry',
       price: typeof product.price === 'number' ? product.price : parseFloat(product.price) || 0,
       image: product.image || (Array.isArray(product.images) && product.images[0]) || '/images/moj_logo.jpg'
@@ -544,7 +552,12 @@ export const StoreProvider = ({ children }) => {
 
     setCart(prev => {
       const safePrev = Array.isArray(prev) ? prev : [];
-      const existing = safePrev.find(item => item && item.id === safeProduct.id);
+      const existing = safePrev.find(item => 
+        item && (
+          item.cartItemId === cartItemId ||
+          (item.id === safeProduct.id && item.selectedColor === selectedColor && item.selectedSize === selectedSize)
+        )
+      );
       const currentQty = existing ? existing.quantity : 0;
 
       if (currentQty + quantity > maxStock) {
@@ -554,7 +567,10 @@ export const StoreProvider = ({ children }) => {
 
       if (existing) {
         return safePrev.map(item =>
-          item && item.id === safeProduct.id ? { ...item, quantity: item.quantity + quantity } : item
+          item && (
+            item.cartItemId === cartItemId ||
+            (item.id === safeProduct.id && item.selectedColor === selectedColor && item.selectedSize === selectedSize)
+          ) ? { ...item, quantity: item.quantity + quantity } : item
         );
       }
       return [...safePrev, { ...safeProduct, quantity }];
@@ -563,15 +579,15 @@ export const StoreProvider = ({ children }) => {
     setIsCartOpen(true);
   };
 
-  const updateCartQty = (productId, delta) => {
-    const targetProduct = (products || []).find(p => p.id === productId);
-    const stockVal = targetProduct && targetProduct.stock !== undefined && targetProduct.stock !== null && targetProduct.stock !== ''
-      ? parseInt(targetProduct.stock, 10)
-      : 10;
-    const maxStock = !isNaN(stockVal) ? stockVal : 10;
-
+  const updateCartQty = (keyOrId, delta) => {
     setCart(prev => (Array.isArray(prev) ? prev : []).map(item => {
-      if (item.id === productId) {
+      if (item && ((item.cartItemId && item.cartItemId === keyOrId) || item.id === keyOrId)) {
+        const targetProduct = (products || []).find(p => p.id === item.id);
+        const stockVal = targetProduct && targetProduct.stock !== undefined && targetProduct.stock !== null && targetProduct.stock !== ''
+          ? parseInt(targetProduct.stock, 10)
+          : (item.stock || 10);
+        const maxStock = !isNaN(stockVal) ? stockVal : 10;
+
         const newQty = item.quantity + delta;
         if (delta > 0 && newQty > maxStock) {
           alert(`Stock Limit Reached! Maximum ${maxStock} units available for this item.`);
@@ -583,8 +599,10 @@ export const StoreProvider = ({ children }) => {
     }));
   };
 
-  const removeFromCart = (productId) => {
-    setCart(prev => (Array.isArray(prev) ? prev : []).filter(item => item.id !== productId));
+  const removeFromCart = (keyOrId) => {
+    setCart(prev => (Array.isArray(prev) ? prev : []).filter(item => 
+      item && ((item.cartItemId && item.cartItemId !== keyOrId) || (!item.cartItemId && item.id !== keyOrId)) && item.id !== keyOrId
+    ));
   };
 
   const clearCart = () => {

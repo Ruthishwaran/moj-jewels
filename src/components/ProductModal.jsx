@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../context/StoreContext';
-import { X, Heart, ShoppingBag, Star, ShieldCheck, Truck, ChevronLeft, ChevronRight, Share2, Check } from 'lucide-react';
+import { X, Heart, ShoppingBag, Star, ShieldCheck, Truck, ChevronLeft, ChevronRight, Share2, Check, AlertCircle, Sparkles } from 'lucide-react';
 
 export default function ProductModal() {
   const {
@@ -15,6 +15,9 @@ export default function ProductModal() {
   const [activeImgIndex, setActiveImgIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [copiedShare, setCopiedShare] = useState(false);
+  const [selectedColor, setSelectedColor] = useState('');
+  const [selectedSize, setSelectedSize] = useState('');
+  const [variantError, setVariantError] = useState('');
 
   const handleShareProduct = async (e) => {
     e?.stopPropagation();
@@ -54,9 +57,21 @@ export default function ProductModal() {
     }
   };
 
-  // Reset active image index on product change
+  // Reset active image index & variant selection on product change
   React.useEffect(() => {
     setActiveImgIndex(0);
+    setVariantError('');
+    if (Array.isArray(selectedProduct?.colors) && selectedProduct.colors.length === 1) {
+      setSelectedColor(selectedProduct.colors[0]);
+    } else {
+      setSelectedColor('');
+    }
+
+    if (Array.isArray(selectedProduct?.sizes) && selectedProduct.sizes.length === 1) {
+      setSelectedSize(selectedProduct.sizes[0]);
+    } else {
+      setSelectedSize('');
+    }
   }, [selectedProduct?.id]);
 
   // Auto 3-second slideshow for multi-image gallery
@@ -100,9 +115,33 @@ export default function ProductModal() {
 
   const isWishlisted = isInWishlist(id);
 
+  // Variant requirement checks
+  const productColors = Array.isArray(selectedProduct.colors) ? selectedProduct.colors : [];
+  const isBanglesCategory = (category || '').toLowerCase().includes('bangle');
+  const productSizes = Array.isArray(selectedProduct.sizes) && selectedProduct.sizes.length > 0
+    ? selectedProduct.sizes
+    : isBanglesCategory
+    ? ['2.4', '2.6', '2.8', '2.10']
+    : [];
+
+  const hasColorRequirement = productColors.length > 0;
+  const hasSizeRequirement = productSizes.length > 0 || isBanglesCategory;
+
   const handleAddToCart = () => {
     if (isOutOfStock) return;
-    addToCart(selectedProduct, quantity);
+
+    if (hasColorRequirement && !selectedColor) {
+      setVariantError('Please select your preferred Color / Stone Shade (Compulsory).');
+      return;
+    }
+
+    if (hasSizeRequirement && !selectedSize) {
+      setVariantError('Please select your Size (Compulsory).');
+      return;
+    }
+
+    setVariantError('');
+    addToCart(selectedProduct, quantity, { selectedColor, selectedSize });
     setSelectedProduct(null);
   };
 
@@ -236,6 +275,80 @@ export default function ProductModal() {
                   <span>Insured Express Pan-India Courier</span>
                 </div>
               </div>
+
+              {/* COMPULSORY COLOR SELECTION */}
+              {hasColorRequirement && (
+                <div className="space-y-2 pt-3 border-t border-slate-800">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-semibold text-gold-300 flex items-center gap-1">
+                      <Sparkles className="w-3.5 h-3.5 text-gold-400" />
+                      Select Color / Stone Shade <span className="text-rose-400 font-bold">* (Compulsory)</span>
+                    </label>
+                    {selectedColor && (
+                      <span className="text-[11px] text-emerald-400 font-bold bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                        {selectedColor} ✓
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {productColors.map((col) => (
+                      <button
+                        key={col}
+                        type="button"
+                        onClick={() => { setSelectedColor(col); setVariantError(''); }}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
+                          selectedColor === col
+                            ? 'bg-gold-500 text-black border-gold-400 font-bold shadow-md shadow-gold-500/20 scale-105'
+                            : 'bg-slate-900/90 text-slate-300 border-slate-700 hover:border-gold-500/50 hover:text-white'
+                        }`}
+                      >
+                        {col}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* COMPULSORY SIZE SELECTION (FOR BANGLES & SIZED ITEMS) */}
+              {hasSizeRequirement && (
+                <div className="space-y-2 pt-3 border-t border-slate-800">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-semibold text-gold-300 flex items-center gap-1">
+                      <Sparkles className="w-3.5 h-3.5 text-gold-400" />
+                      {isBanglesCategory ? 'Select Bangle Size' : 'Select Size / Style'} <span className="text-rose-400 font-bold">* (Compulsory)</span>
+                    </label>
+                    {selectedSize && (
+                      <span className="text-[11px] text-emerald-400 font-bold bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                        {selectedSize} ✓
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {productSizes.map((sz) => (
+                      <button
+                        key={sz}
+                        type="button"
+                        onClick={() => { setSelectedSize(sz); setVariantError(''); }}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
+                          selectedSize === sz
+                            ? 'bg-gold-500 text-black border-gold-400 font-bold shadow-md shadow-gold-500/20 scale-105'
+                            : 'bg-slate-900/90 text-slate-300 border-slate-700 hover:border-gold-500/50 hover:text-white'
+                        }`}
+                      >
+                        {sz}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Validation Warning Alert */}
+              {variantError && (
+                <div className="p-2.5 bg-rose-500/15 border border-rose-500/40 rounded-xl text-rose-300 text-xs flex items-center gap-2 mt-3 animate-pulse">
+                  <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                  <span className="font-semibold">{variantError}</span>
+                </div>
+              )}
             </div>
 
             <div className="space-y-3 pt-4 border-t border-slate-800">

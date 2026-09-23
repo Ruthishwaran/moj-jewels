@@ -352,16 +352,24 @@ export default function CheckoutPage() {
               </h3>
 
               <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
-                {cart.map((item) => (
-                  <div key={item.id} className="flex justify-between items-center text-xs">
+                {cart.map((item, idx) => (
+                  <div key={item.cartItemId || `${item.id}-${idx}`} className="flex justify-between items-center text-xs">
                     <div className="flex items-center space-x-3">
-                      <img src={item.image} alt="" className="w-10 h-10 object-cover rounded bg-slate-900" />
+                      <img src={item.image} alt="" className="w-10 h-10 object-cover rounded bg-slate-900 shrink-0" />
                       <div>
                         <p className="text-white font-semibold line-clamp-1">{item.title}</p>
-                        <span className="text-[10px] text-slate-400">Qty: {item.quantity}</span>
+                        <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
+                          <span>Qty: {item.quantity}</span>
+                          {item.selectedColor && (
+                            <span className="text-gold-300 font-medium">&bull; Color: {item.selectedColor}</span>
+                          )}
+                          {item.selectedSize && (
+                            <span className="text-slate-300 font-medium">&bull; Size: {item.selectedSize}</span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                    <span className="text-slate-200 font-bold">₹{((Number(item?.price) || 0) * (Number(item?.quantity) || 1)).toLocaleString()}</span>
+                    <span className="text-slate-200 font-bold shrink-0">₹{((Number(item?.price) || 0) * (Number(item?.quantity) || 1)).toLocaleString()}</span>
                   </div>
                 ))}
               </div>
@@ -747,7 +755,15 @@ export default function CheckoutPage() {
                         />
                         <div>
                           <p className="text-white font-semibold text-xs line-clamp-1">{item.title}</p>
-                          <span className="text-[10px] text-slate-400">Qty: {item.quantity || 1}</span>
+                          <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
+                            <span>Qty: {item.quantity || 1}</span>
+                            {item.selectedColor && (
+                              <span className="text-gold-300 font-medium">&bull; Color: {item.selectedColor}</span>
+                            )}
+                            {item.selectedSize && (
+                              <span className="text-slate-300 font-medium">&bull; Size: {item.selectedSize}</span>
+                            )}
+                          </div>
                         </div>
                       </div>
                       <span className="text-gold-300 font-bold text-xs">

@@ -85,10 +85,18 @@ export default function ProductCard({ product }) {
     ? Math.round(((originalPrice - price) / originalPrice) * 100)
     : 0;
   const isOutOfStock = stock <= 0;
+  const hasVariants = (Array.isArray(product.colors) && product.colors.length > 0) ||
+                      (Array.isArray(product.sizes) && product.sizes.length > 0) ||
+                      (category || '').toLowerCase().includes('bangle');
 
   const handleAddToCart = (e) => {
     e.stopPropagation();
     if (isOutOfStock) return;
+    if (hasVariants) {
+      // Compulsory customer selection: open modal to pick required color/size
+      setSelectedProduct(product);
+      return;
+    }
     addToCart(product);
     setAddedFlash(true);
     setTimeout(() => setAddedFlash(false), 2500);
@@ -162,7 +170,7 @@ export default function ProductCard({ product }) {
             }`}
           >
             <ShoppingBag className="w-4 h-4" />
-            <span>{isOutOfStock ? 'Out of Stock' : 'Add to Bag'}</span>
+            <span>{isOutOfStock ? 'Out of Stock' : hasVariants ? 'Choose Options' : 'Add to Bag'}</span>
           </button>
         )}
 

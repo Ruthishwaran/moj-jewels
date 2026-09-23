@@ -93,6 +93,25 @@ export default function AdminDashboard() {
   const [newProdImage, setNewProdImage] = useState('/images/hero_banner.jpg');
   const [newProdImages, setNewProdImages] = useState([]); // Base64 images array from local storage file picker
   const [newProdDesc, setNewProdDesc] = useState('');
+  const [newProdSubCategory, setNewProdSubCategory] = useState('');
+  const [newProdColors, setNewProdColors] = useState([]);
+  const [newProdCustomColor, setNewProdCustomColor] = useState('');
+  const [newProdSizes, setNewProdSizes] = useState([]);
+  const [newProdCustomSize, setNewProdCustomSize] = useState('');
+
+  // Edit Product Variant State
+  const [editProdSubCategory, setEditProdSubCategory] = useState('');
+  const [editProdColors, setEditProdColors] = useState([]);
+  const [editProdCustomColor, setEditProdCustomColor] = useState('');
+  const [editProdSizes, setEditProdSizes] = useState([]);
+  const [editProdCustomSize, setEditProdCustomSize] = useState('');
+
+  // High-Resolution Image Design Inspection Modal
+  const [imageDesignModal, setImageDesignModal] = useState(null);
+
+  // Product Catalog Category-Wise Filtering & Search
+  const [catalogCategoryFilter, setCatalogCategoryFilter] = useState('All');
+  const [catalogSearch, setCatalogSearch] = useState('');
 
   // Order Tab & Date Filter State
   const [orderFilterTab, setOrderFilterTab] = useState('All'); // 'All', 'Pending Verification', 'Verified', 'Shipped', 'Delivered', 'Rejected'
@@ -372,12 +391,15 @@ export default function AdminDashboard() {
     addProduct({
       title: newProdTitle,
       category: newProdCategory,
+      subCategory: newProdSubCategory.trim(),
       price: priceNum,
       originalPrice: origPriceNum,
       karat: newProdKarat || '22k Gold BIS Hallmarked',
       stock: parseInt(newProdStock) || 10,
       image: finalImages[0],
       images: finalImages,
+      colors: newProdColors,
+      sizes: newProdSizes,
       description: newProdDesc || 'Crafted luxury jewelry piece.'
     });
     setIsAddProductOpen(false);
@@ -385,6 +407,11 @@ export default function AdminDashboard() {
     setNewProdPrice('');
     setNewProdOrigPrice('');
     setNewProdDesc('');
+    setNewProdSubCategory('');
+    setNewProdColors([]);
+    setNewProdCustomColor('');
+    setNewProdSizes([]);
+    setNewProdCustomSize('');
     setNewProdImages([]);
   };
 
@@ -393,6 +420,7 @@ export default function AdminDashboard() {
     setEditingProduct(p);
     setEditProdTitle(p.title || '');
     setEditProdCategory(p.category || (categories && categories[1] ? categories[1] : 'Rings'));
+    setEditProdSubCategory(p.subCategory || '');
     setEditProdPrice(p.price !== undefined ? String(p.price) : '');
     setEditProdOrigPrice(p.originalPrice !== undefined ? String(p.originalPrice) : '');
     setEditProdKarat(p.karat || '22k Gold BIS Hallmarked');
@@ -401,6 +429,10 @@ export default function AdminDashboard() {
     const imgs = Array.isArray(p.images) && p.images.length > 0 ? p.images : (p.image ? [p.image] : ['/images/hero_banner.jpg']);
     setEditProdImages(imgs);
     setEditProdImage(p.image || imgs[0] || '/images/hero_banner.jpg');
+    setEditProdColors(Array.isArray(p.colors) ? p.colors : (p.color ? [p.color] : []));
+    setEditProdCustomColor('');
+    setEditProdSizes(Array.isArray(p.sizes) ? p.sizes : (p.size ? [p.size] : []));
+    setEditProdCustomSize('');
   };
 
   const handleEditImageFileUpload = async (e) => {
@@ -431,12 +463,15 @@ export default function AdminDashboard() {
       await editProduct(editingProduct.id, {
         title: editProdTitle.trim(),
         category: editProdCategory,
+        subCategory: editProdSubCategory.trim(),
         price: priceNum,
         originalPrice: origPriceNum,
         karat: editProdKarat || '22k Gold BIS Hallmarked',
         stock: parseInt(editProdStock) || 0,
         image: finalImages[0],
         images: finalImages,
+        colors: editProdColors,
+        sizes: editProdSizes,
         description: editProdDesc.trim() || 'Crafted luxury jewelry piece.'
       });
     } catch (err) {
@@ -792,14 +827,45 @@ export default function AdminDashboard() {
 
                         return (
                           <div key={idx} className="flex items-center gap-3 bg-slate-950/70 border border-slate-800 p-2.5 rounded-xl">
-                            <img
-                              src={itemImg}
-                              alt={i.title}
-                              className="w-12 h-12 object-cover rounded-lg border border-slate-700 bg-slate-900 shrink-0"
-                              onError={(e) => { e.target.src = '/images/hero_banner.jpg'; }}
-                            />
+                            <div
+                              onClick={() => setImageDesignModal({
+                                title: i.title,
+                                image: itemImg,
+                                images: matchedProduct?.images || [itemImg],
+                                price: itemPrice,
+                                category: matchedProduct?.category,
+                                stock: matchedProduct?.stock,
+                                karat: matchedProduct?.karat
+                              })}
+                              className="relative w-12 h-12 rounded-lg overflow-hidden border border-slate-700 bg-slate-900 shrink-0 cursor-pointer group/thumb hover:border-gold-400 transition-colors"
+                              title="Click to view jewelry design"
+                            >
+                              <img
+                                src={itemImg}
+                                alt={i.title}
+                                className="w-full h-full object-cover group-hover/thumb:scale-110 transition-transform duration-200"
+                                onError={(e) => { e.target.src = '/images/hero_banner.jpg'; }}
+                              />
+                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/thumb:opacity-100 flex items-center justify-center transition-opacity">
+                                <Search className="w-3.5 h-3.5 text-gold-300" />
+                              </div>
+                            </div>
                             <div className="min-w-0 flex-1 text-xs">
                               <p className="text-white font-semibold line-clamp-1">{i.title}</p>
+                              {(i.selectedColor || i.selectedSize) && (
+                                <div className="flex flex-wrap gap-1 my-0.5">
+                                  {i.selectedColor && (
+                                    <span className="text-[10px] text-amber-300 bg-amber-500/10 border border-amber-500/30 px-1.5 py-0.5 rounded font-medium">
+                                      Color: {i.selectedColor}
+                                    </span>
+                                  )}
+                                  {i.selectedSize && (
+                                    <span className="text-[10px] text-slate-300 bg-slate-800 border border-slate-700 px-1.5 py-0.5 rounded font-medium">
+                                      Size: {i.selectedSize}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
                               <div className="flex items-center justify-between text-slate-400 text-[11px] mt-0.5">
                                 <span>Qty: <strong className="text-gold-300">{itemQty}</strong></span>
                                 <span className="text-slate-200 font-medium">₹{(itemPrice * itemQty).toLocaleString()}</span>
@@ -1001,14 +1067,45 @@ export default function AdminDashboard() {
 
                         return (
                           <div key={idx} className="flex items-center gap-3 bg-slate-900/90 border border-slate-700/80 p-2 rounded-xl">
-                            <img
-                              src={itemImg}
-                              alt={i.title}
-                              className="w-12 h-12 object-cover rounded-lg border border-slate-700 bg-slate-950 shrink-0"
-                              onError={(e) => { e.target.src = '/images/hero_banner.jpg'; }}
-                            />
+                            <div
+                              onClick={() => setImageDesignModal({
+                                title: i.title,
+                                image: itemImg,
+                                images: matchedProduct?.images || [itemImg],
+                                price: itemPrice,
+                                category: matchedProduct?.category,
+                                stock: matchedProduct?.stock,
+                                karat: matchedProduct?.karat
+                              })}
+                              className="relative w-12 h-12 rounded-lg overflow-hidden border border-slate-700 bg-slate-950 shrink-0 cursor-pointer group/thumb hover:border-gold-400 transition-colors"
+                              title="Click to view jewelry design"
+                            >
+                              <img
+                                src={itemImg}
+                                alt={i.title}
+                                className="w-full h-full object-cover group-hover/thumb:scale-110 transition-transform duration-200"
+                                onError={(e) => { e.target.src = '/images/hero_banner.jpg'; }}
+                              />
+                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/thumb:opacity-100 flex items-center justify-center transition-opacity">
+                                <Search className="w-3.5 h-3.5 text-gold-300" />
+                              </div>
+                            </div>
                             <div>
                               <p className="font-semibold text-white line-clamp-1">{i.title}</p>
+                              {(i.selectedColor || i.selectedSize) && (
+                                <div className="flex flex-wrap gap-1 my-0.5">
+                                  {i.selectedColor && (
+                                    <span className="text-[10px] text-amber-300 bg-amber-500/10 border border-amber-500/30 px-1.5 py-0.5 rounded font-medium">
+                                      Color: {i.selectedColor}
+                                    </span>
+                                  )}
+                                  {i.selectedSize && (
+                                    <span className="text-[10px] text-slate-300 bg-slate-800 border border-slate-700 px-1.5 py-0.5 rounded font-medium">
+                                      Size: {i.selectedSize}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
                               <p className="text-slate-400 text-[11px]">
                                 Qty: <strong className="text-gold-300">{itemQty}</strong> &bull; ₹{(itemPrice * itemQty).toLocaleString()}
                               </p>
@@ -1113,381 +1210,1192 @@ export default function AdminDashboard() {
       )}
 
       {/* TAB 3: Product Catalog Management */}
-      {activeTab === 'products' && (
-        <div className="space-y-6 animate-fade-in">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-serif font-bold text-white flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-gold-400" /> Jewelry Product Inventory
-            </h2>
+      {activeTab === 'products' && (() => {
+        // Derive unique categories dynamically
+        const catalogCategories = ['All', ...new Set([
+          ...(categories || []).filter(c => c !== 'All'),
+          ...safeProducts.map(p => p.category).filter(Boolean)
+        ])];
 
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => {
-                  if (products.length > 0) setAdminRevProductId(products[0].id);
-                  setIsAddReviewOpen(true);
-                }}
-                className="bg-amber-500/20 hover:bg-amber-500 hover:text-black border border-amber-500/40 text-amber-300 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors"
-              >
-                <Star className="w-4 h-4 text-amber-400" />
-                <span>Add Verified Review</span>
-              </button>
+        // Filter products based on category & search
+        const filteredCatalogProducts = safeProducts.filter(p => {
+          // Category filter
+          if (catalogCategoryFilter !== 'All' && p.category !== catalogCategoryFilter) {
+            return false;
+          }
+          // Search query filter
+          if (catalogSearch.trim()) {
+            const q = catalogSearch.toLowerCase();
+            const matchTitle = (p.title || '').toLowerCase().includes(q);
+            const matchCat = (p.category || '').toLowerCase().includes(q);
+            const matchSubCat = (p.subCategory || '').toLowerCase().includes(q);
+            const matchKarat = (p.karat || '').toLowerCase().includes(q);
+            const matchColors = Array.isArray(p.colors) && p.colors.some(c => c.toLowerCase().includes(q));
+            const matchSizes = Array.isArray(p.sizes) && p.sizes.some(s => s.toLowerCase().includes(q));
+            if (!matchTitle && !matchCat && !matchSubCat && !matchKarat && !matchColors && !matchSizes) {
+              return false;
+            }
+          }
+          return true;
+        });
 
-              <button
-                onClick={() => setIsAddProductOpen(true)}
-                className="btn-gold-shimmer px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5"
-              >
-                <Plus className="w-4 h-4 text-black" />
-                <span>Add New Jewelry Item</span>
-              </button>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {products.map((p) => (
-              <div key={p.id} className="glass-card p-4 rounded-xl border border-slate-800 flex gap-4 items-center">
-                <img src={p.image} alt="" className="w-20 h-20 object-cover rounded-lg bg-slate-950 shrink-0" />
+        // Group products by category when 'All' is selected and no search
+        const isGroupingView = catalogCategoryFilter === 'All' && !catalogSearch.trim();
+        const categoriesWithProducts = isGroupingView
+          ? catalogCategories.filter(cat => cat !== 'All' && safeProducts.some(p => p.category === cat))
+          : [];
+
+        // Overall stats
+        const totalCatalogStock = safeProducts.reduce((sum, p) => sum + (Number(p.stock) || 0), 0);
+        const totalCatalogValue = safeProducts.reduce((sum, p) => sum + ((Number(p.price) || 0) * (Number(p.stock) || 0)), 0);
+
+        const renderProductCatalogCard = (p) => {
+          const stockNum = Number(p.stock) || 0;
+          const isOutOfStock = stockNum <= 0;
+          const isLowStock = stockNum > 0 && stockNum <= 5;
+          const prodImg = p.image || (Array.isArray(p.images) && p.images[0]) || '/images/hero_banner.jpg';
+          const hasMultipleImages = Array.isArray(p.images) && p.images.length > 1;
+
+          return (
+            <div
+              key={p.id}
+              className="glass-card p-4 rounded-2xl border border-slate-800 hover:border-gold-500/40 transition-all flex flex-col justify-between gap-3 group/card"
+            >
+              <div className="flex gap-3.5 items-start">
+                {/* Clickable Image with Inspect Overlay */}
+                <div
+                  onClick={() => setImageDesignModal(p)}
+                  className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden border border-slate-700 bg-slate-950 shrink-0 cursor-pointer group/img hover:border-gold-400 transition-colors shadow-inner"
+                  title="Click to view fine design details"
+                >
+                  <img
+                    src={prodImg}
+                    alt={p.title}
+                    className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-300"
+                    onError={(e) => { e.target.src = '/images/hero_banner.jpg'; }}
+                  />
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/img:opacity-100 flex flex-col items-center justify-center gap-1 text-gold-300 transition-opacity">
+                    <Search className="w-5 h-5 text-gold-400" />
+                    <span className="text-[10px] font-semibold">View Design</span>
+                  </div>
+                  {hasMultipleImages && (
+                    <span className="absolute top-1 left-1 bg-black/75 backdrop-blur-sm text-[9px] text-gold-300 px-1.5 py-0.5 rounded font-mono border border-gold-500/20">
+                      +{p.images.length} views
+                    </span>
+                  )}
+                </div>
+
+                {/* Product Details */}
                 <div className="flex-1 min-w-0 space-y-1">
-                  <span className="text-[10px] text-gold-400 uppercase font-semibold">{p.category}</span>
-                  <h4 className="text-white font-semibold text-xs truncate">{p.title}</h4>
-                  <p className="text-slate-300 font-bold text-xs">₹{(Number(p?.price) || 0).toLocaleString()}</p>
-                  <span className="text-[10px] text-emerald-400 block">Stock: {p.stock} units</span>
-                </div>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-[10px] text-gold-400 uppercase font-bold tracking-wider">
+                      {p.category}
+                    </span>
+                    {p.subCategory && (
+                      <span className="text-[9px] text-amber-200 bg-amber-500/10 border border-amber-500/30 px-1.5 py-0.2 rounded font-medium">
+                        {p.subCategory}
+                      </span>
+                    )}
+                  </div>
 
-                <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => handleOpenEditProduct(p)}
-                    className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-black rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-md transition-all active:scale-95"
-                    title="Edit Product"
-                  >
-                    <Edit className="w-3.5 h-3.5" />
-                    <span>Edit</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (confirm(`Delete "${p.title}"?`)) deleteProduct(p.id);
-                    }}
-                    className="p-1.5 text-slate-500 hover:text-rose-400 bg-slate-900 hover:bg-slate-800 rounded-lg border border-slate-800 transition-colors"
-                    title="Delete Product"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <h4 className="text-white font-semibold text-xs leading-snug line-clamp-2" title={p.title}>
+                    {p.title}
+                  </h4>
+
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-gold-300 font-bold text-sm">
+                      ₹{(Number(p.price) || 0).toLocaleString()}
+                    </span>
+                    {p.originalPrice && Number(p.originalPrice) > Number(p.price) && (
+                      <span className="text-slate-500 text-[11px] line-through">
+                        ₹{Number(p.originalPrice).toLocaleString()}
+                      </span>
+                    )}
+                  </div>
+
+                  {p.karat && (
+                    <p className="text-[10px] text-slate-400 truncate">
+                      {p.karat}
+                    </p>
+                  )}
+
+                  {/* Stock Status Badge */}
+                  <div className="pt-0.5">
+                    <span className={`inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      isOutOfStock
+                        ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                        : isLowStock
+                        ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                        : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                    }`}>
+                      {isOutOfStock ? 'Out of Stock' : `Stock: ${stockNum} units`}
+                    </span>
+                  </div>
                 </div>
               </div>
-            ))}
-          </div>
 
-          {/* Add Product Modal */}
-          {isAddProductOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-              <div className="glass-modal border border-gold-500/40 p-6 rounded-2xl max-w-lg w-full space-y-4">
-                <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-                  <h3 className="text-white font-serif font-bold text-lg">Add New Fine Jewelry Item</h3>
-                  <button onClick={() => setIsAddProductOpen(false)} className="text-slate-400 hover:text-white">
-                    <X className="w-5 h-5" />
-                  </button>
+              {/* Stock Variants (Colors & Sizes) */}
+              {((Array.isArray(p.colors) && p.colors.length > 0) || (Array.isArray(p.sizes) && p.sizes.length > 0)) ? (
+                <div className="bg-slate-950/70 border border-slate-800/80 p-2 rounded-xl space-y-1.5 text-[10px]">
+                  {Array.isArray(p.colors) && p.colors.length > 0 && (
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-slate-400 font-medium">Colors ({p.colors.length}):</span>
+                      {p.colors.slice(0, 3).map((clr, i) => (
+                        <span key={i} className="text-amber-200 bg-amber-500/10 border border-amber-500/25 px-1.5 py-0.2 rounded font-medium">
+                          {clr}
+                        </span>
+                      ))}
+                      {p.colors.length > 3 && (
+                        <span className="text-slate-400">+{p.colors.length - 3} more</span>
+                      )}
+                    </div>
+                  )}
+
+                  {Array.isArray(p.sizes) && p.sizes.length > 0 && (
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-slate-400 font-medium">Sizes ({p.sizes.length}):</span>
+                      {p.sizes.slice(0, 4).map((sz, i) => (
+                        <span key={i} className="text-emerald-200 bg-emerald-500/10 border border-emerald-500/25 px-1.5 py-0.2 rounded font-mono font-medium">
+                          {sz}
+                        </span>
+                      ))}
+                      {p.sizes.length > 4 && (
+                        <span className="text-slate-400">+{p.sizes.length - 4} more</span>
+                      )}
+                    </div>
+                  )}
                 </div>
+              ) : (
+                <div className="bg-slate-950/40 border border-dashed border-slate-800 px-2 py-1.5 rounded-lg text-[10px] text-slate-500 italic">
+                  No color/size variants set (standard single SKU)
+                </div>
+              )}
 
-                <form onSubmit={handleCreateProduct} className="space-y-3 text-xs">
-                  <div>
-                    <label className="text-slate-300 block mb-1">Product Title</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. Royal Ruby Solitaire Ring"
-                      value={newProdTitle}
-                      onChange={(e) => setNewProdTitle(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white"
-                    />
-                  </div>
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2 pt-1 border-t border-slate-800/80">
+                <button
+                  type="button"
+                  onClick={() => setImageDesignModal(p)}
+                  className="flex-1 py-1.5 px-2 bg-slate-900 hover:bg-slate-800 text-gold-300 hover:text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1 border border-slate-700/80 transition-colors"
+                  title="Inspect Fine Design"
+                >
+                  <Search className="w-3.5 h-3.5 text-gold-400" />
+                  <span>View Design</span>
+                </button>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-slate-300 block mb-1">Category</label>
-                      <select
-                        value={newProdCategory}
-                        onChange={(e) => setNewProdCategory(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white"
-                      >
-                        {(categories || ['Rings', 'Necklaces', 'Earrings', 'Bracelets', 'Antique Sets', 'Temple Jewellery', 'Bridal Sets']).filter(c => c !== 'All').map(cat => (
-                          <option key={cat} value={cat}>{cat}</option>
-                        ))}
-                      </select>
-                    </div>
+                <button
+                  type="button"
+                  onClick={() => handleOpenEditProduct(p)}
+                  className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-black rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-md transition-all active:scale-95"
+                  title="Edit Product Details & Variants"
+                >
+                  <Edit className="w-3.5 h-3.5" />
+                  <span>Edit</span>
+                </button>
 
-                    <div>
-                      <label className="text-slate-300 block mb-1">Offer Sale Price (₹)</label>
-                      <input
-                        type="number"
-                        required
-                        placeholder="e.g. 50000"
-                        value={newProdPrice}
-                        onChange={(e) => setNewProdPrice(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-slate-300 block mb-1">Original MRP / Tag Price (₹)</label>
-                    <input
-                      type="number"
-                      placeholder="e.g. 65000 (Shows Top-Left % OFF Discount Badge)"
-                      value={newProdOrigPrice}
-                      onChange={(e) => setNewProdOrigPrice(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-slate-300 block mb-1">Gold Karat / Gem Info</label>
-                      <input
-                        type="text"
-                        placeholder="22k Gold BIS Hallmarked"
-                        value={newProdKarat}
-                        onChange={(e) => setNewProdKarat(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-slate-300 block mb-1">Stock Quantity</label>
-                      <input
-                        type="number"
-                        placeholder="10"
-                        value={newProdStock}
-                        onChange={(e) => setNewProdStock(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-slate-300 font-semibold block text-xs">
-                      Product Photos (Select from Phone/Laptop Storage)
-                    </label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      onChange={handleImageFileUpload}
-                      className="w-full text-xs text-slate-300 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-gold-500 file:text-black hover:file:bg-gold-400 cursor-pointer bg-slate-900 border border-slate-700 rounded-xl p-1"
-                    />
-
-                    {newProdImages.length > 0 && (
-                      <div className="flex items-center gap-2 overflow-x-auto pt-2 pb-1">
-                        {newProdImages.map((img, idx) => (
-                          <div key={idx} className="relative w-14 h-14 rounded-lg overflow-hidden border border-gold-500/40 shrink-0 group">
-                            <img src={img} alt="" className="w-full h-full object-cover" />
-                            <button
-                              type="button"
-                              onClick={() => removeUploadedImage(idx)}
-                              className="absolute top-0.5 right-0.5 bg-rose-600 text-white rounded-full p-0.5 text-[9px]"
-                            >
-                              <X className="w-3 h-3" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    <div className="pt-1">
-                      <span className="text-[10px] text-slate-400 block mb-1">Or Default Fallback Image URL:</span>
-                      <input
-                        type="text"
-                        value={newProdImage}
-                        onChange={(e) => setNewProdImage(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-white text-[11px]"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-slate-300 block mb-1">Description</label>
-                    <textarea
-                      rows={2}
-                      placeholder="Detailed item description..."
-                      value={newProdDesc}
-                      onChange={(e) => setNewProdDesc(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="w-full btn-gold-shimmer py-3 rounded-xl font-semibold"
-                  >
-                    Save Product to Catalog
-                  </button>
-                </form>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (confirm(`Delete "${p.title}"?`)) deleteProduct(p.id);
+                  }}
+                  className="p-1.5 text-slate-500 hover:text-rose-400 bg-slate-900 hover:bg-slate-800 rounded-lg border border-slate-800 transition-colors"
+                  title="Delete Product"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
               </div>
             </div>
-          )}
+          );
+        };
 
-          {/* Edit Product Modal */}
-          {editingProduct && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-              <div className="glass-modal border border-gold-500/40 p-6 rounded-2xl max-w-lg w-full space-y-4 max-h-[90vh] overflow-y-auto">
-                <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-                  <div className="flex items-center gap-2">
-                    <Edit className="w-5 h-5 text-amber-400" />
-                    <h3 className="text-white font-serif font-bold text-lg">Edit Catalog Product</h3>
-                  </div>
-                  <button onClick={() => setEditingProduct(null)} className="text-slate-400 hover:text-white p-1">
-                    <X className="w-5 h-5" />
-                  </button>
+        return (
+          <div className="space-y-6 animate-fade-in">
+            {/* Top Bar: Title & Action Buttons */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+              <div>
+                <h2 className="text-xl font-serif font-bold text-white flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-gold-400" /> Jewelry Product Inventory
+                </h2>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Organized category-wise &bull; Stock-based colors & sizes &bull; Click any thumbnail to inspect design
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={() => {
+                    if (products.length > 0) setAdminRevProductId(products[0].id);
+                    setIsAddReviewOpen(true);
+                  }}
+                  className="bg-amber-500/20 hover:bg-amber-500 hover:text-black border border-amber-500/40 text-amber-300 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                >
+                  <Star className="w-4 h-4 text-amber-400" />
+                  <span>Add Verified Review</span>
+                </button>
+
+                <button
+                  onClick={() => setIsAddProductOpen(true)}
+                  className="btn-gold-shimmer px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5"
+                >
+                  <Plus className="w-4 h-4 text-black" />
+                  <span>Add New Jewelry Item</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Metrics Header */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              <div className="glass-card p-3 rounded-xl border border-slate-800 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 font-bold shrink-0">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 block">Total Designs</span>
+                  <span className="text-white font-bold text-sm">{safeProducts.length} Products</span>
+                </div>
+              </div>
+
+              <div className="glass-card p-3 rounded-xl border border-slate-800 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold shrink-0">
+                  <Package className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 block">Total Stock Units</span>
+                  <span className="text-emerald-300 font-bold text-sm">{totalCatalogStock} Units</span>
+                </div>
+              </div>
+
+              <div className="glass-card p-3 rounded-xl border border-slate-800 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-gold-400 font-bold shrink-0">
+                  <DollarSign className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 block">Inventory Value</span>
+                  <span className="text-gold-300 font-bold text-sm">₹{totalCatalogValue.toLocaleString()}</span>
+                </div>
+              </div>
+
+              <div className="glass-card p-3 rounded-xl border border-slate-800 flex items-center gap-3 col-span-2 sm:col-span-1">
+                <div className="w-9 h-9 rounded-lg bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 font-bold shrink-0">
+                  <Tag className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 block">Active Categories</span>
+                  <span className="text-purple-300 font-bold text-sm">{catalogCategories.length - 1} Categories</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Category Filter Pills & Search Bar */}
+            <div className="space-y-3 glass-card p-4 rounded-2xl border border-gold-500/30">
+              <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
+                {/* Search Bar */}
+                <div className="relative flex-1">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type="text"
+                    placeholder="Search by title, subcategory (Choker, Haram, Bangle), karat, color, or size..."
+                    value={catalogSearch}
+                    onChange={(e) => setCatalogSearch(e.target.value)}
+                    className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl pl-9 pr-8 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-gold-400"
+                  />
+                  {catalogSearch && (
+                    <button
+                      onClick={() => setCatalogSearch('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-0.5"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
 
-                <form onSubmit={handleSaveEditedProduct} className="space-y-3 text-xs">
-                  <div>
-                    <label className="text-slate-300 block mb-1">Product Title</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. Royal Ruby Solitaire Ring"
-                      value={editProdTitle}
-                      onChange={(e) => setEditProdTitle(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
-                    />
-                  </div>
+                {catalogSearch && (
+                  <span className="text-xs text-amber-300 whitespace-nowrap self-center">
+                    Found {filteredCatalogProducts.length} matching {filteredCatalogProducts.length === 1 ? 'design' : 'designs'}
+                  </span>
+                )}
+              </div>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-slate-300 block mb-1">Category</label>
-                      <select
-                        value={editProdCategory}
-                        onChange={(e) => setEditProdCategory(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white"
-                      >
-                        {(categories || ['Rings', 'Necklaces', 'Earrings', 'Bracelets', 'Antique Sets', 'Temple Jewellery', 'Bridal Sets']).filter(c => c !== 'All').map(cat => (
-                          <option key={cat} value={cat}>{cat}</option>
-                        ))}
-                      </select>
-                    </div>
+              {/* Category Pills with Stock Counts */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-1 scrollbar-none">
+                {catalogCategories.map((cat) => {
+                  const catProds = cat === 'All' ? safeProducts : safeProducts.filter(p => p.category === cat);
+                  const catStockCount = catProds.reduce((sum, p) => sum + (Number(p.stock) || 0), 0);
+                  const isSelected = catalogCategoryFilter === cat;
 
-                    <div>
-                      <label className="text-slate-300 block mb-1">Offer Sale Price (₹)</label>
-                      <input
-                        type="number"
-                        required
-                        placeholder="e.g. 50000"
-                        value={editProdPrice}
-                        onChange={(e) => setEditProdPrice(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-slate-300 block mb-1">Original MRP / Tag Price (₹)</label>
-                    <input
-                      type="number"
-                      placeholder="e.g. 65000 (Shows Top-Left % OFF Discount Badge)"
-                      value={editProdOrigPrice}
-                      onChange={(e) => setEditProdOrigPrice(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-slate-300 block mb-1">Gold Karat / Gem Info</label>
-                      <input
-                        type="text"
-                        placeholder="22k Gold BIS Hallmarked"
-                        value={editProdKarat}
-                        onChange={(e) => setEditProdKarat(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-slate-300 block mb-1">Stock Quantity</label>
-                      <input
-                        type="number"
-                        placeholder="10"
-                        value={editProdStock}
-                        onChange={(e) => setEditProdStock(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-slate-300 font-semibold block text-xs">
-                      Product Photos (Select new photos to add from Device)
-                    </label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      onChange={handleEditImageFileUpload}
-                      className="w-full text-xs text-slate-300 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-gold-500 file:text-black hover:file:bg-gold-400 cursor-pointer bg-slate-900 border border-slate-700 rounded-xl p-1"
-                    />
-
-                    {editProdImages.length > 0 && (
-                      <div className="flex items-center gap-2 overflow-x-auto pt-2 pb-1">
-                        {editProdImages.map((img, idx) => (
-                          <div key={idx} className="relative w-14 h-14 rounded-lg overflow-hidden border border-gold-500/40 shrink-0 group">
-                            <img src={img} alt="" className="w-full h-full object-cover" />
-                            <button
-                              type="button"
-                              onClick={() => removeEditUploadedImage(idx)}
-                              className="absolute top-0.5 right-0.5 bg-rose-600 text-white rounded-full p-0.5 text-[9px]"
-                              title="Remove photo"
-                            >
-                              <X className="w-3 h-3" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    <div className="pt-1">
-                      <span className="text-[10px] text-slate-400 block mb-1">Or Primary Image URL:</span>
-                      <input
-                        type="text"
-                        value={editProdImage}
-                        onChange={(e) => setEditProdImage(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-white text-[11px] focus:border-gold-400"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-slate-300 block mb-1">Description</label>
-                    <textarea
-                      rows={2}
-                      placeholder="Detailed item description..."
-                      value={editProdDesc}
-                      onChange={(e) => setEditProdDesc(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
-                    />
-                  </div>
-
-                  <div className="flex gap-2 pt-2">
+                  return (
                     <button
+                      key={cat}
                       type="button"
-                      onClick={() => setEditingProduct(null)}
-                      className="flex-1 bg-slate-900 hover:bg-slate-800 text-slate-300 py-3 rounded-xl border border-slate-700 font-semibold"
+                      onClick={() => setCatalogCategoryFilter(cat)}
+                      className={`whitespace-nowrap px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all shrink-0 ${
+                        isSelected
+                          ? 'bg-amber-500 text-black shadow-md font-bold'
+                          : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 hover:border-slate-700'
+                      }`}
                     >
-                      Cancel
+                      <span>{cat}</span>
+                      <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                        isSelected ? 'bg-black/20 text-black font-mono font-bold' : 'bg-slate-800 text-gold-400 font-mono'
+                      }`}>
+                        {catProds.length} ({catStockCount})
+                      </span>
                     </button>
-                    <button
-                      type="submit"
-                      disabled={isSavingProduct}
-                      className="flex-1 btn-gold-shimmer py-3 rounded-xl font-semibold text-black disabled:opacity-50"
-                    >
-                      {isSavingProduct ? 'Saving Changes...' : 'Save Changes'}
-                    </button>
-                  </div>
-                </form>
+                  );
+                })}
               </div>
             </div>
-          )}
-        </div>
-      )}
+
+            {/* RENDER PRODUCTS: Grouped by Category OR Filtered List */}
+            {filteredCatalogProducts.length === 0 ? (
+              <div className="glass-card p-12 text-center rounded-2xl border border-slate-800 space-y-3">
+                <AlertCircle className="w-10 h-10 text-amber-400 mx-auto" />
+                <h3 className="text-white font-semibold text-base">No Jewelry Items Found</h3>
+                <p className="text-xs text-slate-400 max-w-md mx-auto">
+                  {catalogSearch
+                    ? `No products matched "${catalogSearch}". Try a different keyword or category.`
+                    : `No products found in category "${catalogCategoryFilter}". Add a new product to this category.`}
+                </p>
+                <button
+                  onClick={() => { setCatalogSearch(''); setCatalogCategoryFilter('All'); }}
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-gold-300 rounded-xl text-xs font-semibold"
+                >
+                  Clear Filters
+                </button>
+              </div>
+            ) : isGroupingView ? (
+              /* CATEGORY-WISE GROUPED VIEW */
+              <div className="space-y-8">
+                {categoriesWithProducts.map((cat) => {
+                  const catItems = safeProducts.filter(p => p.category === cat);
+                  const catStockTotal = catItems.reduce((sum, p) => sum + (Number(p.stock) || 0), 0);
+
+                  return (
+                    <div key={cat} className="space-y-3">
+                      {/* Category Section Banner */}
+                      <div className="flex items-center justify-between border-b border-gold-500/30 pb-2">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-glow" />
+                          <h3 className="text-lg font-serif font-bold text-white tracking-wide">
+                            {cat}
+                          </h3>
+                          <span className="text-xs text-gold-400/90 font-medium">
+                            ({catItems.length} {catItems.length === 1 ? 'Design' : 'Designs'} &bull; {catStockTotal} Units in Stock)
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setCatalogCategoryFilter(cat)}
+                          className="text-xs text-slate-400 hover:text-gold-300 font-medium transition-colors"
+                        >
+                          View Only {cat} &rarr;
+                        </button>
+                      </div>
+
+                      {/* Category Grid */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {catItems.map((p) => renderProductCatalogCard(p))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              /* FILTERED LIST VIEW */
+              <div className="space-y-4">
+                <div className="flex justify-between items-center text-xs text-slate-400">
+                  <span>
+                    Showing <strong className="text-white">{filteredCatalogProducts.length}</strong> items in{' '}
+                    <strong className="text-gold-300">{catalogCategoryFilter}</strong>
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredCatalogProducts.map((p) => renderProductCatalogCard(p))}
+                </div>
+              </div>
+            )}
+
+            {/* Add Product Modal */}
+            {isAddProductOpen && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+                <div className="glass-modal border border-gold-500/40 p-6 rounded-2xl max-w-xl w-full space-y-4 max-h-[92vh] overflow-y-auto">
+                  <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+                    <h3 className="text-white font-serif font-bold text-lg flex items-center gap-2">
+                      <Sparkles className="w-5 h-5 text-gold-400" /> Add New Fine Jewelry Item
+                    </h3>
+                    <button onClick={() => setIsAddProductOpen(false)} className="text-slate-400 hover:text-white">
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleCreateProduct} className="space-y-3.5 text-xs">
+                    <div>
+                      <label className="text-slate-300 block mb-1 font-medium">Product Title</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Royal Antique Kemp Choker Necklace"
+                        value={newProdTitle}
+                        onChange={(e) => setNewProdTitle(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-slate-300 block mb-1 font-medium">Category</label>
+                        <select
+                          value={newProdCategory}
+                          onChange={(e) => setNewProdCategory(e.target.value)}
+                          className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
+                        >
+                          {(categories || ['Rings', 'Necklaces', 'Earrings', 'Bracelets', 'Antique Sets', 'Temple Jewellery', 'Bridal Sets']).filter(c => c !== 'All').map(cat => (
+                            <option key={cat} value={cat}>{cat}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="text-slate-300 block mb-1 font-medium">Sub-Category / Style</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Choker, Long Haram, Kada Bangle, Jhumka"
+                          value={newProdSubCategory}
+                          onChange={(e) => setNewProdSubCategory(e.target.value)}
+                          className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-slate-300 block mb-1 font-medium">Offer Sale Price (₹)</label>
+                        <input
+                          type="number"
+                          required
+                          placeholder="e.g. 50000"
+                          value={newProdPrice}
+                          onChange={(e) => setNewProdPrice(e.target.value)}
+                          className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-slate-300 block mb-1 font-medium">Original MRP / Tag Price (₹)</label>
+                        <input
+                          type="number"
+                          placeholder="e.g. 65000 (% OFF badge)"
+                          value={newProdOrigPrice}
+                          onChange={(e) => setNewProdOrigPrice(e.target.value)}
+                          className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-slate-300 block mb-1 font-medium">Gold Karat / Gem Info</label>
+                        <input
+                          type="text"
+                          placeholder="22k Gold BIS Hallmarked"
+                          value={newProdKarat}
+                          onChange={(e) => setNewProdKarat(e.target.value)}
+                          className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-slate-300 block mb-1 font-medium">Stock Quantity</label>
+                        <input
+                          type="number"
+                          placeholder="10"
+                          value={newProdStock}
+                          onChange={(e) => setNewProdStock(e.target.value)}
+                          className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Stock-Based Available Colors Manager */}
+                    <div className="space-y-2 border border-slate-800 bg-slate-950/70 p-3 rounded-xl">
+                      <div className="flex justify-between items-center">
+                        <label className="text-amber-300 font-semibold text-xs block">
+                          🎨 Stock-Based Colors (Customer MUST Choose from Listed Colors)
+                        </label>
+                        <span className="text-[10px] text-slate-400">Admin stock-selected</span>
+                      </div>
+                      <p className="text-[11px] text-slate-400">
+                        Click preset colors to toggle in/out of stock, or enter custom color finishes.
+                      </p>
+
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {[
+                          'Ruby Kemp (Red)', 'Emerald Green', 'Classic Yellow Gold',
+                          'Antique Matte Gold', 'Rose Gold', 'Rhodium Silver',
+                          'Kundan Multi-Color', 'Royal Blue', 'Pearl White', 'Mint Green', 'Black Beads'
+                        ].map((clr) => {
+                          const isSelected = newProdColors.includes(clr);
+                          return (
+                            <button
+                              type="button"
+                              key={clr}
+                              onClick={() => {
+                                if (isSelected) {
+                                  setNewProdColors(newProdColors.filter(c => c !== clr));
+                                } else {
+                                  setNewProdColors([...newProdColors, clr]);
+                                }
+                              }}
+                              className={`text-[11px] px-2.5 py-1 rounded-lg border font-medium transition-all ${
+                                isSelected
+                                  ? 'bg-amber-500 text-black border-amber-400 font-bold shadow-sm'
+                                  : 'bg-slate-900 text-slate-300 border-slate-700 hover:border-slate-500'
+                              }`}
+                            >
+                              {isSelected ? `✓ ${clr}` : `+ ${clr}`}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <div className="flex gap-2 pt-1">
+                        <input
+                          type="text"
+                          placeholder="Or type custom color (e.g. Peacock Dual Tone, Antique Copper)..."
+                          value={newProdCustomColor}
+                          onChange={(e) => setNewProdCustomColor(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              if (newProdCustomColor.trim() && !newProdColors.includes(newProdCustomColor.trim())) {
+                                setNewProdColors([...newProdColors, newProdCustomColor.trim()]);
+                                setNewProdCustomColor('');
+                              }
+                            }
+                          }}
+                          className="flex-1 bg-slate-900 border border-slate-700 rounded-xl p-2 text-white text-xs"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (newProdCustomColor.trim() && !newProdColors.includes(newProdCustomColor.trim())) {
+                              setNewProdColors([...newProdColors, newProdCustomColor.trim()]);
+                              setNewProdCustomColor('');
+                            }
+                          }}
+                          className="bg-slate-800 hover:bg-slate-700 text-gold-300 border border-slate-700 px-3 rounded-xl text-xs font-semibold"
+                        >
+                          + Add
+                        </button>
+                      </div>
+
+                      {newProdColors.length > 0 && (
+                        <div className="flex flex-wrap items-center gap-1.5 pt-1.5 border-t border-slate-800/80">
+                          <span className="text-[10px] text-slate-400">In-Stock ({newProdColors.length}):</span>
+                          {newProdColors.map((clr, idx) => (
+                            <span
+                              key={idx}
+                              className="inline-flex items-center gap-1 bg-amber-500/20 text-amber-200 border border-amber-500/40 text-[11px] px-2 py-0.5 rounded-lg"
+                            >
+                              <span>{clr}</span>
+                              <button
+                                type="button"
+                                onClick={() => setNewProdColors(newProdColors.filter((_, i) => i !== idx))}
+                                className="text-amber-300 hover:text-white ml-0.5"
+                              >
+                                ×
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Stock-Based Available Sizes Manager */}
+                    <div className="space-y-2 border border-slate-800 bg-slate-950/70 p-3 rounded-xl">
+                      <div className="flex justify-between items-center">
+                        <label className="text-emerald-300 font-semibold text-xs block">
+                          📏 Stock-Based Sizes (Compulsory for Bangles / Sized Items)
+                        </label>
+                        <span className="text-[10px] text-slate-400">Admin stock-selected</span>
+                      </div>
+                      <p className="text-[11px] text-slate-400">
+                        For Bangles, customer must pick color + size. Toggle available stock sizes:
+                      </p>
+
+                      <div className="space-y-1.5 pt-1">
+                        <div className="flex items-center gap-1 flex-wrap">
+                          <span className="text-[10px] text-slate-400 mr-1">Bangle Sizes:</span>
+                          {['2.4', '2.6', '2.8', '2.10', '2.12', 'Free Size / Adjustable'].map((sz) => {
+                            const isSelected = newProdSizes.includes(sz);
+                            return (
+                              <button
+                                type="button"
+                                key={sz}
+                                onClick={() => {
+                                  if (isSelected) {
+                                    setNewProdSizes(newProdSizes.filter(s => s !== sz));
+                                  } else {
+                                    setNewProdSizes([...newProdSizes, sz]);
+                                  }
+                                }}
+                                className={`text-[11px] px-2 py-0.5 rounded-lg border font-mono font-medium transition-all ${
+                                  isSelected
+                                    ? 'bg-emerald-500 text-black border-emerald-400 font-bold shadow-sm'
+                                    : 'bg-slate-900 text-slate-300 border-slate-700 hover:border-slate-500'
+                                }`}
+                              >
+                                {isSelected ? `✓ ${sz}` : `+ ${sz}`}
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        <div className="flex items-center gap-1 flex-wrap">
+                          <span className="text-[10px] text-slate-400 mr-1">Necklaces / Rings:</span>
+                          {['Adjustable Thread / Dori', 'Adjustable Chain', '16 inch', '18 inch', '24 inch Long Haram', 'Size 6', 'Size 7', 'Size 8', 'Size 9'].map((sz) => {
+                            const isSelected = newProdSizes.includes(sz);
+                            return (
+                              <button
+                                type="button"
+                                key={sz}
+                                onClick={() => {
+                                  if (isSelected) {
+                                    setNewProdSizes(newProdSizes.filter(s => s !== sz));
+                                  } else {
+                                    setNewProdSizes([...newProdSizes, sz]);
+                                  }
+                                }}
+                                className={`text-[10px] px-2 py-0.5 rounded-lg border font-medium transition-all ${
+                                  isSelected
+                                    ? 'bg-emerald-500 text-black border-emerald-400 font-bold shadow-sm'
+                                    : 'bg-slate-900 text-slate-300 border-slate-700 hover:border-slate-500'
+                                }`}
+                              >
+                                {isSelected ? `✓ ${sz}` : `+ ${sz}`}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2 pt-1">
+                        <input
+                          type="text"
+                          placeholder="Or type custom size (e.g. 2.2, 2.14, Free Size)..."
+                          value={newProdCustomSize}
+                          onChange={(e) => setNewProdCustomSize(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              if (newProdCustomSize.trim() && !newProdSizes.includes(newProdCustomSize.trim())) {
+                                setNewProdSizes([...newProdSizes, newProdCustomSize.trim()]);
+                                setNewProdCustomSize('');
+                              }
+                            }
+                          }}
+                          className="flex-1 bg-slate-900 border border-slate-700 rounded-xl p-2 text-white text-xs font-mono"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (newProdCustomSize.trim() && !newProdSizes.includes(newProdCustomSize.trim())) {
+                              setNewProdSizes([...newProdSizes, newProdCustomSize.trim()]);
+                              setNewProdCustomSize('');
+                            }
+                          }}
+                          className="bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-slate-700 px-3 rounded-xl text-xs font-semibold"
+                        >
+                          + Add Size
+                        </button>
+                      </div>
+
+                      {newProdSizes.length > 0 && (
+                        <div className="flex flex-wrap items-center gap-1.5 pt-1.5 border-t border-slate-800/80">
+                          <span className="text-[10px] text-slate-400">In-Stock ({newProdSizes.length}):</span>
+                          {newProdSizes.map((sz, idx) => (
+                            <span
+                              key={idx}
+                              className="inline-flex items-center gap-1 bg-emerald-500/20 text-emerald-200 border border-emerald-500/40 text-[11px] px-2 py-0.5 rounded-lg font-mono"
+                            >
+                              <span>{sz}</span>
+                              <button
+                                type="button"
+                                onClick={() => setNewProdSizes(newProdSizes.filter((_, i) => i !== idx))}
+                                className="text-emerald-300 hover:text-white ml-0.5"
+                              >
+                                ×
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-slate-300 font-semibold block text-xs">
+                        Product Photos (Select from Phone/Laptop Storage)
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleImageFileUpload}
+                        className="w-full text-xs text-slate-300 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-gold-500 file:text-black hover:file:bg-gold-400 cursor-pointer bg-slate-900 border border-slate-700 rounded-xl p-1"
+                      />
+
+                      {newProdImages.length > 0 && (
+                        <div className="flex items-center gap-2 overflow-x-auto pt-2 pb-1">
+                          {newProdImages.map((img, idx) => (
+                            <div key={idx} className="relative w-14 h-14 rounded-lg overflow-hidden border border-gold-500/40 shrink-0 group">
+                              <img src={img} alt="" className="w-full h-full object-cover" />
+                              <button
+                                type="button"
+                                onClick={() => removeUploadedImage(idx)}
+                                className="absolute top-0.5 right-0.5 bg-rose-600 text-white rounded-full p-0.5 text-[9px]"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      <div className="pt-1">
+                        <span className="text-[10px] text-slate-400 block mb-1">Or Default Fallback Image URL:</span>
+                        <input
+                          type="text"
+                          value={newProdImage}
+                          onChange={(e) => setNewProdImage(e.target.value)}
+                          className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-white text-[11px]"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-slate-300 block mb-1 font-medium">Description</label>
+                      <textarea
+                        rows={2}
+                        placeholder="Detailed item description, purity details, occasion suitability..."
+                        value={newProdDesc}
+                        onChange={(e) => setNewProdDesc(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
+                      />
+                    </div>
+
+                    <div className="flex gap-2 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setIsAddProductOpen(false)}
+                        className="flex-1 bg-slate-900 hover:bg-slate-800 text-slate-300 py-3 rounded-xl border border-slate-700 font-semibold"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="flex-1 btn-gold-shimmer py-3 rounded-xl font-semibold text-black"
+                      >
+                        Save Product to Catalog
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* Edit Product Modal */}
+            {editingProduct && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+                <div className="glass-modal border border-gold-500/40 p-6 rounded-2xl max-w-xl w-full space-y-4 max-h-[92vh] overflow-y-auto">
+                  <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+                    <div className="flex items-center gap-2">
+                      <Edit className="w-5 h-5 text-amber-400" />
+                      <h3 className="text-white font-serif font-bold text-lg">Edit Catalog Product</h3>
+                    </div>
+                    <button onClick={() => setEditingProduct(null)} className="text-slate-400 hover:text-white p-1">
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleSaveEditedProduct} className="space-y-3.5 text-xs">
+                    <div>
+                      <label className="text-slate-300 block mb-1 font-medium">Product Title</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Royal Ruby Solitaire Ring"
+                        value={editProdTitle}
+                        onChange={(e) => setEditProdTitle(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-slate-300 block mb-1 font-medium">Category</label>
+                        <select
+                          value={editProdCategory}
+                          onChange={(e) => setEditProdCategory(e.target.value)}
+                          className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
+                        >
+                          {(categories || ['Rings', 'Necklaces', 'Earrings', 'Bracelets', 'Antique Sets', 'Temple Jewellery', 'Bridal Sets']).filter(c => c !== 'All').map(cat => (
+                            <option key={cat} value={cat}>{cat}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="text-slate-300 block mb-1 font-medium">Sub-Category / Style</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Choker, Long Haram, Kada Bangle, Jhumka"
+                          value={editProdSubCategory}
+                          onChange={(e) => setEditProdSubCategory(e.target.value)}
+                          className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-slate-300 block mb-1 font-medium">Offer Sale Price (₹)</label>
+                        <input
+                          type="number"
+                          required
+                          placeholder="e.g. 50000"
+                          value={editProdPrice}
+                          onChange={(e) => setEditProdPrice(e.target.value)}
+                          className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-slate-300 block mb-1 font-medium">Original MRP / Tag Price (₹)</label>
+                        <input
+                          type="number"
+                          placeholder="e.g. 65000 (Shows Top-Left % OFF Discount Badge)"
+                          value={editProdOrigPrice}
+                          onChange={(e) => setEditProdOrigPrice(e.target.value)}
+                          className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-slate-300 block mb-1 font-medium">Gold Karat / Gem Info</label>
+                        <input
+                          type="text"
+                          placeholder="22k Gold BIS Hallmarked"
+                          value={editProdKarat}
+                          onChange={(e) => setEditProdKarat(e.target.value)}
+                          className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-slate-300 block mb-1 font-medium">Stock Quantity</label>
+                        <input
+                          type="number"
+                          placeholder="10"
+                          value={editProdStock}
+                          onChange={(e) => setEditProdStock(e.target.value)}
+                          className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Stock-Based Available Colors Manager */}
+                    <div className="space-y-2 border border-slate-800 bg-slate-950/70 p-3 rounded-xl">
+                      <div className="flex justify-between items-center">
+                        <label className="text-amber-300 font-semibold text-xs block">
+                          🎨 Stock-Based Colors (Customer MUST Choose from Listed Colors)
+                        </label>
+                        <span className="text-[10px] text-slate-400">Admin stock-selected</span>
+                      </div>
+                      <p className="text-[11px] text-slate-400">
+                        Click preset colors to toggle in/out of stock, or enter custom colors:
+                      </p>
+
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {[
+                          'Ruby Kemp (Red)', 'Emerald Green', 'Classic Yellow Gold',
+                          'Antique Matte Gold', 'Rose Gold', 'Rhodium Silver',
+                          'Kundan Multi-Color', 'Royal Blue', 'Pearl White', 'Mint Green', 'Black Beads'
+                        ].map((clr) => {
+                          const isSelected = editProdColors.includes(clr);
+                          return (
+                            <button
+                              type="button"
+                              key={clr}
+                              onClick={() => {
+                                if (isSelected) {
+                                  setEditProdColors(editProdColors.filter(c => c !== clr));
+                                } else {
+                                  setEditProdColors([...editProdColors, clr]);
+                                }
+                              }}
+                              className={`text-[11px] px-2.5 py-1 rounded-lg border font-medium transition-all ${
+                                isSelected
+                                  ? 'bg-amber-500 text-black border-amber-400 font-bold shadow-sm'
+                                  : 'bg-slate-900 text-slate-300 border-slate-700 hover:border-slate-500'
+                              }`}
+                            >
+                              {isSelected ? `✓ ${clr}` : `+ ${clr}`}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <div className="flex gap-2 pt-1">
+                        <input
+                          type="text"
+                          placeholder="Or type custom color (e.g. Peacock Dual Tone, Antique Copper)..."
+                          value={editProdCustomColor}
+                          onChange={(e) => setEditProdCustomColor(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              if (editProdCustomColor.trim() && !editProdColors.includes(editProdCustomColor.trim())) {
+                                setEditProdColors([...editProdColors, editProdCustomColor.trim()]);
+                                setEditProdCustomColor('');
+                              }
+                            }
+                          }}
+                          className="flex-1 bg-slate-900 border border-slate-700 rounded-xl p-2 text-white text-xs"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (editProdCustomColor.trim() && !editProdColors.includes(editProdCustomColor.trim())) {
+                              setEditProdColors([...editProdColors, editProdCustomColor.trim()]);
+                              setEditProdCustomColor('');
+                            }
+                          }}
+                          className="bg-slate-800 hover:bg-slate-700 text-gold-300 border border-slate-700 px-3 rounded-xl text-xs font-semibold"
+                        >
+                          + Add
+                        </button>
+                      </div>
+
+                      {editProdColors.length > 0 && (
+                        <div className="flex flex-wrap items-center gap-1.5 pt-1.5 border-t border-slate-800/80">
+                          <span className="text-[10px] text-slate-400">In-Stock ({editProdColors.length}):</span>
+                          {editProdColors.map((clr, idx) => (
+                            <span
+                              key={idx}
+                              className="inline-flex items-center gap-1 bg-amber-500/20 text-amber-200 border border-amber-500/40 text-[11px] px-2 py-0.5 rounded-lg"
+                            >
+                              <span>{clr}</span>
+                              <button
+                                type="button"
+                                onClick={() => setEditProdColors(editProdColors.filter((_, i) => i !== idx))}
+                                className="text-amber-300 hover:text-white ml-0.5"
+                              >
+                                ×
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Stock-Based Available Sizes Manager */}
+                    <div className="space-y-2 border border-slate-800 bg-slate-950/70 p-3 rounded-xl">
+                      <div className="flex justify-between items-center">
+                        <label className="text-emerald-300 font-semibold text-xs block">
+                          📏 Stock-Based Sizes (Compulsory for Bangles / Sized Items)
+                        </label>
+                        <span className="text-[10px] text-slate-400">Admin stock-selected</span>
+                      </div>
+                      <p className="text-[11px] text-slate-400">
+                        For Bangles, customer must pick color + size. Toggle available stock sizes:
+                      </p>
+
+                      <div className="space-y-1.5 pt-1">
+                        <div className="flex items-center gap-1 flex-wrap">
+                          <span className="text-[10px] text-slate-400 mr-1">Bangle Sizes:</span>
+                          {['2.4', '2.6', '2.8', '2.10', '2.12', 'Free Size / Adjustable'].map((sz) => {
+                            const isSelected = editProdSizes.includes(sz);
+                            return (
+                              <button
+                                type="button"
+                                key={sz}
+                                onClick={() => {
+                                  if (isSelected) {
+                                    setEditProdSizes(editProdSizes.filter(s => s !== sz));
+                                  } else {
+                                    setEditProdSizes([...editProdSizes, sz]);
+                                  }
+                                }}
+                                className={`text-[11px] px-2 py-0.5 rounded-lg border font-mono font-medium transition-all ${
+                                  isSelected
+                                    ? 'bg-emerald-500 text-black border-emerald-400 font-bold shadow-sm'
+                                    : 'bg-slate-900 text-slate-300 border-slate-700 hover:border-slate-500'
+                                }`}
+                              >
+                                {isSelected ? `✓ ${sz}` : `+ ${sz}`}
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        <div className="flex items-center gap-1 flex-wrap">
+                          <span className="text-[10px] text-slate-400 mr-1">Necklaces / Rings:</span>
+                          {['Adjustable Thread / Dori', 'Adjustable Chain', '16 inch', '18 inch', '24 inch Long Haram', 'Size 6', 'Size 7', 'Size 8', 'Size 9'].map((sz) => {
+                            const isSelected = editProdSizes.includes(sz);
+                            return (
+                              <button
+                                type="button"
+                                key={sz}
+                                onClick={() => {
+                                  if (isSelected) {
+                                    setEditProdSizes(editProdSizes.filter(s => s !== sz));
+                                  } else {
+                                    setEditProdSizes([...editProdSizes, sz]);
+                                  }
+                                }}
+                                className={`text-[10px] px-2 py-0.5 rounded-lg border font-medium transition-all ${
+                                  isSelected
+                                    ? 'bg-emerald-500 text-black border-emerald-400 font-bold shadow-sm'
+                                    : 'bg-slate-900 text-slate-300 border-slate-700 hover:border-slate-500'
+                                }`}
+                              >
+                                {isSelected ? `✓ ${sz}` : `+ ${sz}`}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2 pt-1">
+                        <input
+                          type="text"
+                          placeholder="Or type custom size (e.g. 2.2, 2.14, Free Size)..."
+                          value={editProdCustomSize}
+                          onChange={(e) => setEditProdCustomSize(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              if (editProdCustomSize.trim() && !editProdSizes.includes(editProdCustomSize.trim())) {
+                                setEditProdSizes([...editProdSizes, editProdCustomSize.trim()]);
+                                setEditProdCustomSize('');
+                              }
+                            }
+                          }}
+                          className="flex-1 bg-slate-900 border border-slate-700 rounded-xl p-2 text-white text-xs font-mono"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (editProdCustomSize.trim() && !editProdSizes.includes(editProdCustomSize.trim())) {
+                              setEditProdSizes([...editProdSizes, editProdCustomSize.trim()]);
+                              setEditProdCustomSize('');
+                            }
+                          }}
+                          className="bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-slate-700 px-3 rounded-xl text-xs font-semibold"
+                        >
+                          + Add Size
+                        </button>
+                      </div>
+
+                      {editProdSizes.length > 0 && (
+                        <div className="flex flex-wrap items-center gap-1.5 pt-1.5 border-t border-slate-800/80">
+                          <span className="text-[10px] text-slate-400">In-Stock ({editProdSizes.length}):</span>
+                          {editProdSizes.map((sz, idx) => (
+                            <span
+                              key={idx}
+                              className="inline-flex items-center gap-1 bg-emerald-500/20 text-emerald-200 border border-emerald-500/40 text-[11px] px-2 py-0.5 rounded-lg font-mono"
+                            >
+                              <span>{sz}</span>
+                              <button
+                                type="button"
+                                onClick={() => setEditProdSizes(editProdSizes.filter((_, i) => i !== idx))}
+                                className="text-emerald-300 hover:text-white ml-0.5"
+                              >
+                                ×
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-slate-300 font-semibold block text-xs">
+                        Product Photos (Select new photos to add from Device)
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleEditImageFileUpload}
+                        className="w-full text-xs text-slate-300 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-gold-500 file:text-black hover:file:bg-gold-400 cursor-pointer bg-slate-900 border border-slate-700 rounded-xl p-1"
+                      />
+
+                      {editProdImages.length > 0 && (
+                        <div className="flex items-center gap-2 overflow-x-auto pt-2 pb-1">
+                          {editProdImages.map((img, idx) => (
+                            <div key={idx} className="relative w-14 h-14 rounded-lg overflow-hidden border border-gold-500/40 shrink-0 group">
+                              <img src={img} alt="" className="w-full h-full object-cover" />
+                              <button
+                                type="button"
+                                onClick={() => removeEditUploadedImage(idx)}
+                                className="absolute top-0.5 right-0.5 bg-rose-600 text-white rounded-full p-0.5 text-[9px]"
+                                title="Remove photo"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      <div className="pt-1">
+                        <span className="text-[10px] text-slate-400 block mb-1">Or Primary Image URL:</span>
+                        <input
+                          type="text"
+                          value={editProdImage}
+                          onChange={(e) => setEditProdImage(e.target.value)}
+                          className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-white text-[11px] focus:border-gold-400"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-slate-300 block mb-1 font-medium">Description</label>
+                      <textarea
+                        rows={2}
+                        placeholder="Detailed item description..."
+                        value={editProdDesc}
+                        onChange={(e) => setEditProdDesc(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
+                      />
+                    </div>
+
+                    <div className="flex gap-2 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setEditingProduct(null)}
+                        className="flex-1 bg-slate-900 hover:bg-slate-800 text-slate-300 py-3 rounded-xl border border-slate-700 font-semibold"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isSavingProduct}
+                        className="flex-1 btn-gold-shimmer py-3 rounded-xl font-semibold text-black disabled:opacity-50"
+                      >
+                        {isSavingProduct ? 'Saving Changes...' : 'Save Changes'}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* TAB 4: Coupons Management */}
       {activeTab === 'coupons' && (
@@ -2408,6 +3316,160 @@ export default function AdminDashboard() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* High-Resolution Product Image Design Inspection Modal */}
+      {imageDesignModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md animate-fade-in"
+          onClick={() => setImageDesignModal(null)}
+        >
+          <div
+            className="glass-modal border border-gold-500/40 p-4 sm:p-6 rounded-2xl max-w-2xl w-full max-h-[92vh] overflow-y-auto space-y-4 shadow-2xl relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-start border-b border-slate-800 pb-3 gap-3">
+              <div>
+                <div className="flex items-center gap-2 flex-wrap mb-1">
+                  <span className="text-[10px] text-gold-400 uppercase tracking-widest font-bold">
+                    {imageDesignModal.category || 'Jewelry'}
+                  </span>
+                  {imageDesignModal.subCategory && (
+                    <span className="text-[10px] text-amber-200 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded font-medium">
+                      {imageDesignModal.subCategory}
+                    </span>
+                  )}
+                </div>
+                <h3 className="text-white font-serif font-bold text-base sm:text-lg">
+                  {imageDesignModal.title}
+                </h3>
+                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-300 mt-1">
+                  {imageDesignModal.price && (
+                    <span className="text-gold-300 font-bold text-base">
+                      ₹{Number(imageDesignModal.price).toLocaleString()}
+                    </span>
+                  )}
+                  {imageDesignModal.karat && (
+                    <span className="bg-slate-800 px-2 py-0.5 rounded text-amber-300 border border-amber-500/30">
+                      {imageDesignModal.karat}
+                    </span>
+                  )}
+                  {imageDesignModal.stock !== undefined && (
+                    <span className="text-emerald-400 font-semibold">
+                      Stock: {imageDesignModal.stock} units
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <button
+                onClick={() => setImageDesignModal(null)}
+                className="p-2 text-slate-400 hover:text-white bg-slate-900 hover:bg-slate-800 rounded-xl border border-slate-700 transition-colors shrink-0"
+                title="Close Design View"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Main High-Res Image View */}
+            <div className="relative rounded-xl overflow-hidden bg-slate-950 border border-gold-500/30 flex items-center justify-center min-h-[280px] max-h-[460px]">
+              <img
+                src={
+                  imageDesignModal.activeImage ||
+                  imageDesignModal.image ||
+                  (Array.isArray(imageDesignModal.images) && imageDesignModal.images[0]) ||
+                  '/images/hero_banner.jpg'
+                }
+                alt={imageDesignModal.title}
+                className="w-full h-full max-h-[460px] object-contain transition-transform duration-300 hover:scale-105"
+              />
+              <div className="absolute bottom-2.5 right-2.5 bg-black/75 backdrop-blur-sm text-gold-300 px-2.5 py-1 rounded-lg text-[10px] font-mono border border-gold-500/30 flex items-center gap-1.5 pointer-events-none">
+                <Search className="w-3 h-3 text-gold-400" />
+                <span>High-Resolution Design View</span>
+              </div>
+            </div>
+
+            {/* Multi-angle thumbnail gallery strip if available */}
+            {Array.isArray(imageDesignModal.images) && imageDesignModal.images.length > 1 && (
+              <div className="space-y-1.5">
+                <span className="text-slate-400 text-xs font-semibold block">Design Angles / Photos:</span>
+                <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                  {imageDesignModal.images.map((img, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setImageDesignModal(prev => ({ ...prev, activeImage: img }))}
+                      className={`relative w-16 h-16 rounded-lg overflow-hidden border-2 shrink-0 transition-all ${
+                        (imageDesignModal.activeImage || imageDesignModal.image) === img
+                          ? 'border-gold-400 ring-2 ring-gold-400/50 scale-105'
+                          : 'border-slate-800 hover:border-slate-600 opacity-70 hover:opacity-100'
+                      }`}
+                    >
+                      <img src={img} alt="" className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* In-Stock Colors & Sizes Summary */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-800/80 text-xs">
+              <div>
+                <span className="text-slate-400 block mb-1 font-medium">In-Stock Colors:</span>
+                {Array.isArray(imageDesignModal.colors) && imageDesignModal.colors.length > 0 ? (
+                  <div className="flex flex-wrap gap-1">
+                    {imageDesignModal.colors.map((c, i) => (
+                      <span key={i} className="text-[11px] bg-amber-500/10 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-md font-medium">
+                        {c}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-slate-500 italic text-[11px]">Standard single finish</span>
+                )}
+              </div>
+
+              <div>
+                <span className="text-slate-400 block mb-1 font-medium">In-Stock Sizes:</span>
+                {Array.isArray(imageDesignModal.sizes) && imageDesignModal.sizes.length > 0 ? (
+                  <div className="flex flex-wrap gap-1">
+                    {imageDesignModal.sizes.map((s, i) => (
+                      <span key={i} className="text-[11px] bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-md font-mono font-medium">
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-slate-500 italic text-[11px]">Standard Free Size</span>
+                )}
+              </div>
+            </div>
+
+            {/* Action Bar */}
+            <div className="flex gap-2 pt-2 border-t border-slate-800">
+              <button
+                type="button"
+                onClick={() => {
+                  const prodToEdit = imageDesignModal;
+                  setImageDesignModal(null);
+                  handleOpenEditProduct(prodToEdit);
+                }}
+                className="flex-1 bg-amber-500 hover:bg-amber-400 text-black py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95"
+              >
+                <Edit className="w-3.5 h-3.5" />
+                <span>Edit This Product & Stock</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setImageDesignModal(null)}
+                className="px-5 bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 rounded-xl text-xs font-semibold transition-colors"
+              >
+                Close View
+              </button>
+            </div>
           </div>
         </div>
       )}
