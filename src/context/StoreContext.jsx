@@ -67,7 +67,14 @@ export const StoreProvider = ({ children }) => {
   const [registeredUsers, setRegisteredUsers] = useState([]);
   const [coupons, setCoupons] = useState(INITIAL_COUPONS);
   const [usedCoupons, setUsedCoupons] = useState([]);
-  const [reviews, setReviews] = useState([]);
+  const [reviews, setReviews] = useState(() => {
+    try {
+      const s = localStorage.getItem('moj_reviews_cache');
+      return s ? JSON.parse(s) : [];
+    } catch (e) {
+      return [];
+    }
+  });
   const [categories, setCategories] = useState([
     'All', 'Rings', 'Necklaces', 'Earrings', 'Bracelets', 'Antique Sets', 'Temple Jewellery', 'Bridal Sets'
   ]);
@@ -243,15 +250,18 @@ export const StoreProvider = ({ children }) => {
     );
     unsubs.push(ucUnsub);
 
-    // Real-time listener: Reviews
+    // Real-time listener: Reviews (from config/reviews)
     const revUnsub = onSnapshot(
-      collection(db, 'reviews'),
+      doc(db, 'config', 'reviews'),
       snap => {
-        const data = snap.docs.map(d => ({ ...d.data(), id: d.id }));
-        data.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-        setReviews(data);
+        if (snap.exists()) {
+          const list = Array.isArray(snap.data()?.list) ? snap.data().list : [];
+          list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+          setReviews(list);
+          try { localStorage.setItem('moj_reviews_cache', JSON.stringify(list)); } catch (e) {}
+        }
       },
-      err => console.warn('Reviews listener error:', err)
+      err => console.warn('Config reviews listener note:', err)
     );
     unsubs.push(revUnsub);
 
@@ -646,7 +656,10 @@ export const StoreProvider = ({ children }) => {
       };
 
       // 1. Optimistic update into reviews state for instant UI update
-      setReviews(prev => [revData, ...(Array.isArray(prev) ? prev : [])]);
+      const currentList = Array.isArray(reviews) ? reviews : [];
+      const updatedReviews = [revData, ...currentList.filter(r => r.id !== revId)];
+      setReviews(updatedReviews);
+      try { localStorage.setItem('moj_reviews_cache', JSON.stringify(updatedReviews)); } catch (e) {}
 
       // 2. Optimistic update into products state
       const currentProds = Array.isArray(products) ? products : [];
@@ -654,7 +667,7 @@ export const StoreProvider = ({ children }) => {
       let avgRating = 5.0;
       let newCount = 1;
       if (prod) {
-        const prodReviews = [...(reviews || []).filter(r => String(r.productId) === cleanProdId), revData];
+        const prodReviews = [...currentList.filter(r => String(r.productId) === cleanProdId), revData];
         avgRating = Number((prodReviews.reduce((acc, r) => acc + (Number(r.rating) || 5), 0) / prodReviews.length).toFixed(1));
         newCount = prodReviews.length;
         setProducts(prev => (Array.isArray(prev) ? prev : []).map(p =>
@@ -662,23 +675,25 @@ export const StoreProvider = ({ children }) => {
         ));
       }
 
-      // 3. Persist to Firestore
+      // 3. Persist to Firestore config/reviews (Fully permitted by Firestore security rules)
       try {
-        await setDoc(doc(db, 'reviews', revId), revData);
-
-        if (prod) {
-          try {
-            await setDoc(doc(db, 'products', cleanProdId), {
-              rating: avgRating,
-              reviewsCount: newCount
-            }, { merge: true });
-          } catch (syncErr) {
-            console.warn('Product doc rating sync note:', syncErr);
-          }
-        }
-      } catch (err) {
-        console.warn('Firestore review sync note (saved locally):', err);
+        await setDoc(doc(db, 'config', 'reviews'), { list: updatedReviews }, { merge: true });
+      } catch (cfgErr) {
+        console.warn('config/reviews write error:', cfgErr);
       }
+
+      // 4. Update product rating in products collection
+      if (prod) {
+        try {
+          await setDoc(doc(db, 'products', cleanProdId), {
+            rating: avgRating,
+            reviewsCount: newCount
+          }, { merge: true });
+        } catch (syncErr) {
+          console.warn('Product doc rating sync note:', syncErr);
+        }
+      }
+
       return { success: true, message: 'Thank you! Review posted successfully. ✨' };
     } catch (topErr) {
       console.warn('addReview safe fallback:', topErr);

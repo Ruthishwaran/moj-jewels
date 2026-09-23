@@ -922,10 +922,41 @@ export default function AdminDashboard() {
 
                 <div className="flex flex-col md:flex-row justify-between text-xs text-slate-300 gap-4">
                   <div>
-                    <span className="text-slate-500 text-[10px] block">Items</span>
-                    <p className="font-semibold text-white">
-                      {ord.items.map(i => `${i.title} (x${i.quantity})`).join(', ')}
-                    </p>
+                    <span className="text-slate-500 text-[10px] block mb-1">Items Ordered</span>
+                    <div className="flex flex-wrap gap-2">
+                      {(ord.items || []).map((i, idx) => {
+                        const matchedProduct = (products || []).find(
+                          p => String(p.id) === String(i.id) || p.title?.toLowerCase() === i.title?.toLowerCase()
+                        );
+                        return (
+                          <div key={idx} className="flex items-center gap-2 bg-slate-900/90 border border-slate-700/80 px-2.5 py-1.5 rounded-xl">
+                            <span className="font-semibold text-white">{i.title} (x{i.quantity || 1})</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (matchedProduct) {
+                                  handleOpenEditProduct(matchedProduct);
+                                } else {
+                                  handleOpenEditProduct({
+                                    id: i.id || `prod-${Date.now()}`,
+                                    title: i.title,
+                                    price: i.price,
+                                    image: i.image,
+                                    category: i.category || 'Jewelry',
+                                    description: i.description || ''
+                                  });
+                                }
+                              }}
+                              className="text-[11px] text-amber-300 hover:text-black hover:bg-amber-400 bg-amber-500/20 border border-amber-500/40 px-2 py-0.5 rounded-lg flex items-center gap-1 font-bold transition-all shadow-sm active:scale-95"
+                              title={`Edit "${i.title}" Product Catalog Details`}
+                            >
+                              <Edit className="w-3 h-3" />
+                              <span>Edit Product</span>
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                   <div>
                     <span className="text-slate-500 text-[10px] block">UTR Transaction Ref</span>
@@ -1178,19 +1209,22 @@ export default function AdminDashboard() {
                   <span className="text-[10px] text-emerald-400 block">Stock: {p.stock} units</span>
                 </div>
 
-                <div className="flex items-center gap-1.5 shrink-0">
+                <div className="flex items-center gap-2 shrink-0">
                   <button
+                    type="button"
                     onClick={() => handleOpenEditProduct(p)}
-                    className="p-2 text-slate-400 hover:text-amber-400 bg-slate-900 hover:bg-slate-800 rounded-lg border border-slate-800 transition-colors"
+                    className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-black rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-md transition-all active:scale-95"
                     title="Edit Product"
                   >
-                    <Edit className="w-4 h-4" />
+                    <Edit className="w-3.5 h-3.5" />
+                    <span>Edit</span>
                   </button>
                   <button
+                    type="button"
                     onClick={() => {
                       if (confirm(`Delete "${p.title}"?`)) deleteProduct(p.id);
                     }}
-                    className="p-2 text-slate-500 hover:text-rose-400 bg-slate-900 hover:bg-slate-800 rounded-lg border border-slate-800 transition-colors"
+                    className="p-1.5 text-slate-500 hover:text-rose-400 bg-slate-900 hover:bg-slate-800 rounded-lg border border-slate-800 transition-colors"
                     title="Delete Product"
                   >
                     <Trash2 className="w-4 h-4" />
