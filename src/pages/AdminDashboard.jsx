@@ -974,12 +974,13 @@ export default function AdminDashboard() {
                 <form
                   onSubmit={async (e) => {
                     e.preventDefault();
-                    if (!adminRevProductId || !adminRevName || !adminRevComment) {
+                    const targetProdId = adminRevProductId || (products[0] ? products[0].id : '');
+                    if (!targetProdId || !adminRevName.trim() || !adminRevComment.trim()) {
                       alert('Please complete all review fields.');
                       return;
                     }
                     const res = await addReview({
-                      productId: adminRevProductId,
+                      productId: targetProdId,
                       userName: adminRevName.trim(),
                       userEmail: 'admin-verified@mojjewels.com',
                       rating: Number(adminRevRating),
@@ -1002,13 +1003,13 @@ export default function AdminDashboard() {
                   <div>
                     <label className="text-slate-300 font-medium block mb-1">Select Product</label>
                     <select
-                      value={adminRevProductId}
+                      value={adminRevProductId || (products[0] ? products[0].id : '')}
                       onChange={(e) => setAdminRevProductId(e.target.value)}
                       className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white"
                     >
                       {products.map((prod) => (
                         <option key={prod.id} value={prod.id}>
-                          {prod.title} (₹{prod.price?.toLocaleString()})
+                          {prod.title} (₹{(Number(prod?.price) || 0).toLocaleString()})
                         </option>
                       ))}
                     </select>

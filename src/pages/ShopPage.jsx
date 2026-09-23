@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useStore } from '../context/StoreContext';
 import ProductCard from '../components/ProductCard';
-import { Search, SlidersHorizontal, Sparkles } from 'lucide-react';
+import { Search, SlidersHorizontal, Sparkles, ShoppingBag, ArrowRight } from 'lucide-react';
 
 export default function ShopPage() {
   const {
@@ -10,7 +10,10 @@ export default function ShopPage() {
     searchQuery,
     setSearchQuery,
     selectedCategory,
-    setSelectedCategory
+    setSelectedCategory,
+    cart,
+    setIsCartOpen,
+    setCurrentPage
   } = useStore();
 
   const [sortBy, setSortBy] = useState('featured'); // 'featured', 'price-low', 'price-high', 'rating'
@@ -50,6 +53,20 @@ export default function ShopPage() {
         <p className="text-slate-400 text-xs">
           Handcrafted with 100% BIS Hallmarked gold, natural VVS diamonds & precious emerald gems.
         </p>
+
+        {/* Mobile Bag / Checkout Quick Action Button */}
+        {cart && cart.length > 0 && (
+          <div className="md:hidden pt-2 flex justify-center">
+            <button
+              onClick={() => setIsCartOpen(true)}
+              className="btn-gold-shimmer text-black px-5 py-2.5 rounded-xl text-xs font-bold flex items-center space-x-2 shadow-lg animate-pulse"
+            >
+              <ShoppingBag className="w-4 h-4 text-black" />
+              <span>Checkout Bag ({cart.reduce((acc, it) => acc + (it.quantity || 1), 0)} items)</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Filter & Search Bar */}

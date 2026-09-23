@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useStore } from '../context/StoreContext';
-import { User, Package, Heart, Tag, Truck, ShieldCheck, ShoppingBag, Clock, Copy, Check, Sparkles } from 'lucide-react';
+import { User, Package, Heart, Tag, Truck, ShieldCheck, ShoppingBag, Clock, Copy, Check, Sparkles, Star } from 'lucide-react';
 
 export default function CustomerDashboard() {
-  const { user, orders, wishlist, coupons, setCurrentPage, setIsAuthModalOpen, logoutCustomer } = useStore();
+  const { user, orders, wishlist, coupons, setCurrentPage, setIsAuthModalOpen, logoutCustomer, setSelectedProduct } = useStore();
   const [copiedCode, setCopiedCode] = useState(null);
 
   const currentUser = user || { name: 'Valued Customer', email: 'guest@mojjewels.com', role: 'customer' };
@@ -209,13 +209,29 @@ export default function CustomerDashboard() {
                     <strong className="text-white font-bold text-base">₹{(Number(ord?.total) || 0).toLocaleString()}</strong>
                     <div className="text-[11px] text-slate-400 font-mono">UTR: {ord.transactionId}</div>
                     
-                    <button
-                      onClick={() => setCurrentPage('track')}
-                      className="bg-slate-900 hover:bg-slate-800 text-gold-300 border border-gold-500/30 px-3 py-1.5 rounded-lg text-xs font-semibold inline-flex items-center gap-1 transition-colors mt-2"
-                    >
-                      <Truck className="w-3.5 h-3.5 text-gold-400" />
-                      <span>Track Order</span>
-                    </button>
+                    <div className="flex flex-col sm:flex-row items-end sm:items-center justify-end gap-2 mt-2">
+                      <button
+                        onClick={() => setCurrentPage('track')}
+                        className="bg-slate-900 hover:bg-slate-800 text-gold-300 border border-gold-500/30 px-3 py-1.5 rounded-lg text-xs font-semibold inline-flex items-center gap-1 transition-colors"
+                      >
+                        <Truck className="w-3.5 h-3.5 text-gold-400" />
+                        <span>Track Order</span>
+                      </button>
+
+                      {(ord.orderStatus === 'Delivered' || ord.status === 'Delivered') && (
+                        <button
+                          onClick={() => {
+                            if (ord.items && ord.items.length > 0) {
+                              setSelectedProduct(ord.items[0]);
+                            }
+                          }}
+                          className="bg-gold-500 hover:bg-gold-400 text-black px-3 py-1.5 rounded-lg text-xs font-bold inline-flex items-center gap-1 shadow-md transition-colors"
+                        >
+                          <Star className="w-3.5 h-3.5 fill-current" />
+                          <span>Review Item</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

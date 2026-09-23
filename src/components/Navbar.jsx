@@ -236,20 +236,8 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Customer Action Controls (Right side: Search Icon on mobile, Wishlist Heart THEN Cart Bag) */}
+        {/* Customer Action Controls (Right side: Wishlist Heart THEN Checkout Bag) */}
         <div className="flex items-center space-x-1.5 sm:space-x-3 shrink-0">
-          {/* Mobile Search Button Icon */}
-          <button
-            onClick={() => {
-              setCurrentPage('shop');
-            }}
-            className="md:hidden p-2 text-slate-300 hover:text-gold-400 transition-colors"
-            aria-label="Search"
-            title="Search Catalog"
-          >
-            <Search className="w-5 h-5 text-gold-400" />
-          </button>
-
           {/* Wishlist Heart Icon (FIRST) */}
           <button
             onClick={() => setIsWishlistOpen(true)}
@@ -268,16 +256,21 @@ export default function Navbar() {
           {/* Cart Drawer Bag Icon (SECOND — Directly after Heart) */}
           <button
             onClick={() => setIsCartOpen(true)}
-            className="relative p-2 text-slate-300 hover:text-gold-400 transition-colors"
-            aria-label="Cart Bag"
+            className="relative p-2 text-slate-300 hover:text-gold-400 transition-colors group flex items-center gap-1"
+            aria-label="Checkout Bag"
             title="Checkout Bag"
           >
-            <ShoppingBag className="w-5 h-5" />
-            {totalCartCount > 0 && (
-              <span className="absolute top-0 right-0 w-4 h-4 bg-gold-500 text-black rounded-full text-[10px] font-bold flex items-center justify-center shadow">
-                {totalCartCount}
-              </span>
-            )}
+            <div className="relative">
+              <ShoppingBag className="w-5 h-5 text-gold-400" />
+              {totalCartCount > 0 && (
+                <span className="absolute -top-1.5 -right-2 min-w-4 h-4 px-1 bg-gold-500 text-black rounded-full text-[10px] font-extrabold flex items-center justify-center shadow-md animate-pulse">
+                  {totalCartCount}
+                </span>
+              )}
+            </div>
+            <span className="hidden sm:inline text-xs font-semibold text-gold-300 group-hover:text-white">
+              Bag
+            </span>
           </button>
 
           {/* Customer Profile / Login */}

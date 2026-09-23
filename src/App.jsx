@@ -16,10 +16,23 @@ import OrderTrackPage from './pages/OrderTrackPage';
 import CustomerDashboard from './pages/CustomerDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminLoginPage from './pages/AdminLoginPage';
-import { ShieldCheck, LogOut, Search } from 'lucide-react';
+import { ShieldCheck, LogOut, Search, ShoppingBag, ArrowRight } from 'lucide-react';
 
 function MainContent() {
-  const { currentPage, setCurrentPage, isAdminAuthenticated, logoutAdmin, isAppInstallable, installPwaApp, isInstallModalOpen, setIsInstallModalOpen, isLoading } = useStore();
+  const {
+    currentPage,
+    setCurrentPage,
+    isAdminAuthenticated,
+    logoutAdmin,
+    isAppInstallable,
+    installPwaApp,
+    isInstallModalOpen,
+    setIsInstallModalOpen,
+    isLoading,
+    cart,
+    grandTotal,
+    setIsCartOpen
+  } = useStore();
   const [showPwaBanner, setShowPwaBanner] = useState(true);
 
   // Loading screen while Firestore syncs data
@@ -88,6 +101,37 @@ function MainContent() {
 
       {!isAdminView && <Footer />}
       {!isAdminView && <FloatingWhatsApp />}
+
+      {/* ── Mobile Floating Checkout Bag Bar (Persistent 1-Tap Access) ── */}
+      {!isAdminView && currentPage !== 'checkout' && cart && cart.length > 0 && (
+        <div className="md:hidden fixed bottom-4 left-3 right-3 z-40 animate-slide-up">
+          <div className="bg-slate-900/95 border border-gold-500/60 rounded-2xl p-3 shadow-2xl backdrop-blur-md flex items-center justify-between">
+            <div 
+              onClick={() => setIsCartOpen(true)}
+              className="flex items-center space-x-2.5 cursor-pointer"
+            >
+              <div className="relative p-2 bg-gold-500 rounded-xl text-black">
+                <ShoppingBag className="w-5 h-5" />
+                <span className="absolute -top-1.5 -right-1.5 bg-black text-gold-400 border border-gold-500 rounded-full w-4 h-4 text-[9px] font-extrabold flex items-center justify-center">
+                  {cart.reduce((acc, it) => acc + (it.quantity || 1), 0)}
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] text-slate-400 block font-medium">Cart Total</span>
+                <span className="text-white font-bold text-sm">₹{(Number(grandTotal) || 0).toLocaleString()}</span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setCurrentPage('checkout')}
+              className="btn-gold-shimmer text-black px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-lg active:scale-95 transition-transform"
+            >
+              <span>Checkout Bag</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
 
       <ProductModal />
       <CartDrawer />
