@@ -160,11 +160,11 @@ export default function ProductCard({ product }) {
           <div>
             <div className="flex items-baseline gap-1.5">
               <span className="text-white font-bold text-base font-sans">
-                ₹{price.toLocaleString()}
+                ₹{(Number(price) || 0).toLocaleString()}
               </span>
               {originalPrice > price && (
                 <span className="text-slate-500 line-through text-xs">
-                  ₹{originalPrice.toLocaleString()}
+                  ₹{(Number(originalPrice) || 0).toLocaleString()}
                 </span>
               )}
             </div>

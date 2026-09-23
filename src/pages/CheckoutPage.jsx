@@ -297,7 +297,7 @@ export default function CheckoutPage() {
                         <span className="text-[10px] text-slate-400">Qty: {item.quantity}</span>
                       </div>
                     </div>
-                    <span className="text-slate-200 font-bold">₹{(item.price * item.quantity).toLocaleString()}</span>
+                    <span className="text-slate-200 font-bold">₹{((Number(item?.price) || 0) * (Number(item?.quantity) || 1)).toLocaleString()}</span>
                   </div>
                 ))}
               </div>
@@ -315,7 +315,7 @@ export default function CheckoutPage() {
                     <div>
                       <span className="text-emerald-300 font-bold font-mono">{appliedCoupon.code} Applied!</span>
                       <span className="text-[10px] text-emerald-400 block">
-                        Saved ₹{discountAmount.toLocaleString()}
+                        Saved ₹{(Number(discountAmount) || 0).toLocaleString()}
                       </span>
                     </div>
                     <button
@@ -387,7 +387,7 @@ export default function CheckoutPage() {
                                 </span>
                               </div>
                               <span className="text-[10px] text-slate-400 block">
-                                Min order ₹{(c.minAmount || 0).toLocaleString()}
+                                Min order ₹{Number(c.minAmount || 0).toLocaleString()}
                               </span>
                             </div>
 
@@ -408,7 +408,7 @@ export default function CheckoutPage() {
                               </button>
                             ) : (
                               <span className="text-[9px] text-slate-500">
-                                Need ₹{((c.minAmount || 0) - subtotal).toLocaleString()} more
+                                Need ₹{Math.max(0, Number(c.minAmount || 0) - Number(subtotal || 0)).toLocaleString()} more
                               </span>
                             )}
                           </div>
@@ -422,12 +422,12 @@ export default function CheckoutPage() {
               <div className="border-t border-slate-800 pt-3 space-y-2 text-xs">
                 <div className="flex justify-between text-slate-400">
                   <span>Subtotal</span>
-                  <span className="text-white">₹{subtotal.toLocaleString()}</span>
+                  <span className="text-white">₹{(Number(subtotal) || 0).toLocaleString()}</span>
                 </div>
                 {discountAmount > 0 && (
                   <div className="flex justify-between text-emerald-400 font-semibold">
                     <span>Coupon ({appliedCoupon?.code})</span>
-                    <span>- ₹{discountAmount.toLocaleString()}</span>
+                    <span>- ₹{(Number(discountAmount) || 0).toLocaleString()}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-slate-400">
@@ -436,7 +436,7 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex justify-between text-base font-bold text-white pt-2 border-t border-slate-800">
                   <span>Total Amount Payable</span>
-                  <span className="gold-gradient-text">₹{grandTotal.toLocaleString()}</span>
+                  <span className="gold-gradient-text">₹{(Number(grandTotal) || 0).toLocaleString()}</span>
                 </div>
               </div>
             </div>
@@ -461,7 +461,7 @@ export default function CheckoutPage() {
             </div>
             <div className="text-right">
               <span className="text-[10px] text-slate-400 uppercase tracking-widest block">Exact Amount to Pay</span>
-              <span className="text-2xl font-bold gold-gradient-text">₹{grandTotal.toLocaleString()}</span>
+              <span className="text-2xl font-bold gold-gradient-text">₹{(Number(grandTotal) || 0).toLocaleString()}</span>
             </div>
           </div>
 
@@ -606,7 +606,7 @@ export default function CheckoutPage() {
             </div>
             <div className="flex justify-between">
               <span className="text-slate-400">Total Amount Paid:</span>
-              <span className="gold-gradient-text font-bold text-base">₹{createdOrder.total?.toLocaleString()}</span>
+              <span className="gold-gradient-text font-bold text-base">₹{(Number(createdOrder?.total) || 0).toLocaleString()}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-400">Shipping Address:</span>

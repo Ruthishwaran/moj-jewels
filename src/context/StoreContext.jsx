@@ -41,7 +41,18 @@ export const StoreProvider = ({ children }) => {
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => {
     try { return localStorage.getItem('moj_admin_auth') === 'true'; } catch { return false; }
   });
-  const [cart, setCart] = useState(() => safeParseJSON('moj_cart', []));
+  const [cart, setCart] = useState(() => {
+    const raw = safeParseJSON('moj_cart', []);
+    if (!Array.isArray(raw)) return [];
+    return raw.filter(i => i && typeof i === 'object').map(i => ({
+      ...i,
+      id: i.id || `prod-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      price: typeof i.price === 'number' ? i.price : parseFloat(i.price) || 0,
+      quantity: typeof i.quantity === 'number' && i.quantity > 0 ? i.quantity : 1,
+      title: i.title || 'MOJ Fine Jewelry',
+      image: i.image || '/images/moj_logo.jpg'
+    }));
+  });
   const [wishlist, setWishlist] = useState(() => safeParseJSON('moj_wishlist', []));
   const [appliedCoupon, setAppliedCoupon] = useState(null);
 
@@ -51,10 +62,10 @@ export const StoreProvider = ({ children }) => {
   const [isInstallModalOpen, setIsInstallModalOpen] = useState(false);
 
   // ===== Cloud State (Firestore — SAME across ALL devices) =====
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState(INITIAL_PRODUCTS);
   const [orders, setOrders] = useState([]);
   const [registeredUsers, setRegisteredUsers] = useState([]);
-  const [coupons, setCoupons] = useState([]);
+  const [coupons, setCoupons] = useState(INITIAL_COUPONS);
   const [usedCoupons, setUsedCoupons] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [categories, setCategories] = useState([
@@ -205,9 +216,19 @@ export const StoreProvider = ({ children }) => {
       collection(db, 'coupons'),
       snap => {
         const data = snap.docs.map(d => ({ ...d.data(), id: d.id }));
-        setCoupons(data);
+        const sourceList = data.length > 0 ? data : INITIAL_COUPONS;
+        const normalized = sourceList.map(c => ({
+          ...c,
+          minAmount: Number(c.minAmount || 0),
+          value: Number(c.value || 0),
+          discountType: c.discountType || 'percentage'
+        }));
+        setCoupons(normalized);
       },
-      err => console.warn('Coupons listener error:', err)
+      err => {
+        console.warn('Coupons listener error:', err);
+        setCoupons(INITIAL_COUPONS);
+      }
     );
     unsubs.push(cupUnsub);
 
@@ -643,9 +664,10 @@ export const StoreProvider = ({ children }) => {
     }
 
     const safeCart = Array.isArray(cart) ? cart : [];
-    const cartSubtotal = safeCart.reduce((acc, item) => acc + ((item.price || 0) * (item.quantity || 1)), 0);
-    if (cartSubtotal < found.minAmount) {
-      return { success: false, message: `Minimum order value for ${found.code} is ₹${found.minAmount.toLocaleString()}` };
+    const cartSubtotal = safeCart.reduce((acc, item) => acc + ((Number(item?.price) || 0) * (Number(item?.quantity) || 1)), 0);
+    const minVal = Number(found?.minAmount || 0);
+    if (cartSubtotal < minVal) {
+      return { success: false, message: `Minimum order value for ${found.code} is ₹${minVal.toLocaleString()}` };
     }
 
     setAppliedCoupon(found);
@@ -656,20 +678,22 @@ export const StoreProvider = ({ children }) => {
 
   // ===== FINANCIAL CALCULATIONS =====
   const safeCart = Array.isArray(cart) ? cart : [];
-  const rawSubtotal = safeCart.reduce((acc, item) => acc + ((item.price || 0) * (item.quantity || 1)), 0);
+  const rawSubtotal = safeCart.reduce((acc, item) => acc + ((Number(item?.price) || 0) * (Number(item?.quantity) || 1)), 0);
   const isWholesaleApprovedUser = user?.accountType === 'wholesale' && user?.isApproved !== false;
   const wholesaleDiscountAmount = isWholesaleApprovedUser ? Math.round(rawSubtotal * 0.05) : 0;
   const subtotal = Math.max(0, rawSubtotal - wholesaleDiscountAmount);
 
   let discountAmount = 0;
   if (appliedCoupon) {
+    const couponVal = Number(appliedCoupon.value || 0);
     if (appliedCoupon.discountType === 'percentage') {
-      discountAmount = Math.round((subtotal * appliedCoupon.value) / 100);
+      discountAmount = Math.round(((subtotal || 0) * couponVal) / 100);
     } else {
-      discountAmount = appliedCoupon.value;
+      discountAmount = couponVal;
     }
   }
-  const grandTotal = Math.max(0, subtotal - discountAmount);
+  discountAmount = Number(discountAmount || 0);
+  const grandTotal = Math.max(0, (subtotal || 0) - discountAmount);
 
   // ===== ORDER SOUND =====
   const playOrderSuccessSound = () => {

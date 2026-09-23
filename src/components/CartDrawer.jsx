@@ -142,7 +142,7 @@ export default function CartDrawer() {
                       </div>
 
                       <span className="text-white font-bold text-sm">
-                        ₹{(item.price * item.quantity).toLocaleString()}
+                        ₹{((Number(item?.price) || 0) * (Number(item?.quantity) || 1)).toLocaleString()}
                       </span>
                     </div>
                   </div>
@@ -185,7 +185,7 @@ export default function CartDrawer() {
                 {appliedCoupon ? (
                   <div className="mt-2 flex items-center justify-between bg-emerald-950/60 border border-emerald-500/40 rounded-xl p-2.5 text-xs">
                     <span className="text-emerald-300 font-semibold flex items-center gap-1">
-                      <Sparkles className="w-3.5 h-3.5 text-emerald-400" /> Code <strong>{appliedCoupon.code}</strong> Applied (-₹{discountAmount.toLocaleString()})
+                      <Sparkles className="w-3.5 h-3.5 text-emerald-400" /> Code <strong>{appliedCoupon.code}</strong> Applied (-₹{(Number(discountAmount) || 0).toLocaleString()})
                     </span>
                     <button
                       onClick={removeCoupon}
@@ -215,7 +215,7 @@ export default function CartDrawer() {
                                   ? 'bg-slate-900 border-gold-500/40 text-gold-300 hover:bg-gold-500 hover:text-black'
                                   : 'bg-slate-950/60 border-slate-800 text-slate-500'
                               }`}
-                              title={isEligible ? `Apply ${c.code}` : `Min order ₹${c.minAmount}`}
+                              title={isEligible ? `Apply ${c.code}` : `Min order ₹${c.minAmount || 0}`}
                             >
                               <Tag className="w-3 h-3" />
                               <span>{c.code} ({c.discountType === 'percentage' ? `${c.value}% OFF` : `₹${c.value} OFF`})</span>
@@ -242,7 +242,7 @@ export default function CartDrawer() {
                 <div className="bg-rose-500/20 border border-rose-500/40 p-2.5 rounded-xl text-[11px] text-rose-300 flex items-start gap-2">
                   <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
                   <p>
-                    <strong>Wholesale Bulk Requirement:</strong> Approved wholesale partners must order a minimum of <strong>5 items</strong> AND <strong>₹25,000 order total</strong> (Current: {totalCartQty} items, ₹{subtotal.toLocaleString()}).
+                    <strong>Wholesale Bulk Requirement:</strong> Approved wholesale partners must order a minimum of <strong>5 items</strong> AND <strong>₹25,000 order total</strong> (Current: {totalCartQty} items, ₹{(Number(subtotal) || 0).toLocaleString()}).
                   </p>
                 </div>
               )}
@@ -251,12 +251,12 @@ export default function CartDrawer() {
               <div className="space-y-2 text-xs text-slate-300">
                 <div className="flex justify-between">
                   <span>Subtotal:</span>
-                  <span className="text-white font-semibold">₹{subtotal.toLocaleString()}</span>
+                  <span className="text-white font-semibold">₹{(Number(subtotal) || 0).toLocaleString()}</span>
                 </div>
                 {discountAmount > 0 && (
                   <div className="flex justify-between text-emerald-400">
                     <span>Coupon Discount:</span>
-                    <span>- ₹{discountAmount.toLocaleString()}</span>
+                    <span>- ₹{(Number(discountAmount) || 0).toLocaleString()}</span>
                   </div>
                 )}
                 <div className="flex justify-between">
@@ -265,7 +265,7 @@ export default function CartDrawer() {
                 </div>
                 <div className="flex justify-between text-base font-bold text-white pt-2 border-t border-slate-800">
                   <span>Grand Total:</span>
-                  <span className="gold-gradient-text text-lg">₹{grandTotal.toLocaleString()}</span>
+                  <span className="gold-gradient-text text-lg">₹{(Number(grandTotal) || 0).toLocaleString()}</span>
                 </div>
               </div>
 

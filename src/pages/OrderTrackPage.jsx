@@ -196,7 +196,7 @@ export default function OrderTrackPage() {
                     <img src={it.image} alt="" className="w-10 h-10 object-cover rounded bg-slate-950" />
                     <div>
                       <p className="text-white font-semibold line-clamp-1">{it.title}</p>
-                      <span className="text-slate-400 text-[10px]">Qty: {it.quantity} x ₹{it.price.toLocaleString()}</span>
+                      <span className="text-slate-400 text-[10px]">Qty: {it.quantity} x ₹{(Number(it?.price) || 0).toLocaleString()}</span>
                     </div>
                   </div>
                 ))}
@@ -222,7 +222,7 @@ export default function OrderTrackPage() {
                   </div>
                   <div className="text-right">
                     <span className="text-slate-500 text-[10px] block">Total Amount</span>
-                    <strong className="text-white">₹{trackedOrder.total.toLocaleString()}</strong>
+                    <strong className="text-white">₹{(Number(trackedOrder?.total) || 0).toLocaleString()}</strong>
                   </div>
                 </div>
               </div>

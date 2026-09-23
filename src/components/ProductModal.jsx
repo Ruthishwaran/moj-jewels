@@ -155,11 +155,11 @@ export default function ProductModal() {
 
               <div className="flex items-baseline space-x-3 mb-2">
                 <span className="text-2xl font-bold text-white">
-                  ₹{price.toLocaleString()}
+                  ₹{(Number(price) || 0).toLocaleString()}
                 </span>
                 {originalPrice > price && (
                   <span className="text-slate-500 line-through text-sm">
-                    ₹{originalPrice.toLocaleString()}
+                    ₹{(Number(originalPrice) || 0).toLocaleString()}
                   </span>
                 )}
               </div>
@@ -229,7 +229,7 @@ export default function ProductModal() {
                   }`}
                 >
                   <ShoppingBag className="w-4 h-4" />
-                  <span>{isOutOfStock ? 'Currently Out of Stock' : `Add to Bag - ₹${(price * quantity).toLocaleString()}`}</span>
+                  <span>{isOutOfStock ? 'Currently Out of Stock' : `Add to Bag - ₹${((Number(price) || 0) * (Number(quantity) || 1)).toLocaleString()}`}</span>
                 </button>
               </div>
 

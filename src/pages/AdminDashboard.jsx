@@ -640,7 +640,7 @@ export default function AdminDashboard() {
                       </div>
                       <div className="flex justify-between items-center pt-2 border-t border-slate-800">
                         <span className="text-slate-400">Total Amount:</span>
-                        <span className="text-white font-bold text-sm">₹{ord.total.toLocaleString()}</span>
+                        <span className="text-white font-bold text-sm">₹{(Number(ord?.total) || 0).toLocaleString()}</span>
                       </div>
                       {ord.notes && (
                         <p className="text-[10px] text-slate-400 italic">Note: "{ord.notes}"</p>
@@ -865,7 +865,7 @@ export default function AdminDashboard() {
                   </div>
                   <div className="text-right">
                     <span className="text-slate-500 text-[10px] block">Total</span>
-                    <strong className="text-white font-bold text-sm">₹{ord.total.toLocaleString()}</strong>
+                    <strong className="text-white font-bold text-sm">₹{(Number(ord?.total) || 0).toLocaleString()}</strong>
                   </div>
                 </div>
               </div>
@@ -1086,7 +1086,7 @@ export default function AdminDashboard() {
                 <div className="flex-1 min-w-0 space-y-1">
                   <span className="text-[10px] text-gold-400 uppercase font-semibold">{p.category}</span>
                   <h4 className="text-white font-semibold text-xs truncate">{p.title}</h4>
-                  <p className="text-slate-300 font-bold text-xs">₹{p.price.toLocaleString()}</p>
+                  <p className="text-slate-300 font-bold text-xs">₹{(Number(p?.price) || 0).toLocaleString()}</p>
                   <span className="text-[10px] text-emerald-400 block">Stock: {p.stock} units</span>
                 </div>
 
@@ -1286,7 +1286,7 @@ export default function AdminDashboard() {
                 </div>
 
                 <p className="text-white text-xs font-semibold">{c.description}</p>
-                <p className="text-[11px] text-slate-400">Min Order: ₹{c.minAmount.toLocaleString()}</p>
+                <p className="text-[11px] text-slate-400">Min Order: ₹{Number(c?.minAmount || 0).toLocaleString()}</p>
 
                 <div className="pt-2 border-t border-slate-800 flex justify-between items-center">
                   <span className="text-[10px] text-slate-500">Exp: {c.expiry}</span>

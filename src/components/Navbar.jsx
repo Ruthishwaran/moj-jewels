@@ -410,6 +410,21 @@ export default function Navbar() {
                 </button>
 
                 <button
+                  onClick={() => { setIsCartOpen(true); setMobileMenuOpen(false); }}
+                  className="w-full flex items-center justify-between text-left py-2.5 px-3 rounded-xl bg-gold-500/15 hover:bg-gold-500/25 text-gold-300 font-bold text-xs border border-gold-500/40"
+                >
+                  <div className="flex items-center space-x-3">
+                    <ShoppingBag className="w-4 h-4 text-gold-400" />
+                    <span>View Shopping Bag & Checkout</span>
+                  </div>
+                  {totalCartCount > 0 && (
+                    <span className="bg-gold-500 text-black px-2 py-0.5 rounded-full text-[10px] font-bold">
+                      {totalCartCount}
+                    </span>
+                  )}
+                </button>
+
+                <button
                   onClick={() => { setCurrentPage('track'); setMobileMenuOpen(false); }}
                   className="w-full flex items-center space-x-3 text-left py-2.5 px-3 rounded-xl bg-slate-900/60 hover:bg-gold-500/10 text-white font-medium text-xs border border-slate-800"
                 >

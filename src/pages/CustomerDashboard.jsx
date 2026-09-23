@@ -91,7 +91,7 @@ export default function CustomerDashboard() {
                     ({c.discountType === 'percentage' ? `${c.value}% OFF` : `₹${c.value} OFF`})
                   </span>
                   <span className="text-slate-400 text-[10px] block">
-                    Min order ₹{c.minAmount?.toLocaleString() || 0}
+                    Min order ₹{Number(c?.minAmount || 0).toLocaleString()}
                   </span>
                 </div>
                 <button
@@ -196,7 +196,7 @@ export default function CustomerDashboard() {
                               {it.title}
                             </h4>
                             <span className="text-gold-400 font-bold text-[10px] block">
-                              ₹{(it.price * it.quantity).toLocaleString()}
+                              ₹{((Number(it?.price) || 0) * (Number(it?.quantity) || 1)).toLocaleString()}
                             </span>
                           </div>
                         </div>
@@ -206,7 +206,7 @@ export default function CustomerDashboard() {
 
                   <div className="md:col-span-4 text-right space-y-2 border-t md:border-t-0 border-slate-800 pt-3 md:pt-0">
                     <span className="text-[10px] text-slate-400 uppercase block">Total Amount</span>
-                    <strong className="text-white font-bold text-base">₹{ord.total.toLocaleString()}</strong>
+                    <strong className="text-white font-bold text-base">₹{(Number(ord?.total) || 0).toLocaleString()}</strong>
                     <div className="text-[11px] text-slate-400 font-mono">UTR: {ord.transactionId}</div>
                     
                     <button

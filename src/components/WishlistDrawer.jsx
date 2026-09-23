@@ -75,7 +75,7 @@ export default function WishlistDrawer() {
                         </button>
                       </div>
                       <span className="text-[10px] text-gold-400">{item.karat}</span>
-                      <p className="text-white font-bold text-sm mt-1">₹{item.price.toLocaleString()}</p>
+                      <p className="text-white font-bold text-sm mt-1">₹{(Number(item?.price) || 0).toLocaleString()}</p>
                     </div>
 
                     <button

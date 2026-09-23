@@ -114,7 +114,7 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-            {coupons.map((coupon) => (
+            {(coupons || []).map((coupon) => (
               <div 
                 key={coupon.code}
                 className="bg-slate-900/90 border border-gold-500/30 rounded-xl p-3.5 relative overflow-hidden shadow-lg flex flex-col justify-between space-y-2 hover:border-gold-500/60 transition-colors"
@@ -123,7 +123,7 @@ export default function HomePage() {
                   <span className="bg-gold-500/20 text-gold-300 border border-gold-500/40 text-xs font-bold px-2.5 py-0.5 rounded-md flex items-center gap-1">
                     <Tag className="w-3 h-3 text-gold-400" /> {coupon.code}
                   </span>
-                  <span className="text-[10px] text-slate-400">Min: ₹{coupon.minAmount.toLocaleString()}</span>
+                  <span className="text-[10px] text-slate-400">Min: ₹{Number(coupon?.minAmount || 0).toLocaleString()}</span>
                 </div>
 
                 <div>
