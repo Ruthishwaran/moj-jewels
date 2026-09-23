@@ -1,6 +1,6 @@
 import React from 'react';
 import { useStore } from '../context/StoreContext';
-import { Heart, ShoppingBag, Star, ShieldCheck, CheckCircle, ArrowRight } from 'lucide-react';
+import { Heart, ShoppingBag, Star, ShieldCheck, CheckCircle, ArrowRight, Share2, Check } from 'lucide-react';
 
 export default function ProductCard({ product }) {
   const {
@@ -33,6 +33,43 @@ export default function ProductCard({ product }) {
 
   const [currentImgIdx, setCurrentImgIdx] = React.useState(0);
   const [addedFlash, setAddedFlash] = React.useState(false);
+  const [copiedShare, setCopiedShare] = React.useState(false);
+
+  const handleShareProduct = async (e) => {
+    e.stopPropagation();
+    const shareUrl = `${window.location.origin}/?product=${encodeURIComponent(id)}`;
+    const shareTitle = `${title} — MOJ Jewels`;
+    const shareText = `Discover ${title} (₹${(Number(price) || 0).toLocaleString()}) at MOJ Jewels — Luxury Fine Jewelry!`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: shareTitle,
+          text: shareText,
+          url: shareUrl
+        });
+        return;
+      } catch (err) {
+        if (err && err.name === 'AbortError') return;
+      }
+    }
+
+    // Clipboard fallback
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopiedShare(true);
+      setTimeout(() => setCopiedShare(false), 2000);
+    } catch {
+      const input = document.createElement('input');
+      input.value = shareUrl;
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand('copy');
+      document.body.removeChild(input);
+      setCopiedShare(true);
+      setTimeout(() => setCopiedShare(false), 2000);
+    }
+  };
 
   React.useEffect(() => {
     if (imageList.length <= 1) return;
@@ -175,17 +212,45 @@ export default function ProductCard({ product }) {
             )}
           </div>
 
-          {/* Small wishlist echo at bottom */}
-          <button
-            onClick={(e) => { e.stopPropagation(); toggleWishlist(product); }}
-            className={`p-2 rounded-full border transition-all ${
-              isWishlisted
-                ? 'border-rose-500 bg-rose-500/10 text-rose-400'
-                : 'border-slate-700 text-slate-500 hover:border-rose-400 hover:text-rose-400'
-            }`}
-          >
-            <Heart className={`w-3.5 h-3.5 ${isWishlisted ? 'fill-current' : ''}`} />
-          </button>
+          <div className="flex items-center gap-1.5 relative">
+            {/* Share Product Button */}
+            <button
+              type="button"
+              onClick={handleShareProduct}
+              className={`p-2 rounded-full border transition-all active:scale-95 ${
+                copiedShare
+                  ? 'border-emerald-500 bg-emerald-500/20 text-emerald-300'
+                  : 'border-slate-700 bg-slate-900/60 text-slate-400 hover:text-gold-300 hover:border-gold-400/60'
+              }`}
+              title="Share Product Link"
+            >
+              {copiedShare ? (
+                <Check className="w-3.5 h-3.5 text-emerald-400" />
+              ) : (
+                <Share2 className="w-3.5 h-3.5" />
+              )}
+            </button>
+
+            {/* Small wishlist echo at bottom */}
+            <button
+              onClick={(e) => { e.stopPropagation(); toggleWishlist(product); }}
+              className={`p-2 rounded-full border transition-all active:scale-95 ${
+                isWishlisted
+                  ? 'border-rose-500 bg-rose-500/10 text-rose-400'
+                  : 'border-slate-700 text-slate-500 hover:border-rose-400 hover:text-rose-400'
+              }`}
+              title={isWishlisted ? 'Saved in Wishlist' : 'Add to Wishlist'}
+            >
+              <Heart className={`w-3.5 h-3.5 ${isWishlisted ? 'fill-current' : ''}`} />
+            </button>
+
+            {/* Copied tooltip bubble */}
+            {copiedShare && (
+              <span className="absolute -top-7 right-0 bg-emerald-500 text-black text-[9px] font-bold px-2 py-0.5 rounded-full shadow-lg whitespace-nowrap animate-fade-in pointer-events-none">
+                Link Copied! ✓
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </div>

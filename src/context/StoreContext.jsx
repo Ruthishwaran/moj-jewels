@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { db } from '../firebase';
 import {
   collection, doc, onSnapshot, setDoc, updateDoc, deleteDoc,
@@ -282,6 +282,22 @@ export const StoreProvider = ({ children }) => {
 
     return () => unsubs.forEach(u => u());
   }, []);
+
+  // Open shared product from URL query params (e.g. ?product=prod-12345 or ?p=prod-12345)
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const prodId = params.get('product') || params.get('p');
+      if (prodId && Array.isArray(products) && products.length > 0) {
+        const target = products.find(p => String(p.id) === String(prodId) || String(p.title).toLowerCase() === decodeURIComponent(prodId).toLowerCase());
+        if (target) {
+          setSelectedProduct(target);
+        }
+      }
+    } catch (e) {
+      console.warn('URL product param handler error:', e);
+    }
+  }, [products]);
 
   // ===== PRODUCT CRUD (Firestore) =====
   const addProduct = async (newProd) => {
@@ -842,13 +858,30 @@ export const StoreProvider = ({ children }) => {
     }
   };
 
-  // ===== ORDER PLACEMENT (Firestore) =====
+  // ===== ORDER PLACEMENT (Instant Non-Blocking with Duplicate Prevention) =====
+  const placedTransactionIds = useRef(new Set());
+
   const placeOrder = async (orderData) => {
+    const cleanTx = (orderData?.transactionId || '').trim();
+
+    // 1. Guard against duplicate orders with identical transaction ID
+    if (cleanTx) {
+      if (placedTransactionIds.current.has(cleanTx.toLowerCase())) {
+        const existing = (orders || []).find(o => o.transactionId && o.transactionId.trim().toLowerCase() === cleanTx.toLowerCase());
+        if (existing) {
+          clearCart();
+          return existing;
+        }
+      }
+      placedTransactionIds.current.add(cleanTx.toLowerCase());
+    }
+
+    const itemsToOrder = [...safeCart];
     const newOrderId = `MOJ-${Math.floor(10000 + Math.random() * 90000)}`;
     const newOrder = {
       id: newOrderId,
       date: new Date().toISOString(),
-      items: [...safeCart],
+      items: itemsToOrder,
       subtotal,
       wholesaleDiscount: wholesaleDiscountAmount,
       discount: discountAmount,
@@ -861,47 +894,54 @@ export const StoreProvider = ({ children }) => {
       ...orderData
     };
 
-    // Optimistically add to orders list
+    // 2. Optimistically add to orders list IMMEDIATELY
     setOrders(prev => [newOrder, ...(Array.isArray(prev) ? prev : [])]);
 
-    try {
-      // Write order to Firestore
-      await setDoc(doc(db, 'orders', newOrderId), newOrder);
-
-      // Record coupon usage (prevents double-redemption)
-      if (appliedCoupon) {
-        const ucId = `${appliedCoupon.code}_${user?.id || 'guest'}_${Date.now()}`;
-        await setDoc(doc(db, 'usedCoupons', ucId), {
-          code: appliedCoupon.code,
-          user: user?.email?.toLowerCase() || user?.id || 'guest',
-          email: user?.email?.toLowerCase() || '',
-          orderId: newOrderId,
-          usedAt: new Date().toISOString()
-        });
-        // Update user record
-        if (user) {
-          const updatedUser = { ...user, usedCoupons: [...(user.usedCoupons || []), appliedCoupon.code] };
-          await setDoc(doc(db, 'users', user.id), { usedCoupons: updatedUser.usedCoupons }, { merge: true });
-          setUser(updatedUser);
-        }
-      }
-
-      // Deduct stock from each product (Firestore)
-      const stockOps = safeCart.map(async (item) => {
-        const product = products.find(p => p.id === item.id);
-        if (product) {
-          const newStock = Math.max(0, (product.stock || 0) - (item.quantity || 1));
-          await setDoc(doc(db, 'products', item.id), { stock: newStock }, { merge: true });
-        }
-      });
-      await Promise.all(stockOps);
-
-    } catch (err) {
-      console.error('placeOrder error:', err);
-    }
-
+    // 3. Clear cart IMMEDIATELY
     clearCart();
+
+    // 4. Play GPay success chime IMMEDIATELY
     playOrderSuccessSound();
+
+    // 5. Asynchronously persist to Firestore in background without blocking the UI
+    (async () => {
+      try {
+        await setDoc(doc(db, 'orders', newOrderId), newOrder);
+
+        // Record coupon usage (prevents double-redemption)
+        if (appliedCoupon) {
+          const ucId = `${appliedCoupon.code}_${user?.id || 'guest'}_${Date.now()}`;
+          await setDoc(doc(db, 'usedCoupons', ucId), {
+            code: appliedCoupon.code,
+            user: user?.email?.toLowerCase() || user?.id || 'guest',
+            email: user?.email?.toLowerCase() || '',
+            orderId: newOrderId,
+            usedAt: new Date().toISOString()
+          });
+          // Update user record
+          if (user) {
+            const updatedUser = { ...user, usedCoupons: [...(user.usedCoupons || []), appliedCoupon.code] };
+            await setDoc(doc(db, 'users', user.id), { usedCoupons: updatedUser.usedCoupons }, { merge: true });
+            setUser(updatedUser);
+          }
+        }
+
+        // Deduct stock from each product (Firestore)
+        const stockOps = itemsToOrder.map(async (item) => {
+          const product = products.find(p => p.id === item.id);
+          if (product) {
+            const newStock = Math.max(0, (product.stock || 0) - (item.quantity || 1));
+            await setDoc(doc(db, 'products', item.id), { stock: newStock }, { merge: true });
+          }
+        });
+        await Promise.all(stockOps);
+
+      } catch (err) {
+        console.error('Background placeOrder persistence error:', err);
+      }
+    })();
+
+    // 6. Return newOrder INSTANTLY (0 delay!)
     return newOrder;
   };
 

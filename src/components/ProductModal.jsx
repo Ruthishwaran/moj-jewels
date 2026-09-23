@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../context/StoreContext';
-import { X, Heart, ShoppingBag, Star, ShieldCheck, Truck, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, Heart, ShoppingBag, Star, ShieldCheck, Truck, ChevronLeft, ChevronRight, Share2, Check } from 'lucide-react';
 
 export default function ProductModal() {
   const {
@@ -14,6 +14,45 @@ export default function ProductModal() {
   const [quantity, setQuantity] = useState(1);
   const [activeImgIndex, setActiveImgIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [copiedShare, setCopiedShare] = useState(false);
+
+  const handleShareProduct = async (e) => {
+    e?.stopPropagation();
+    if (!selectedProduct) return;
+    const prodId = selectedProduct.id || '';
+    const shareUrl = `${window.location.origin}/?product=${encodeURIComponent(prodId)}`;
+    const shareTitle = `${selectedProduct.title || 'Fine Jewelry'} — MOJ Jewels`;
+    const sharePrice = typeof selectedProduct.price === 'number' ? selectedProduct.price : parseFloat(selectedProduct.price) || 0;
+    const shareText = `Discover ${selectedProduct.title} (₹${sharePrice.toLocaleString()}) at MOJ Jewels — Luxury Fine Jewelry!`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: shareTitle,
+          text: shareText,
+          url: shareUrl
+        });
+        return;
+      } catch (err) {
+        if (err && err.name === 'AbortError') return;
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopiedShare(true);
+      setTimeout(() => setCopiedShare(false), 2000);
+    } catch {
+      const input = document.createElement('input');
+      input.value = shareUrl;
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand('copy');
+      document.body.removeChild(input);
+      setCopiedShare(true);
+      setTimeout(() => setCopiedShare(false), 2000);
+    }
+  };
 
   // Reset active image index on product change
   React.useEffect(() => {
@@ -233,17 +272,43 @@ export default function ProductModal() {
                 </button>
               </div>
 
-              <button
-                onClick={() => toggleWishlist(selectedProduct)}
-                className={`w-full py-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center space-x-2 transition-colors ${
-                  isWishlisted
-                    ? 'bg-rose-500/20 border-rose-500/40 text-rose-300'
-                    : 'bg-slate-900 border-slate-700 text-slate-300 hover:text-white'
-                }`}
-              >
-                <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-current text-rose-500' : ''}`} />
-                <span>{isWishlisted ? 'Saved in Wishlist' : 'Add to Wishlist'}</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleShareProduct}
+                  className={`flex-1 py-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center space-x-2 transition-all active:scale-95 ${
+                    copiedShare
+                      ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
+                      : 'bg-slate-900 border-slate-700 text-slate-300 hover:text-gold-300 hover:border-gold-400/60'
+                  }`}
+                  title="Share Product Link"
+                >
+                  {copiedShare ? (
+                    <>
+                      <Check className="w-4 h-4 text-emerald-400" />
+                      <span>Link Copied! ✓</span>
+                    </>
+                  ) : (
+                    <>
+                      <Share2 className="w-4 h-4 text-gold-400" />
+                      <span>Share Product</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => toggleWishlist(selectedProduct)}
+                  className={`flex-1 py-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center space-x-2 transition-colors active:scale-95 ${
+                    isWishlisted
+                      ? 'bg-rose-500/20 border-rose-500/40 text-rose-300'
+                      : 'bg-slate-900 border-slate-700 text-slate-300 hover:text-white'
+                  }`}
+                >
+                  <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-current text-rose-500' : ''}`} />
+                  <span>{isWishlisted ? 'In Wishlist' : 'Add to Wishlist'}</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

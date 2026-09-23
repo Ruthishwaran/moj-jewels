@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useStore } from '../context/StoreContext';
 import {
   ShieldCheck,
@@ -21,6 +21,7 @@ import {
 export default function CheckoutPage() {
   const {
     cart,
+    orders,
     subtotal,
     discountAmount,
     grandTotal,
@@ -41,6 +42,7 @@ export default function CheckoutPage() {
   const [couponInput, setCouponInput] = useState('');
   const [couponMsg, setCouponMsg] = useState(null);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const isSubmittingRef = useRef(false);
 
   // Form Fields
   const [customerName, setCustomerName] = useState(user?.name || '');
@@ -110,13 +112,31 @@ export default function CheckoutPage() {
 
   const handleCompleteOrder = async (e) => {
     e.preventDefault();
-    if (!transactionId.trim()) {
+    if (isSubmittingRef.current || isPlacingOrder) {
+      return; // Absolute lock against multiple rapid clicks
+    }
+
+    const cleanTx = transactionId.trim();
+    if (!cleanTx) {
       alert('Please enter your 12-digit UTR / Transaction Reference ID from your UPI app.');
       return;
     }
 
+    // Check if an order with this UTR was already completed in this session or in existing orders
+    const duplicateOrder = (orders || []).find(
+      o => o.transactionId && o.transactionId.trim().toLowerCase() === cleanTx.toLowerCase()
+    );
+    if (duplicateOrder) {
+      // Prevent duplicate order creation! Directly show the confirmation for this order!
+      setCreatedOrder(duplicateOrder);
+      setStep(3);
+      return;
+    }
+
+    isSubmittingRef.current = true;
+    setIsPlacingOrder(true);
+
     try {
-      setIsPlacingOrder(true);
       const fullAddress = `${shippingAddress.trim()}, ${city.trim()} - ${pincode.trim()}`;
       const newOrd = await placeOrder({
         customerName: customerName.trim(),
@@ -124,17 +144,16 @@ export default function CheckoutPage() {
         customerEmail: customerEmail.trim(),
         shippingAddress: fullAddress,
         paymentMethod: 'Manual UPI QR',
-        transactionId: transactionId.trim(),
+        transactionId: cleanTx,
         notes: notes || 'Submitted by customer'
       });
 
       setCreatedOrder(newOrd);
-      if (playOrderSuccessSound) playOrderSuccessSound();
       setStep(3);
     } catch (err) {
       console.error('Order placement failed:', err);
       alert('Order placement encountered an error. Please try again.');
-    } finally {
+      isSubmittingRef.current = false;
       setIsPlacingOrder(false);
     }
   };
@@ -559,10 +578,24 @@ export default function CheckoutPage() {
 
                 <button
                   type="submit"
-                  className="w-full btn-gold-shimmer py-4 rounded-xl font-bold text-sm flex items-center justify-center space-x-2 shadow-2xl"
+                  disabled={isPlacingOrder}
+                  className={`w-full py-4 rounded-xl font-bold text-sm flex items-center justify-center space-x-2 shadow-2xl transition-all ${
+                    isPlacingOrder
+                      ? 'bg-amber-600/70 text-black/70 cursor-not-allowed opacity-80'
+                      : 'btn-gold-shimmer text-black active:scale-[0.99]'
+                  }`}
                 >
-                  <CheckCircle2 className="w-5 h-5 text-black" />
-                  <span>Submit Payment & Finalize Order</span>
+                  {isPlacingOrder ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                      <span>Confirming Order...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-5 h-5 text-black" />
+                      <span>Submit Payment & Finalize Order</span>
+                    </>
+                  )}
                 </button>
               </form>
             </div>
