@@ -183,8 +183,15 @@ export default function ProductCard({ product }) {
       >
         <div>
           <div className="flex items-center justify-between text-xs mb-1">
-            <span className="text-gold-400 font-medium uppercase tracking-wider text-[10px]">{category}</span>
-            <span className="flex items-center text-amber-400 gap-1 font-semibold">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-gold-400 font-medium uppercase tracking-wider text-[10px]">{category}</span>
+              {product.subCategory && (
+                <span className="text-amber-200/90 bg-amber-500/10 border border-amber-500/25 px-1.5 py-0.5 rounded text-[9px] font-medium">
+                  {product.subCategory}
+                </span>
+              )}
+            </div>
+            <span className="flex items-center text-amber-400 gap-1 font-semibold shrink-0">
               <Star className="w-3 h-3 fill-current" />
               {rating} <span className="text-slate-500 font-normal">({reviewsCount})</span>
             </span>

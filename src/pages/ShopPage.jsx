@@ -7,6 +7,7 @@ export default function ShopPage() {
   const {
     products,
     categories: storeCategories,
+    subCategories,
     searchQuery,
     setSearchQuery,
     selectedCategory,
@@ -17,18 +18,26 @@ export default function ShopPage() {
   } = useStore();
 
   const [sortBy, setSortBy] = useState('featured'); // 'featured', 'price-low', 'price-high', 'rating'
+  const [selectedSubCategory, setSelectedSubCategory] = useState('All');
 
   const categories = storeCategories || ['All', 'Rings', 'Necklaces', 'Earrings', 'Bracelets'];
 
   const safeProducts = Array.isArray(products) ? products : [];
 
+  const handleCategoryChange = (cat) => {
+    setSelectedCategory(cat);
+    setSelectedSubCategory('All');
+  };
+
   let filtered = safeProducts.filter(p => {
     const titleMatch = p.title ? p.title.toLowerCase().includes(searchQuery.toLowerCase()) : false;
     const catMatch = p.category ? p.category.toLowerCase().includes(searchQuery.toLowerCase()) : false;
+    const subCatMatch = p.subCategory ? p.subCategory.toLowerCase().includes(searchQuery.toLowerCase()) : false;
     const karatMatch = p.karat ? p.karat.toLowerCase().includes(searchQuery.toLowerCase()) : false;
-    const matchesSearch = titleMatch || catMatch || karatMatch;
+    const matchesSearch = titleMatch || catMatch || subCatMatch || karatMatch;
     const matchesCategory = selectedCategory === 'All' || (p.category && p.category.toLowerCase() === selectedCategory.toLowerCase());
-    return matchesSearch && matchesCategory;
+    const matchesSubCategory = selectedSubCategory === 'All' || (p.subCategory && p.subCategory.toLowerCase() === selectedSubCategory.toLowerCase());
+    return matchesSearch && matchesCategory && matchesSubCategory;
   });
 
   if (sortBy === 'price-low') {
@@ -70,50 +79,84 @@ export default function ShopPage() {
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="glass-card p-4 rounded-2xl border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
-        {/* Search Bar */}
-        <div className="relative w-full md:w-80">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            placeholder="Search gold rings, necklaces..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-900 border border-slate-700/80 text-white text-xs rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:border-gold-400"
-          />
+      <div className="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+          {/* Search Bar */}
+          <div className="relative w-full md:w-80">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Search gold rings, necklaces..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-slate-900 border border-slate-700/80 text-white text-xs rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:border-gold-400"
+            />
+          </div>
+
+          {/* Categories Pills */}
+          <div className="flex flex-wrap gap-2 w-full md:w-auto justify-center">
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => handleCategoryChange(cat)}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all ${
+                  selectedCategory === cat
+                    ? 'bg-gold-500 text-black font-semibold shadow-md'
+                    : 'bg-slate-900 border border-slate-800 text-slate-300 hover:text-white'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+
+          {/* Sorting Dropdown */}
+          <div className="flex items-center space-x-2 w-full md:w-auto justify-end">
+            <SlidersHorizontal className="w-4 h-4 text-slate-400" />
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="bg-slate-900 border border-slate-700/80 text-white text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-gold-400"
+            >
+              <option value="featured">Featured Jewels</option>
+              <option value="price-low">Price: Low to High</option>
+              <option value="price-high">Price: High to Low</option>
+              <option value="rating">Top Customer Rated</option>
+            </select>
+          </div>
         </div>
 
-        {/* Categories Pills */}
-        <div className="flex flex-wrap gap-2 w-full md:w-auto justify-center">
-          {categories.map((cat) => (
+        {/* Sub-Categories Style Pills */}
+        {selectedCategory !== 'All' && Array.isArray(subCategories?.[selectedCategory]) && subCategories[selectedCategory].length > 0 && (
+          <div className="pt-2 border-t border-slate-800/80 flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none animate-fade-in">
+            <span className="text-[10px] text-gold-400 font-semibold uppercase tracking-wider shrink-0 mr-1">
+              Styles:
+            </span>
             <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all ${
-                selectedCategory === cat
-                  ? 'bg-gold-500 text-black font-semibold shadow-md'
-                  : 'bg-slate-900 border border-slate-800 text-slate-300 hover:text-white'
+              onClick={() => setSelectedSubCategory('All')}
+              className={`px-3 py-1 rounded-lg text-[11px] font-semibold transition-all shrink-0 ${
+                selectedSubCategory === 'All'
+                  ? 'bg-amber-400 text-black shadow-sm'
+                  : 'bg-slate-900 border border-slate-700/80 text-slate-300 hover:text-white'
               }`}
             >
-              {cat}
+              All {selectedCategory}
             </button>
-          ))}
-        </div>
-
-        {/* Sorting Dropdown */}
-        <div className="flex items-center space-x-2 w-full md:w-auto justify-end">
-          <SlidersHorizontal className="w-4 h-4 text-slate-400" />
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="bg-slate-900 border border-slate-700/80 text-white text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-gold-400"
-          >
-            <option value="featured">Featured Jewels</option>
-            <option value="price-low">Price: Low to High</option>
-            <option value="price-high">Price: High to Low</option>
-            <option value="rating">Top Customer Rated</option>
-          </select>
-        </div>
+            {subCategories[selectedCategory].map((sub) => (
+              <button
+                key={sub}
+                onClick={() => setSelectedSubCategory(sub)}
+                className={`px-3 py-1 rounded-lg text-[11px] font-medium transition-all shrink-0 ${
+                  selectedSubCategory === sub
+                    ? 'bg-amber-400 text-black shadow-sm font-semibold'
+                    : 'bg-slate-900 border border-slate-700/80 text-slate-300 hover:text-white'
+                }`}
+              >
+                {sub}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Catalog Grid */}
