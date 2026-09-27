@@ -6,7 +6,6 @@ import {
 } from 'firebase/firestore';
 import {
   INITIAL_PRODUCTS,
-  INITIAL_SUB_CATEGORIES,
   INITIAL_COUPONS,
   INITIAL_BANNERS,
   INITIAL_PAYMENT_CONFIG
@@ -33,8 +32,7 @@ export const StoreProvider = ({ children }) => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  // Instant Fast Loading: Never block the UI on load or refresh
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
 
@@ -63,14 +61,9 @@ export const StoreProvider = ({ children }) => {
   const [isAppInstallable, setIsAppInstallable] = useState(false);
   const [isInstallModalOpen, setIsInstallModalOpen] = useState(false);
 
-  // ===== Cloud State (Firestore — with localStorage instant caching for 0ms refresh) =====
-  const [products, setProducts] = useState(() => {
-    const cached = safeParseJSON('moj_products_cache', []);
-    // Filter out the 6 demo items if present in old cache
-    const demoIds = ['prod-1', 'prod-2', 'prod-3', 'prod-4', 'prod-5', 'prod-6'];
-    return Array.isArray(cached) ? cached.filter(p => !demoIds.includes(p.id)) : [];
-  });
-  const [orders, setOrders] = useState(() => safeParseJSON('moj_orders_cache', []));
+  // ===== Cloud State (Firestore — SAME across ALL devices) =====
+  const [products, setProducts] = useState(INITIAL_PRODUCTS);
+  const [orders, setOrders] = useState([]);
   const [registeredUsers, setRegisteredUsers] = useState([]);
   const [coupons, setCoupons] = useState(INITIAL_COUPONS);
   const [usedCoupons, setUsedCoupons] = useState([]);
@@ -82,10 +75,9 @@ export const StoreProvider = ({ children }) => {
       return [];
     }
   });
-  const [categories, setCategories] = useState(() => safeParseJSON('moj_categories_cache', [
-    'All', 'Necklace', 'Bangles', 'Daily Wear & Earrings', 'Bangles & Bracelets', 'Bridal Sets', 'Antique & Temple', 'Rings'
-  ]));
-  const [subCategories, setSubCategories] = useState(() => safeParseJSON('moj_subcategories_cache', INITIAL_SUB_CATEGORIES));
+  const [categories, setCategories] = useState([
+    'All', 'Rings', 'Necklaces', 'Earrings', 'Bracelets', 'Antique Sets', 'Temple Jewellery', 'Bridal Sets'
+  ]);
   const [banners, setBanners] = useState(INITIAL_BANNERS);
   const [paymentConfig, setPaymentConfigState] = useState(INITIAL_PAYMENT_CONFIG);
 
@@ -116,84 +108,78 @@ export const StoreProvider = ({ children }) => {
     try { localStorage.setItem('moj_wishlist', JSON.stringify(wishlist)); } catch {}
   }, [wishlist]);
 
-  // ===== ONE-TIME PURGE OF DEMO TESTING PRODUCTS (prod-1 to prod-6) =====
-  useEffect(() => {
-    try {
-      if (localStorage.getItem('moj_demo_purged_v2') === 'true') return;
-      localStorage.setItem('moj_demo_purged_v2', 'true');
-    } catch {}
-    const purgeDemoProducts = async () => {
-      const demoIds = ['prod-1', 'prod-2', 'prod-3', 'prod-4', 'prod-5', 'prod-6'];
-      try {
-        for (const id of demoIds) {
-          try {
-            await deleteDoc(doc(db, 'products', id));
-          } catch (e) {}
-        }
-        // Purge demo items from local state and cache
-        setProducts(prev => (Array.isArray(prev) ? prev : []).filter(p => !demoIds.includes(p?.id)));
-        try {
-          const cached = safeParseJSON('moj_products_cache', []);
-          const cleaned = cached.filter(p => !demoIds.includes(p?.id));
-          localStorage.setItem('moj_products_cache', JSON.stringify(cleaned));
-        } catch (e) {}
-      } catch (err) {
-        console.warn('Demo products purge note:', err);
-      }
-    };
-    purgeDemoProducts();
-  }, []);
-
-  // ===== CROSS-TAB INSTANT ORDERS SYNC (BroadcastChannel) =====
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.BroadcastChannel) return;
-    const channel = new BroadcastChannel('moj_orders_channel');
-    channel.onmessage = (event) => {
-      if (event.data?.type === 'NEW_ORDER' && event.data?.order) {
-        setOrders(prev => {
-          const safePrev = Array.isArray(prev) ? prev : [];
-          if (safePrev.some(o => o.id === event.data.order.id)) return safePrev;
-          const updated = [event.data.order, ...safePrev];
-          try { localStorage.setItem('moj_orders_cache', JSON.stringify(updated)); } catch (e) {}
-          return updated;
-        });
-      }
-    };
-    return () => channel.close();
-  }, []);
-
-  // ===== FIRESTORE REAL-TIME LISTENERS (Non-blocking with instant local caching) =====
+  // ===== FIRESTORE REAL-TIME LISTENERS + INITIAL SEEDING =====
   useEffect(() => {
     const unsubs = [];
-    const demoIds = ['prod-1', 'prod-2', 'prod-3', 'prod-4', 'prod-5', 'prod-6'];
+
+    // Seed Firestore with initial data if empty
+    const seedIfEmpty = async () => {
+      try {
+        // Seed products
+        const prodSnap = await getDocs(collection(db, 'products'));
+        if (prodSnap.empty) {
+          const batch = writeBatch(db);
+          INITIAL_PRODUCTS.forEach(p => {
+            batch.set(doc(db, 'products', p.id), { ...p, createdAt: Date.now() });
+          });
+          await batch.commit();
+        }
+
+        // Seed coupons
+        const couponSnap = await getDocs(collection(db, 'coupons'));
+        if (couponSnap.empty) {
+          const batch = writeBatch(db);
+          INITIAL_COUPONS.forEach(c => {
+            batch.set(doc(db, 'coupons', c.code), c);
+          });
+          await batch.commit();
+        }
+
+        // Seed config (categories, banners, payment)
+        const cfgSnap = await getDocs(collection(db, 'config'));
+        if (cfgSnap.empty) {
+          await setDoc(doc(db, 'config', 'main'), {
+            categories: ['All', 'Rings', 'Necklaces', 'Earrings', 'Bracelets', 'Antique Sets', 'Temple Jewellery', 'Bridal Sets'],
+            banners: INITIAL_BANNERS,
+            payment: INITIAL_PAYMENT_CONFIG,
+            updatedAt: new Date().toISOString()
+          });
+        }
+      } catch (err) {
+        console.warn('Firestore seeding error:', err);
+      }
+    };
+
+    seedIfEmpty();
 
     // Real-time listener: Products
     const prodUnsub = onSnapshot(
       collection(db, 'products'),
       snap => {
-        const rawDocs = snap.docs.map(d => ({ ...d.data(), id: d.id }));
-        // Filter out demo/testing items permanently
-        const cleanProds = rawDocs.filter(p => !demoIds.includes(p.id));
-        cleanProds.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-        setProducts(cleanProds);
-        try { localStorage.setItem('moj_products_cache', JSON.stringify(cleanProds)); } catch (e) {}
+        const data = snap.docs.map(d => ({ ...d.data(), id: d.id }));
+        if (data.length > 0) {
+          data.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+          setProducts(data);
+        } else {
+          setProducts(INITIAL_PRODUCTS);
+        }
         setIsLoading(false);
       },
       err => {
         console.warn('Products listener error:', err);
+        setProducts(INITIAL_PRODUCTS);
         setIsLoading(false);
       }
     );
     unsubs.push(prodUnsub);
 
-    // Real-time listener: Orders (instantly synced across devices)
+    // Real-time listener: Orders
     const ordUnsub = onSnapshot(
       collection(db, 'orders'),
       snap => {
         const data = snap.docs.map(d => ({ ...d.data(), id: d.id }));
-        data.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+        data.sort((a, b) => new Date(b.date) - new Date(a.date));
         setOrders(data);
-        try { localStorage.setItem('moj_orders_cache', JSON.stringify(data)); } catch (e) {}
       },
       err => console.warn('Orders listener error:', err)
     );
@@ -279,20 +265,13 @@ export const StoreProvider = ({ children }) => {
     );
     unsubs.push(revUnsub);
 
-    // Real-time listener: Config (categories, subCategories, banners, payment)
+    // Real-time listener: Config (categories, banners, payment)
     const cfgUnsub = onSnapshot(
       doc(db, 'config', 'main'),
       snap => {
         if (snap.exists()) {
           const data = snap.data();
-          if (data.categories && Array.isArray(data.categories)) {
-            setCategories(data.categories);
-            try { localStorage.setItem('moj_categories_cache', JSON.stringify(data.categories)); } catch (e) {}
-          }
-          if (data.subCategories && typeof data.subCategories === 'object') {
-            setSubCategories(data.subCategories);
-            try { localStorage.setItem('moj_subcategories_cache', JSON.stringify(data.subCategories)); } catch (e) {}
-          }
+          if (data.categories && Array.isArray(data.categories)) setCategories(data.categories);
           if (data.banners && Array.isArray(data.banners)) setBanners(data.banners);
           if (data.payment) setPaymentConfigState(data.payment);
         }
@@ -366,8 +345,6 @@ export const StoreProvider = ({ children }) => {
     const clean = catName.trim();
     if (!categories.includes(clean)) {
       const newCats = [...categories, clean];
-      setCategories(newCats);
-      try { localStorage.setItem('moj_categories_cache', JSON.stringify(newCats)); } catch (e) {}
       try {
         await setDoc(doc(db, 'config', 'main'), { categories: newCats, updatedAt: new Date().toISOString() }, { merge: true });
       } catch (err) {
@@ -379,51 +356,10 @@ export const StoreProvider = ({ children }) => {
   const deleteCategory = async (catName) => {
     if (catName === 'All') return;
     const newCats = categories.filter(c => c !== catName);
-    setCategories(newCats);
-    try { localStorage.setItem('moj_categories_cache', JSON.stringify(newCats)); } catch (e) {}
     try {
       await setDoc(doc(db, 'config', 'main'), { categories: newCats, updatedAt: new Date().toISOString() }, { merge: true });
     } catch (err) {
       console.error('deleteCategory error:', err);
-    }
-  };
-
-  // ===== SUB-CATEGORY CRUD (Firestore) =====
-  const addSubCategory = async (catName, subCatName) => {
-    if (!catName || !subCatName) return;
-    const cleanCat = catName.trim();
-    const cleanSub = subCatName.trim();
-    if (!cleanCat || !cleanSub) return;
-
-    const currentMap = { ...(subCategories || {}) };
-    const list = Array.isArray(currentMap[cleanCat]) ? [...currentMap[cleanCat]] : [];
-    if (!list.includes(cleanSub)) {
-      list.push(cleanSub);
-      currentMap[cleanCat] = list;
-      setSubCategories(currentMap);
-      try { localStorage.setItem('moj_subcategories_cache', JSON.stringify(currentMap)); } catch (e) {}
-      try {
-        await setDoc(doc(db, 'config', 'main'), { subCategories: currentMap, updatedAt: new Date().toISOString() }, { merge: true });
-      } catch (err) {
-        console.error('addSubCategory error:', err);
-      }
-    }
-  };
-
-  const deleteSubCategory = async (catName, subCatName) => {
-    if (!catName || !subCatName) return;
-    const cleanCat = catName.trim();
-    const cleanSub = subCatName.trim();
-    const currentMap = { ...(subCategories || {}) };
-    const list = Array.isArray(currentMap[cleanCat]) ? [...currentMap[cleanCat]] : [];
-    const filtered = list.filter(s => s !== cleanSub);
-    currentMap[cleanCat] = filtered;
-    setSubCategories(currentMap);
-    try { localStorage.setItem('moj_subcategories_cache', JSON.stringify(currentMap)); } catch (e) {}
-    try {
-      await setDoc(doc(db, 'config', 'main'), { subCategories: currentMap, updatedAt: new Date().toISOString() }, { merge: true });
-    } catch (err) {
-      console.error('deleteSubCategory error:', err);
     }
   };
 
@@ -961,17 +897,7 @@ export const StoreProvider = ({ children }) => {
       placedTransactionIds.current.add(cleanTx.toLowerCase());
     }
 
-    // Clean itemsToOrder to ensure lightweight payload
-    const itemsToOrder = safeCart.map(item => ({
-      id: item.id,
-      title: item.title,
-      price: item.price,
-      quantity: item.quantity,
-      selectedColor: item.selectedColor || '',
-      selectedSize: item.selectedSize || '',
-      image: item.image || '/images/hero_banner.jpg'
-    }));
-
+    const itemsToOrder = [...safeCart];
     const newOrderId = `MOJ-${Math.floor(10000 + Math.random() * 90000)}`;
     const newOrder = {
       id: newOrderId,
@@ -998,30 +924,11 @@ export const StoreProvider = ({ children }) => {
     // 4. Play GPay success chime IMMEDIATELY
     playOrderSuccessSound();
 
-    // 5. Update local cache and BroadcastChannel for 0ms cross-tab sync
-    try {
-      const cached = safeParseJSON('moj_orders_cache', []);
-      const updatedOrders = [newOrder, ...cached.filter(o => o.id !== newOrderId)];
-      localStorage.setItem('moj_orders_cache', JSON.stringify(updatedOrders));
-      if (typeof window !== 'undefined' && window.BroadcastChannel) {
-        const channel = new BroadcastChannel('moj_orders_channel');
-        channel.postMessage({ type: 'NEW_ORDER', order: newOrder });
-        channel.close();
-      }
-    } catch (e) {}
-
-    // 6. Persist to Firestore with a fast 2.5s safeguard timeout
-    try {
-      const savePromise = setDoc(doc(db, 'orders', newOrderId), newOrder);
-      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2500));
-      await Promise.race([savePromise, timeoutPromise]);
-    } catch (err) {
-      console.warn('placeOrder fast write note:', err);
-    }
-
-    // 7. Background operations (coupons and stock reduction)
+    // 5. Asynchronously persist to Firestore in background without blocking the UI
     (async () => {
       try {
+        await setDoc(doc(db, 'orders', newOrderId), newOrder);
+
         // Record coupon usage (prevents double-redemption)
         if (appliedCoupon) {
           const ucId = `${appliedCoupon.code}_${user?.id || 'guest'}_${Date.now()}`;
@@ -1049,28 +956,14 @@ export const StoreProvider = ({ children }) => {
           }
         });
         await Promise.all(stockOps);
+
       } catch (err) {
-        console.error('Background operations error:', err);
+        console.error('Background placeOrder persistence error:', err);
       }
     })();
 
-    // 8. Return newOrder INSTANTLY (0 delay!)
+    // 6. Return newOrder INSTANTLY (0 delay!)
     return newOrder;
-  };
-
-  // Direct manual or automatic on-demand order refresh from Firestore
-  const refreshOrders = async () => {
-    try {
-      const snap = await getDocs(collection(db, 'orders'));
-      const data = snap.docs.map(d => ({ ...d.data(), id: d.id }));
-      data.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
-      setOrders(data);
-      try { localStorage.setItem('moj_orders_cache', JSON.stringify(data)); } catch (e) {}
-      return data;
-    } catch (err) {
-      console.warn('refreshOrders error:', err);
-      return orders;
-    }
   };
 
   // ===== ADMIN ORDER ACTIONS (Firestore with Instant Optimistic Sync) =====
@@ -1159,9 +1052,6 @@ export const StoreProvider = ({ children }) => {
       categories,
       addCategory,
       deleteCategory,
-      subCategories,
-      addSubCategory,
-      deleteSubCategory,
       products: Array.isArray(products) ? products : [],
       addProduct,
       editProduct,
@@ -1174,7 +1064,6 @@ export const StoreProvider = ({ children }) => {
       paymentConfig: paymentConfig || INITIAL_PAYMENT_CONFIG,
       setPaymentConfig,
       orders: Array.isArray(orders) ? orders : [],
-      refreshOrders,
       placeOrder,
       verifyOrderPayment,
       updateOrderStatus,
