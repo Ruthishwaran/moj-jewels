@@ -195,7 +195,18 @@ export const StoreProvider = ({ children }) => {
     const unsubs = [];
     const demoIds = ['prod-1', 'prod-2', 'prod-3', 'prod-4', 'prod-5', 'prod-6'];
 
-    // Real-time listener: Products
+    // IMMEDIATE one-shot fetch: loads products into UI instantly, before onSnapshot fires
+    getDocs(collection(db, 'products')).then(snap => {
+      const rawDocs = snap.docs.map(d => ({ ...d.data(), id: d.id }));
+      const cleanProds = rawDocs.filter(p => !demoIds.includes(p.id));
+      cleanProds.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      if (cleanProds.length > 0) {
+        setProducts(cleanProds);
+        try { localStorage.setItem('moj_products_cache', JSON.stringify(cleanProds)); } catch (e) {}
+      }
+    }).catch(e => console.warn('Initial products fetch note:', e));
+
+    // Real-time listener: Products (keeps UI updated after any change)
     const prodUnsub = onSnapshot(
       collection(db, 'products'),
       snap => {
@@ -210,7 +221,6 @@ export const StoreProvider = ({ children }) => {
           setProducts(cleanProds);
           try { localStorage.setItem('moj_products_cache', JSON.stringify(cleanProds)); } catch (e) {}
         }
-        // If Firestore returns 0 products, keep existing cached state (user's products are safe)
         setIsLoading(false);
       },
       err => {
