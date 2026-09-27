@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from '../context/StoreContext';
 import { compressImage } from '../utils/imageCompressor';
 import {
@@ -24,12 +24,16 @@ import {
   BarChart2,
   Calendar,
   RefreshCw,
-  Star
+  Star,
+  Layers,
+  ChevronRight,
+  FolderPlus
 } from 'lucide-react';
 
 export default function AdminDashboard() {
   const {
     orders,
+    refreshOrders,
     verifyOrderPayment,
     updateOrderStatus,
     products,
@@ -45,6 +49,9 @@ export default function AdminDashboard() {
     categories,
     addCategory,
     deleteCategory,
+    subCategories,
+    addSubCategory,
+    deleteSubCategory,
     reviews,
     addReview,
     deleteReview,
@@ -57,8 +64,66 @@ export default function AdminDashboard() {
 
   const [activeTab, setActiveTab] = useState('payments'); // 'payments', 'orders', 'products', 'categories', 'customers', 'coupons', 'qr-settings'
 
-  // Dynamic Category State
+  // Dynamic Category & Sub-Category State
   const [newCatInput, setNewCatInput] = useState('');
+  const [selectedCatForSub, setSelectedCatForSub] = useState('Necklace');
+  const [newSubCatName, setNewSubCatName] = useState('');
+  const [isRefreshingOrders, setIsRefreshingOrders] = useState(false);
+  const [customSubCatInput, setCustomSubCatInput] = useState('');
+  const [editCustomSubCatInput, setEditCustomSubCatInput] = useState('');
+  const previousOrdersCountRef = useRef(orders?.length || 0);
+
+  // ── Auto-Sync Heartbeat (every 4 seconds + tab focus/visibility change) ──
+  useEffect(() => {
+    const handleSync = async () => {
+      try {
+        if (typeof refreshOrders === 'function') await refreshOrders();
+      } catch (e) {}
+    };
+
+    const intervalId = setInterval(handleSync, 4000);
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') handleSync();
+    };
+    const onWindowFocus = () => {
+      handleSync();
+    };
+
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    window.addEventListener('focus', onWindowFocus);
+
+    return () => {
+      clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      window.removeEventListener('focus', onWindowFocus);
+    };
+  }, [refreshOrders]);
+
+  // ── Audible Notification when New Customer Order Arrives in Admin Page ──
+  useEffect(() => {
+    if (orders && orders.length > previousOrdersCountRef.current && previousOrdersCountRef.current > 0) {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) {
+          const ctx = new AudioCtx();
+          if (ctx.state === 'suspended') ctx.resume();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(880, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(1760, ctx.currentTime + 0.15);
+          gain.gain.setValueAtTime(0.25, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.5);
+        }
+      } catch (e) {}
+    }
+    previousOrdersCountRef.current = orders ? orders.length : 0;
+  }, [orders]);
 
   // Product Modal State
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
@@ -721,22 +786,45 @@ export default function AdminDashboard() {
         <div className="space-y-6 animate-fade-in">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-card p-4 rounded-2xl border border-amber-500/30">
             <div>
-              <h2 className="text-xl font-serif font-bold text-white flex items-center gap-2">
-                <QrCode className="w-5 h-5 text-amber-400" /> Pending UTR Transaction Verifications
-              </h2>
-              <span className="text-xs text-amber-200/70">
-                Sorted Date-Wise (Newest First) &bull; Inspect customer submitted transaction IDs and approve orders.
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <h2 className="text-xl font-serif font-bold text-white flex items-center gap-2">
+                  <QrCode className="w-5 h-5 text-amber-400" /> Pending UTR Transaction Verifications
+                </h2>
+                <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-[10px] font-bold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>LIVE REAL-TIME SYNC</span>
+                </div>
+              </div>
+              <span className="text-xs text-amber-200/70 block mt-0.5">
+                Auto-syncs every 4s &bull; Inspect customer submitted transaction IDs and approve orders.
               </span>
             </div>
-            {pendingVerifications.length > 0 && (
+
+            <div className="flex items-center gap-2 flex-wrap">
               <button
-                onClick={downloadPendingPdf}
-                className="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/50 px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-md active:scale-95 whitespace-nowrap"
+                type="button"
+                onClick={async () => {
+                  setIsRefreshingOrders(true);
+                  if (typeof refreshOrders === 'function') await refreshOrders();
+                  setTimeout(() => setIsRefreshingOrders(false), 500);
+                }}
+                className="bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700 px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors active:scale-95 whitespace-nowrap"
+                title="Force refresh orders from cloud"
               >
-                <Download className="w-4 h-4 text-amber-400" />
-                <span>Download Pending Orders PDF</span>
+                <RefreshCw className={`w-3.5 h-3.5 text-gold-400 ${isRefreshingOrders ? 'animate-spin' : ''}`} />
+                <span>Sync Now</span>
               </button>
-            )}
+
+              {pendingVerifications.length > 0 && (
+                <button
+                  onClick={downloadPendingPdf}
+                  className="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/50 px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all shadow-md active:scale-95 whitespace-nowrap"
+                >
+                  <Download className="w-4 h-4 text-amber-400" />
+                  <span>Download PDF</span>
+                </button>
+              )}
+            </div>
           </div>
 
           {pendingVerifications.length === 0 ? (
@@ -888,11 +976,30 @@ export default function AdminDashboard() {
         <div className="space-y-6 animate-fade-in">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
             <div>
-              <h2 className="text-xl font-serif font-bold text-white flex items-center gap-2">
-                <Package className="w-5 h-5 text-gold-400" /> Order Management & Tracking
-              </h2>
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <h2 className="text-xl font-serif font-bold text-white flex items-center gap-2">
+                  <Package className="w-5 h-5 text-gold-400" /> Order Management & Tracking
+                </h2>
+                <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-[10px] font-bold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>LIVE REAL-TIME SYNC</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setIsRefreshingOrders(true);
+                    if (typeof refreshOrders === 'function') await refreshOrders();
+                    setTimeout(() => setIsRefreshingOrders(false), 500);
+                  }}
+                  className="bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700 px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors active:scale-95"
+                  title="Force refresh orders from cloud"
+                >
+                  <RefreshCw className={`w-3 h-3 text-gold-400 ${isRefreshingOrders ? 'animate-spin' : ''}`} />
+                  <span>Sync Now</span>
+                </button>
+              </div>
               <p className="text-xs text-slate-400 mt-1">
-                Filter orders by status and date range for daily store fulfillment.
+                Auto-syncs every 4s &bull; Filter orders by status and date range for daily store fulfillment.
               </p>
             </div>
 
@@ -1646,7 +1753,10 @@ export default function AdminDashboard() {
                         <label className="text-slate-300 block mb-1 font-medium">Category</label>
                         <select
                           value={newProdCategory}
-                          onChange={(e) => setNewProdCategory(e.target.value)}
+                          onChange={(e) => {
+                            setNewProdCategory(e.target.value);
+                            setNewProdSubCategory('');
+                          }}
                           className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
                         >
                           {(categories || ['Rings', 'Necklaces', 'Earrings', 'Bracelets', 'Antique Sets', 'Temple Jewellery', 'Bridal Sets']).filter(c => c !== 'All').map(cat => (
@@ -1656,14 +1766,43 @@ export default function AdminDashboard() {
                       </div>
 
                       <div>
-                        <label className="text-slate-300 block mb-1 font-medium">Sub-Category / Style</label>
-                        <input
-                          type="text"
-                          placeholder="e.g. Choker, Long Haram, Kada Bangle, Jhumka"
-                          value={newProdSubCategory}
-                          onChange={(e) => setNewProdSubCategory(e.target.value)}
-                          className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
-                        />
+                        <div className="flex justify-between items-center mb-1">
+                          <label className="text-slate-300 font-medium">Sub-Category / Style</label>
+                          <span className="text-[10px] text-amber-400 font-normal">Select or custom</span>
+                        </div>
+                        <div className="space-y-1.5">
+                          <select
+                            value={
+                              (subCategories?.[newProdCategory] || []).includes(newProdSubCategory)
+                                ? newProdSubCategory
+                                : (newProdSubCategory ? '__custom__' : '')
+                            }
+                            onChange={(e) => {
+                              if (e.target.value === '__custom__') {
+                                setNewProdSubCategory('');
+                              } else {
+                                setNewProdSubCategory(e.target.value);
+                              }
+                            }}
+                            className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
+                          >
+                            <option value="">-- Choose {newProdCategory} Sub-Category --</option>
+                            {(subCategories?.[newProdCategory] || []).map(sc => (
+                              <option key={sc} value={sc}>{sc}</option>
+                            ))}
+                            <option value="__custom__">✏️ + Enter Custom Sub-Category</option>
+                          </select>
+
+                          {(!newProdSubCategory || !(subCategories?.[newProdCategory] || []).includes(newProdSubCategory)) && (
+                            <input
+                              type="text"
+                              placeholder={`Or type style (e.g. AD ${newProdCategory}, Matte)`}
+                              value={newProdSubCategory}
+                              onChange={(e) => setNewProdSubCategory(e.target.value)}
+                              className="w-full bg-slate-950 border border-amber-500/40 rounded-xl p-2 text-white focus:border-gold-400 text-xs placeholder-slate-500"
+                            />
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -2035,7 +2174,10 @@ export default function AdminDashboard() {
                         <label className="text-slate-300 block mb-1 font-medium">Category</label>
                         <select
                           value={editProdCategory}
-                          onChange={(e) => setEditProdCategory(e.target.value)}
+                          onChange={(e) => {
+                            setEditProdCategory(e.target.value);
+                            setEditProdSubCategory('');
+                          }}
                           className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
                         >
                           {(categories || ['Rings', 'Necklaces', 'Earrings', 'Bracelets', 'Antique Sets', 'Temple Jewellery', 'Bridal Sets']).filter(c => c !== 'All').map(cat => (
@@ -2045,14 +2187,43 @@ export default function AdminDashboard() {
                       </div>
 
                       <div>
-                        <label className="text-slate-300 block mb-1 font-medium">Sub-Category / Style</label>
-                        <input
-                          type="text"
-                          placeholder="e.g. Choker, Long Haram, Kada Bangle, Jhumka"
-                          value={editProdSubCategory}
-                          onChange={(e) => setEditProdSubCategory(e.target.value)}
-                          className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
-                        />
+                        <div className="flex justify-between items-center mb-1">
+                          <label className="text-slate-300 font-medium">Sub-Category / Style</label>
+                          <span className="text-[10px] text-amber-400 font-normal">Select or custom</span>
+                        </div>
+                        <div className="space-y-1.5">
+                          <select
+                            value={
+                              (subCategories?.[editProdCategory] || []).includes(editProdSubCategory)
+                                ? editProdSubCategory
+                                : (editProdSubCategory ? '__custom__' : '')
+                            }
+                            onChange={(e) => {
+                              if (e.target.value === '__custom__') {
+                                setEditProdSubCategory('');
+                              } else {
+                                setEditProdSubCategory(e.target.value);
+                              }
+                            }}
+                            className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
+                          >
+                            <option value="">-- Choose {editProdCategory} Sub-Category --</option>
+                            {(subCategories?.[editProdCategory] || []).map(sc => (
+                              <option key={sc} value={sc}>{sc}</option>
+                            ))}
+                            <option value="__custom__">✏️ + Enter Custom Sub-Category</option>
+                          </select>
+
+                          {(!editProdSubCategory || !(subCategories?.[editProdCategory] || []).includes(editProdSubCategory)) && (
+                            <input
+                              type="text"
+                              placeholder={`Or type style (e.g. AD ${editProdCategory}, Matte)`}
+                              value={editProdSubCategory}
+                              onChange={(e) => setEditProdSubCategory(e.target.value)}
+                              className="w-full bg-slate-950 border border-amber-500/40 rounded-xl p-2 text-white focus:border-gold-400 text-xs placeholder-slate-500"
+                            />
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -2393,6 +2564,300 @@ export default function AdminDashboard() {
                 </div>
               </div>
             )}
+          </div>
+        );
+      })()}
+
+      {/* TAB: Categories & Sub-Categories Management */}
+      {activeTab === 'categories' && (() => {
+        const validCategories = (categories || ['Necklaces', 'Bangles', 'Earrings', 'Rings', 'Bridal Sets', 'Antique & Temple']).filter(c => c !== 'All');
+        const currentActiveCat = validCategories.includes(selectedCatForSub) ? selectedCatForSub : (validCategories[0] || 'Necklaces');
+        const activeSubCatList = Array.isArray(subCategories?.[currentActiveCat]) 
+          ? subCategories[currentActiveCat] 
+          : [];
+
+        // Predefined quick-suggestions per jewelry type
+        const quickSuggestions = {
+          'Necklaces': ['AD Necklace', 'Matte Necklace', 'Choker', 'Long Haram', 'Temple Necklace', 'Antique Necklace', 'Bridal Necklace', 'Collar Necklace', 'Layered Chain'],
+          'Necklace': ['AD Necklace', 'Matte Necklace', 'Choker', 'Long Haram', 'Temple Necklace', 'Antique Necklace', 'Bridal Necklace'],
+          'Bangles': ['Premium Bangle', 'AD Bangle', 'Matte Bangle', 'Kada Bangle', 'Antique Bangle', 'Daily Wear Bangle', 'Openable Bracelet Bangle'],
+          'Bangles & Bracelets': ['Premium Bangle', 'AD Bangle', 'Matte Bangle', 'Kada Bangle', 'Antique Bangle', 'Daily Wear Bangle'],
+          'Earrings': ['Jhumkas', 'Studs', 'Chandbali', 'Danglers', 'Ear Cuffs', 'Daily Wear Earrings', 'Sui Dhaga'],
+          'Daily Wear & Earrings': ['Jhumkas', 'Studs', 'Chandbali', 'Danglers', 'Daily Wear Earrings'],
+          'Rings': ['Solitaire Ring', 'Floral Ring', 'AD Ring', 'Band Ring', 'Adjustable Ring', 'Cocktail Ring'],
+          'Bridal Sets': ['Choker Set', 'Full Bridal Set', 'Temple Bridal Set', 'AD Bridal Set', 'Antique Set', 'Reception Set'],
+          'Antique Sets': ['Temple Antique Set', 'Goddess Motif Set', 'Kemp Antique Set'],
+          'Antique & Temple': ['Temple Haram', 'Goddess Pendant', 'Antique Choker', 'Kemp Set'],
+          'Temple Jewellery': ['Temple Haram', 'Kasumala', 'Goddess Pendant', 'Kemp Set'],
+          'Bracelets': ['AD Bracelet', 'Chain Bracelet', 'Kada Bracelet', 'Charm Bracelet']
+        };
+
+        const currentSuggestions = quickSuggestions[currentActiveCat] || [
+          `AD ${currentActiveCat}`,
+          `Matte ${currentActiveCat}`,
+          `Premium ${currentActiveCat}`,
+          `Antique ${currentActiveCat}`,
+          `Daily Wear ${currentActiveCat}`
+        ];
+
+        const handleAddMainCategory = (e) => {
+          e.preventDefault();
+          const clean = newCatInput.trim();
+          if (!clean) return;
+          addCategory(clean);
+          setSelectedCatForSub(clean);
+          setNewCatInput('');
+        };
+
+        const handleAddSubCategory = (e) => {
+          e.preventDefault();
+          const clean = newSubCatName.trim();
+          if (!clean) return;
+          addSubCategory(currentActiveCat, clean);
+          setNewSubCatName('');
+        };
+
+        return (
+          <div className="space-y-6 animate-fade-in">
+            {/* Header */}
+            <div className="glass-card p-6 rounded-2xl border border-amber-500/40 bg-gradient-to-r from-amber-950/40 via-slate-900 to-amber-950/40 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <div className="inline-flex items-center space-x-2 bg-amber-500/10 border border-amber-500/30 px-3 py-1 rounded-full text-amber-300 text-xs font-semibold mb-2">
+                  <Layers className="w-3.5 h-3.5" />
+                  <span>Catalog Taxonomy & Navigation</span>
+                </div>
+                <h2 className="text-2xl font-serif font-bold text-white flex items-center gap-2">
+                  Categories & Sub-Categories Manager
+                </h2>
+                <p className="text-xs text-slate-400 mt-1 max-w-2xl">
+                  Organize your jewelry catalog with Main Categories (e.g. Necklaces, Bangles) and specialized Sub-Categories (e.g. AD Necklace, Matte Finish, Choker, Kada Bangle). Both customer store navigation and Admin product creator will automatically reflect these.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="bg-slate-950/80 px-4 py-2.5 rounded-xl border border-slate-800 text-center">
+                  <span className="text-slate-400 text-[10px] uppercase block">Total Categories</span>
+                  <strong className="text-amber-400 text-base font-bold">{validCategories.length}</strong>
+                </div>
+                <div className="bg-slate-950/80 px-4 py-2.5 rounded-xl border border-slate-800 text-center">
+                  <span className="text-slate-400 text-[10px] uppercase block">Total Sub-Categories</span>
+                  <strong className="text-emerald-400 text-base font-bold">
+                    {Object.values(subCategories || {}).reduce((acc, list) => acc + (Array.isArray(list) ? list.length : 0), 0)}
+                  </strong>
+                </div>
+              </div>
+            </div>
+
+            {/* Dual Column Layout: Left = Main Categories, Right = Sub-Categories */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {/* LEFT COLUMN: Main Categories (5 cols) */}
+              <div className="lg:col-span-5 space-y-4">
+                <div className="glass-card p-5 rounded-2xl border border-slate-800 space-y-4">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <h3 className="text-white font-serif font-bold text-sm flex items-center gap-2">
+                      <FolderPlus className="w-4 h-4 text-amber-400" />
+                      <span>Main Categories</span>
+                      <span className="bg-slate-800 text-slate-300 text-[11px] px-2 py-0.5 rounded-full">
+                        {validCategories.length}
+                      </span>
+                    </h3>
+                  </div>
+
+                  {/* Add New Category Input */}
+                  <form onSubmit={handleAddMainCategory} className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="New category name (e.g. Mangalsutra)..."
+                      value={newCatInput}
+                      onChange={(e) => setNewCatInput(e.target.value)}
+                      className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
+                    />
+                    <button
+                      type="submit"
+                      disabled={!newCatInput.trim()}
+                      className="btn-gold-shimmer px-4 py-2 rounded-xl text-xs font-semibold text-black disabled:opacity-40 flex items-center gap-1 shrink-0"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add</span>
+                    </button>
+                  </form>
+
+                  {/* Categories List */}
+                  <div className="space-y-2 max-h-[560px] overflow-y-auto pr-1">
+                    {validCategories.map(cat => {
+                      const isSelected = currentActiveCat === cat;
+                      const subCount = (subCategories?.[cat] || []).length;
+                      const prodCount = (products || []).filter(p => p.category === cat).length;
+
+                      return (
+                        <div
+                          key={cat}
+                          onClick={() => setSelectedCatForSub(cat)}
+                          className={`p-3.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between group ${
+                            isSelected
+                              ? 'bg-amber-500/15 border-amber-500/60 shadow-lg text-white'
+                              : 'bg-slate-900/80 border-slate-800 hover:border-slate-700 text-slate-300'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <span className={`w-2 h-2 rounded-full shrink-0 ${isSelected ? 'bg-amber-400 shadow-sm shadow-amber-400' : 'bg-slate-600'}`} />
+                            <div className="truncate">
+                              <span className={`font-semibold text-xs block truncate ${isSelected ? 'text-amber-300' : 'text-white'}`}>
+                                {cat}
+                              </span>
+                              <div className="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
+                                <span>{subCount} sub-categories</span>
+                                <span>•</span>
+                                <span>{prodCount} products</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (window.confirm(`Are you sure you want to delete category "${cat}"? Products in this category will keep their label until edited.`)) {
+                                  deleteCategory(cat);
+                                  if (currentActiveCat === cat) {
+                                    const next = validCategories.find(c => c !== cat);
+                                    if (next) setSelectedCatForSub(next);
+                                  }
+                                }
+                              }}
+                              className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                              title={`Delete ${cat}`}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                            <ChevronRight className={`w-4 h-4 transition-transform ${isSelected ? 'text-amber-400 translate-x-0.5' : 'text-slate-600'}`} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* RIGHT COLUMN: Sub-Categories Manager (7 cols) */}
+              <div className="lg:col-span-7 space-y-4">
+                <div className="glass-card p-5 rounded-2xl border border-amber-500/30 space-y-4">
+                  {/* Selected Category Header */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800 pb-3 gap-2">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <Tag className="w-4 h-4 text-amber-400" />
+                        <h3 className="text-white font-serif font-bold text-base">
+                          Sub-Categories for: <span className="text-amber-300">{currentActiveCat}</span>
+                        </h3>
+                        <span className="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] px-2 py-0.5 rounded-full font-bold">
+                          {activeSubCatList.length} configured
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-400 mt-0.5">
+                        Items added here appear in product form dropdowns and allow customers to filter specifically by style.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Add Sub-Category Input Form */}
+                  <form onSubmit={handleAddSubCategory} className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder={`Add new sub-category for ${currentActiveCat} (e.g. AD Style, Matte Finish)...`}
+                      value={newSubCatName}
+                      onChange={(e) => setNewSubCatName(e.target.value)}
+                      className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
+                    />
+                    <button
+                      type="submit"
+                      disabled={!newSubCatName.trim()}
+                      className="btn-gold-shimmer px-5 py-2.5 rounded-xl text-xs font-semibold text-black disabled:opacity-40 flex items-center gap-1.5 shrink-0"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add Sub-Category</span>
+                    </button>
+                  </form>
+
+                  {/* Quick-Suggestion Pills */}
+                  {currentSuggestions.some(s => !activeSubCatList.includes(s)) && (
+                    <div className="pt-1">
+                      <span className="text-[10px] text-slate-400 block mb-1.5 font-medium uppercase tracking-wider">
+                        ⚡ Quick Suggestions (Click to Add):
+                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {currentSuggestions
+                          .filter(s => !activeSubCatList.includes(s))
+                          .map(suggestion => (
+                            <button
+                              key={suggestion}
+                              type="button"
+                              onClick={() => addSubCategory(currentActiveCat, suggestion)}
+                              className="text-[11px] bg-slate-900/90 hover:bg-amber-500/20 border border-slate-700/80 hover:border-amber-500/40 text-slate-300 hover:text-amber-200 px-2.5 py-1 rounded-lg transition-all flex items-center gap-1"
+                            >
+                              <Plus className="w-2.5 h-2.5 text-amber-400" />
+                              <span>{suggestion}</span>
+                            </button>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Sub-Categories Active List / Badges */}
+                  <div className="pt-2">
+                    <span className="text-[10px] text-slate-400 block mb-2 font-medium uppercase tracking-wider">
+                      Current Active Sub-Categories ({activeSubCatList.length}):
+                    </span>
+
+                    {activeSubCatList.length === 0 ? (
+                      <div className="text-center py-10 bg-slate-900/50 rounded-xl border border-dashed border-slate-800 space-y-2">
+                        <Tag className="w-8 h-8 text-slate-600 mx-auto" />
+                        <p className="text-slate-400 text-xs">No sub-categories configured for {currentActiveCat} yet.</p>
+                        <p className="text-slate-500 text-[11px]">Type a name above or click one of the quick suggestions.</p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[460px] overflow-y-auto pr-1">
+                        {activeSubCatList.map(subCat => {
+                          const matchingProds = (products || []).filter(
+                            p => p.category === currentActiveCat && (p.subCategory === subCat || p.subCategory?.toLowerCase() === subCat.toLowerCase())
+                          ).length;
+
+                          return (
+                            <div
+                              key={subCat}
+                              className="bg-slate-900/90 border border-slate-800 hover:border-amber-500/30 p-3 rounded-xl flex items-center justify-between group transition-all"
+                            >
+                              <div className="min-w-0 pr-2">
+                                <span className="font-semibold text-xs text-white block truncate">
+                                  {subCat}
+                                </span>
+                                <span className="text-[10px] text-slate-400 block mt-0.5">
+                                  {matchingProds} {matchingProds === 1 ? 'product' : 'products'} listed
+                                </span>
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (window.confirm(`Remove sub-category "${subCat}" from ${currentActiveCat}?`)) {
+                                    deleteSubCategory(currentActiveCat, subCat);
+                                  }
+                                }}
+                                className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors shrink-0"
+                                title={`Delete ${subCat}`}
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         );
       })()}

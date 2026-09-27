@@ -220,7 +220,14 @@ export default function ProductModal() {
           <div className="p-6 md:p-8 flex flex-col justify-between space-y-6">
             <div>
               <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
-                <span className="text-gold-400 font-semibold uppercase">{category}</span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-gold-400 font-semibold uppercase">{category}</span>
+                  {selectedProduct.subCategory && (
+                    <span className="text-amber-200/90 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded-full text-[10px] font-medium">
+                      {selectedProduct.subCategory}
+                    </span>
+                  )}
+                </div>
                 <span className="flex items-center text-amber-400 gap-1">
                   <Star className="w-4 h-4 fill-current" />
                   {rating} ({reviewsCount} reviews)
