@@ -73,7 +73,7 @@ export default function AdminDashboard() {
   const [editCustomSubCatInput, setEditCustomSubCatInput] = useState('');
   const previousOrdersCountRef = useRef(orders?.length || 0);
 
-  // ── Auto-Sync Heartbeat (every 4 seconds + tab focus/visibility change) ──
+  // ── On-mount refresh + tab focus/visibility sync (onSnapshot handles real-time) ──
   useEffect(() => {
     const handleSync = async () => {
       try {
@@ -81,7 +81,8 @@ export default function AdminDashboard() {
       } catch (e) {}
     };
 
-    const intervalId = setInterval(handleSync, 4000);
+    // Refresh once on mount to get latest orders immediately
+    handleSync();
 
     const onVisibilityChange = () => {
       if (document.visibilityState === 'visible') handleSync();
@@ -94,11 +95,11 @@ export default function AdminDashboard() {
     window.addEventListener('focus', onWindowFocus);
 
     return () => {
-      clearInterval(intervalId);
       document.removeEventListener('visibilitychange', onVisibilityChange);
       window.removeEventListener('focus', onWindowFocus);
     };
   }, [refreshOrders]);
+
 
   // ── Audible Notification when New Customer Order Arrives in Admin Page ──
   useEffect(() => {

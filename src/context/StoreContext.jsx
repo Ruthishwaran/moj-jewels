@@ -33,14 +33,9 @@ export const StoreProvider = ({ children }) => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  // Instant Fast Loading: if cached products exist, do not show blocking full-page loading screen!
-  const [isLoading, setIsLoading] = useState(() => {
-    try {
-      const cached = localStorage.getItem('moj_products_cache');
-      if (cached && JSON.parse(cached).length > 0) return false;
-    } catch (e) {}
-    return true;
-  });
+  // Always start with no blocking screen — products load from cache instantly, Firestore syncs in background
+  const [isLoading, setIsLoading] = useState(false);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
 
@@ -102,6 +97,33 @@ export const StoreProvider = ({ children }) => {
     }
   }, []);
 
+  // ===== RETRY PENDING ORDERS (in case Firestore was offline during order placement) =====
+  useEffect(() => {
+    const retryPendingOrders = async () => {
+      try {
+        const raw = localStorage.getItem('moj_pending_orders');
+        if (!raw) return;
+        const queue = JSON.parse(raw);
+        if (!Array.isArray(queue) || queue.length === 0) return;
+        const remaining = [];
+        for (const order of queue) {
+          try {
+            await setDoc(doc(db, 'orders', order.id), order);
+            console.log('[MOJ] Synced pending order:', order.id);
+          } catch (e) {
+            remaining.push(order); // keep for next retry
+          }
+        }
+        if (remaining.length === 0) localStorage.removeItem('moj_pending_orders');
+        else localStorage.setItem('moj_pending_orders', JSON.stringify(remaining));
+      } catch (e) {}
+    };
+    // Delay 3s to let Firestore connection establish
+    const t = setTimeout(retryPendingOrders, 3000);
+    return () => clearTimeout(t);
+  }, []);
+
+
   // ===== Sync session-only data to localStorage =====
   useEffect(() => {
     try {
@@ -124,6 +146,8 @@ export const StoreProvider = ({ children }) => {
 
   // ===== ONE-TIME PURGE OF DEMO TESTING PRODUCTS (prod-1 to prod-6) =====
   useEffect(() => {
+    // Only run once ever — skip if already purged
+    if (localStorage.getItem('moj_demo_purged_v3') === 'done') return;
     const purgeDemoProducts = async () => {
       const demoIds = ['prod-1', 'prod-2', 'prod-3', 'prod-4', 'prod-5', 'prod-6'];
       try {
@@ -139,12 +163,14 @@ export const StoreProvider = ({ children }) => {
           const cleaned = cached.filter(p => !demoIds.includes(p?.id));
           localStorage.setItem('moj_products_cache', JSON.stringify(cleaned));
         } catch (e) {}
+        localStorage.setItem('moj_demo_purged_v3', 'done');
       } catch (err) {
         console.warn('Demo products purge note:', err);
       }
     };
     purgeDemoProducts();
   }, []);
+
 
   // ===== CROSS-TAB INSTANT ORDERS SYNC (BroadcastChannel) =====
   useEffect(() => {
@@ -1012,14 +1038,29 @@ export const StoreProvider = ({ children }) => {
       }
     } catch (e) {}
 
-    // 6. Persist to Firestore with a fast 2.5s safeguard timeout
-    try {
-      const savePromise = setDoc(doc(db, 'orders', newOrderId), newOrder);
-      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2500));
-      await Promise.race([savePromise, timeoutPromise]);
-    } catch (err) {
-      console.warn('placeOrder fast write note:', err);
+    // 6. Persist to Firestore — retry up to 3 times to guarantee order reaches admin
+    let saved = false;
+    for (let attempt = 1; attempt <= 3 && !saved; attempt++) {
+      try {
+        const savePromise = setDoc(doc(db, 'orders', newOrderId), newOrder);
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000));
+        await Promise.race([savePromise, timeoutPromise]);
+        saved = true;
+      } catch (err) {
+        console.warn(`placeOrder Firestore write attempt ${attempt} failed:`, err);
+        if (attempt < 3) await new Promise(r => setTimeout(r, 1000)); // wait 1s before retry
+      }
     }
+    if (!saved) {
+      // Final fallback: store in localStorage pending queue so it can be retried
+      try {
+        const queue = JSON.parse(localStorage.getItem('moj_pending_orders') || '[]');
+        queue.push(newOrder);
+        localStorage.setItem('moj_pending_orders', JSON.stringify(queue));
+        console.warn('Order queued locally — will sync when connection improves.');
+      } catch (e) {}
+    }
+
 
     // 7. Background operations (coupons and stock reduction)
     (async () => {

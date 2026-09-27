@@ -4,7 +4,7 @@ import App from './App.jsx'
 import './index.css'
 
 // Version-based cache busting - any version mismatch clears ALL stored data
-const APP_VERSION = '2.0';
+const APP_VERSION = '2.1';
 const storedVersion = localStorage.getItem('moj_app_version');
 
 if (storedVersion !== APP_VERSION) {
