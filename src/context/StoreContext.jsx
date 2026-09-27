@@ -12,6 +12,7 @@ import {
   INITIAL_PAYMENT_CONFIG
 } from '../data/initialData';
 import { getIdbProducts, saveIdbProducts } from '../utils/idbProducts';
+import { fetchProductsViaRest } from '../utils/fetchProductsRest';
 
 const StoreContext = createContext();
 
@@ -145,10 +146,12 @@ export const StoreProvider = ({ children }) => {
     try { localStorage.setItem('moj_wishlist', JSON.stringify(wishlist)); } catch {}
   }, [wishlist]);
 
-  // ===== Restore Products from IndexedDB (High capacity, 0ms instant display) =====
+  // ===== Restore Products from IndexedDB & Universal REST Fail-Safe (Mobile + Desktop) =====
   useEffect(() => {
+    const demoIds = ['prod-1', 'prod-2', 'prod-3', 'prod-4', 'prod-5', 'prod-6'];
+    
+    // 1. Check local IndexedDB cache first (10-15ms)
     getIdbProducts().then((idbList) => {
-      const demoIds = ['prod-1', 'prod-2', 'prod-3', 'prod-4', 'prod-5', 'prod-6'];
       const valid = (idbList || []).filter(p => p && p.id && !demoIds.includes(p.id));
       if (valid.length > 0) {
         setProducts(prev => {
@@ -158,6 +161,16 @@ export const StoreProvider = ({ children }) => {
           return prev;
         });
         setIsLoading(false);
+      } else {
+        // 2. If IndexedDB is empty (e.g. mobile fresh visit), immediately fetch via REST API
+        fetchProductsViaRest().then(restList => {
+          const validRest = (restList || []).filter(p => p && p.id && !demoIds.includes(p.id));
+          if (validRest.length > 0) {
+            setProducts(prev => (prev.length < validRest.length ? validRest : prev));
+            saveIdbProducts(validRest);
+            setIsLoading(false);
+          }
+        });
       }
     });
   }, []);
