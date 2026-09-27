@@ -35,19 +35,7 @@ function MainContent() {
   } = useStore();
   const [showPwaBanner, setShowPwaBanner] = useState(true);
 
-  // Loading screen while Firestore syncs data
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-[#0b0f19] flex items-center justify-center flex-col gap-5">
-        <div style={{ width: 56, height: 56, border: '4px solid rgba(212,175,55,0.2)', borderTopColor: '#d4af37', borderRadius: '50%', animation: 'spin 0.9s linear infinite' }} />
-        <div className="text-center">
-          <p className="text-gold-400 font-serif text-lg font-bold tracking-widest">MOJ JEWELS</p>
-          <p className="text-slate-400 text-xs mt-1">Connecting to store...</p>
-        </div>
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-      </div>
-    );
-  }
+  // Instant Non-Blocking Render: Never freeze the screen with a blocking loading page
 
 
   const renderPage = () => {
@@ -71,6 +59,10 @@ function MainContent() {
 
   return (
     <div className="min-h-screen flex flex-col justify-between bg-[#0b0f19] text-slate-100">
+      {/* Sleek Non-Blocking Background Sync Line (Never Blocks UI or Freezes Screen) */}
+      {isLoading && (
+        <div className="fixed top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-500 via-gold-300 to-amber-500 animate-pulse z-50 pointer-events-none" />
+      )}
 
 
       {isAdminView && isAdminAuthenticated ? (

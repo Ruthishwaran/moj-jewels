@@ -33,14 +33,8 @@ export const StoreProvider = ({ children }) => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  // Instant Fast Loading: if cached products exist, do not show blocking full-page loading screen!
-  const [isLoading, setIsLoading] = useState(() => {
-    try {
-      const cached = localStorage.getItem('moj_products_cache');
-      if (cached && JSON.parse(cached).length > 0) return false;
-    } catch (e) {}
-    return true;
-  });
+  // Instant Fast Loading: Never block the UI on load or refresh
+  const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
 
@@ -124,6 +118,10 @@ export const StoreProvider = ({ children }) => {
 
   // ===== ONE-TIME PURGE OF DEMO TESTING PRODUCTS (prod-1 to prod-6) =====
   useEffect(() => {
+    try {
+      if (localStorage.getItem('moj_demo_purged_v2') === 'true') return;
+      localStorage.setItem('moj_demo_purged_v2', 'true');
+    } catch {}
     const purgeDemoProducts = async () => {
       const demoIds = ['prod-1', 'prod-2', 'prod-3', 'prod-4', 'prod-5', 'prod-6'];
       try {
