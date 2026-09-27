@@ -203,8 +203,14 @@ export const StoreProvider = ({ children }) => {
         // Filter out demo/testing items permanently
         const cleanProds = rawDocs.filter(p => !demoIds.includes(p.id));
         cleanProds.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-        setProducts(cleanProds);
-        try { localStorage.setItem('moj_products_cache', JSON.stringify(cleanProds)); } catch (e) {}
+
+        // SAFETY: Only update products if Firestore returned real data.
+        // Never overwrite with empty — that would make products disappear on network blips.
+        if (cleanProds.length > 0) {
+          setProducts(cleanProds);
+          try { localStorage.setItem('moj_products_cache', JSON.stringify(cleanProds)); } catch (e) {}
+        }
+        // If Firestore returns 0 products, keep existing cached state (user's products are safe)
         setIsLoading(false);
       },
       err => {
@@ -213,6 +219,7 @@ export const StoreProvider = ({ children }) => {
       }
     );
     unsubs.push(prodUnsub);
+
 
     // Real-time listener: Orders (instantly synced across devices)
     const ordUnsub = onSnapshot(
