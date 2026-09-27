@@ -1,7 +1,7 @@
 // Firebase configuration for MOJ Jewels
 // Project: moj-jewels-58b8c
 import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: "AIzaSyDmvlo-MYNMdHzdNquGFdUfZpG6aIcJkyB",
@@ -14,4 +14,20 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
+
+let dbInstance;
+try {
+  if (typeof window !== 'undefined' && typeof window.indexedDB !== 'undefined') {
+    dbInstance = initializeFirestore(app, {
+      localCache: persistentLocalCache({
+        tabManager: persistentMultipleTabManager()
+      })
+    });
+  } else {
+    dbInstance = getFirestore(app);
+  }
+} catch (e) {
+  dbInstance = getFirestore(app);
+}
+
+export const db = dbInstance;

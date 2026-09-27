@@ -11,6 +11,7 @@ import {
   INITIAL_BANNERS,
   INITIAL_PAYMENT_CONFIG
 } from '../data/initialData';
+import { getIdbProducts, saveIdbProducts } from '../utils/idbProducts';
 
 const StoreContext = createContext();
 
@@ -144,33 +145,22 @@ export const StoreProvider = ({ children }) => {
     try { localStorage.setItem('moj_wishlist', JSON.stringify(wishlist)); } catch {}
   }, [wishlist]);
 
-  // ===== ONE-TIME PURGE OF DEMO TESTING PRODUCTS (prod-1 to prod-6) =====
+  // ===== Restore Products from IndexedDB (High capacity, 0ms instant display) =====
   useEffect(() => {
-    // Only run once ever — skip if already purged
-    if (localStorage.getItem('moj_demo_purged_v3') === 'done') return;
-    const purgeDemoProducts = async () => {
+    getIdbProducts().then((idbList) => {
       const demoIds = ['prod-1', 'prod-2', 'prod-3', 'prod-4', 'prod-5', 'prod-6'];
-      try {
-        for (const id of demoIds) {
-          try {
-            await deleteDoc(doc(db, 'products', id));
-          } catch (e) {}
-        }
-        // Purge demo items from local state and cache
-        setProducts(prev => (Array.isArray(prev) ? prev : []).filter(p => !demoIds.includes(p?.id)));
-        try {
-          const cached = safeParseJSON('moj_products_cache', []);
-          const cleaned = cached.filter(p => !demoIds.includes(p?.id));
-          localStorage.setItem('moj_products_cache', JSON.stringify(cleaned));
-        } catch (e) {}
-        localStorage.setItem('moj_demo_purged_v3', 'done');
-      } catch (err) {
-        console.warn('Demo products purge note:', err);
+      const valid = (idbList || []).filter(p => p && p.id && !demoIds.includes(p.id));
+      if (valid.length > 0) {
+        setProducts(prev => {
+          if (!prev || prev.length < valid.length) {
+            return valid.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+          }
+          return prev;
+        });
+        setIsLoading(false);
       }
-    };
-    purgeDemoProducts();
+    });
   }, []);
-
 
   // ===== CROSS-TAB INSTANT ORDERS SYNC (BroadcastChannel) =====
   useEffect(() => {
@@ -195,31 +185,30 @@ export const StoreProvider = ({ children }) => {
     const unsubs = [];
     const demoIds = ['prod-1', 'prod-2', 'prod-3', 'prod-4', 'prod-5', 'prod-6'];
 
-    // IMMEDIATE one-shot fetch: loads products into UI instantly, before onSnapshot fires
-    getDocs(collection(db, 'products')).then(snap => {
-      const rawDocs = snap.docs.map(d => ({ ...d.data(), id: d.id }));
-      const cleanProds = rawDocs.filter(p => !demoIds.includes(p.id));
-      cleanProds.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-      if (cleanProds.length > 0) {
-        setProducts(cleanProds);
-        try { localStorage.setItem('moj_products_cache', JSON.stringify(cleanProds)); } catch (e) {}
-      }
-    }).catch(e => console.warn('Initial products fetch note:', e));
-
-    // Real-time listener: Products (keeps UI updated after any change)
+    // Real-time listener: Products (supported by persistentLocalCache and IndexedDB)
     const prodUnsub = onSnapshot(
       collection(db, 'products'),
       snap => {
         const rawDocs = snap.docs.map(d => ({ ...d.data(), id: d.id }));
-        // Filter out demo/testing items permanently
         const cleanProds = rawDocs.filter(p => !demoIds.includes(p.id));
         cleanProds.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 
-        // SAFETY: Only update products if Firestore returned real data.
-        // Never overwrite with empty — that would make products disappear on network blips.
         if (cleanProds.length > 0) {
           setProducts(cleanProds);
-          try { localStorage.setItem('moj_products_cache', JSON.stringify(cleanProds)); } catch (e) {}
+          // Persist all products with images in high-capacity IndexedDB
+          saveIdbProducts(cleanProds);
+
+          // Save lightweight version without large base64 strings to localStorage
+          try {
+            const lite = cleanProds.map(p => ({
+              ...p,
+              image: (typeof p.image === 'string' && p.image.startsWith('data:')) ? '' : (p.image || ''),
+              images: Array.isArray(p.images)
+                ? p.images.map(img => (typeof img === 'string' && img.startsWith('data:')) ? '' : (img || ''))
+                : []
+            }));
+            localStorage.setItem('moj_products_cache', JSON.stringify(lite));
+          } catch (e) {}
         }
         setIsLoading(false);
       },
@@ -1006,7 +995,7 @@ export const StoreProvider = ({ children }) => {
       placedTransactionIds.current.add(cleanTx.toLowerCase());
     }
 
-    // Clean itemsToOrder to ensure lightweight payload
+    // Clean itemsToOrder to ensure lightweight payload (< 3KB instead of 2MB base64)
     const itemsToOrder = safeCart.map(item => ({
       id: item.id,
       title: item.title,
@@ -1014,7 +1003,7 @@ export const StoreProvider = ({ children }) => {
       quantity: item.quantity,
       selectedColor: item.selectedColor || '',
       selectedSize: item.selectedSize || '',
-      image: item.image || '/images/hero_banner.jpg'
+      image: (typeof item.image === 'string' && item.image.startsWith('data:')) ? '' : (item.image || '')
     }));
 
     const newOrderId = `MOJ-${Math.floor(10000 + Math.random() * 90000)}`;
@@ -1055,28 +1044,19 @@ export const StoreProvider = ({ children }) => {
       }
     } catch (e) {}
 
-    // 6. Persist to Firestore — retry up to 3 times to guarantee order reaches admin
-    let saved = false;
-    for (let attempt = 1; attempt <= 3 && !saved; attempt++) {
-      try {
-        const savePromise = setDoc(doc(db, 'orders', newOrderId), newOrder);
-        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000));
-        await Promise.race([savePromise, timeoutPromise]);
-        saved = true;
-      } catch (err) {
-        console.warn(`placeOrder Firestore write attempt ${attempt} failed:`, err);
-        if (attempt < 3) await new Promise(r => setTimeout(r, 1000)); // wait 1s before retry
-      }
-    }
-    if (!saved) {
-      // Final fallback: store in localStorage pending queue so it can be retried
+    // 6. Persist to Firestore with guaranteed sync
+    try {
+      await setDoc(doc(db, 'orders', newOrderId), newOrder);
+      console.log('[MOJ] Order saved to Firestore:', newOrderId);
+    } catch (err) {
+      console.warn('placeOrder Firestore write initial try failed, queueing:', err);
       try {
         const queue = JSON.parse(localStorage.getItem('moj_pending_orders') || '[]');
         queue.push(newOrder);
         localStorage.setItem('moj_pending_orders', JSON.stringify(queue));
-        console.warn('Order queued locally — will sync when connection improves.');
       } catch (e) {}
     }
+
 
 
     // 7. Background operations (coupons and stock reduction)

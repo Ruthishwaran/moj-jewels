@@ -35,8 +35,8 @@ function MainContent() {
   } = useStore();
   const [showPwaBanner, setShowPwaBanner] = useState(true);
 
-  // Loading screen while Firestore syncs data
-  if (isLoading) {
+  // Loading screen while Firestore syncs data (only for storefront, never blocks admin)
+  if (isLoading && currentPage !== 'admin') {
     return (
       <div className="min-h-screen bg-[#0b0f19] flex items-center justify-center flex-col gap-5">
         <div style={{ width: 56, height: 56, border: '4px solid rgba(212,175,55,0.2)', borderTopColor: '#d4af37', borderRadius: '50%', animation: 'spin 0.9s linear infinite' }} />
