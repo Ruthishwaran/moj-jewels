@@ -193,35 +193,57 @@ export const StoreProvider = ({ children }) => {
     return () => channel.close();
   }, []);
 
-  // ===== FIRESTORE REAL-TIME LISTENERS (Non-blocking with instant local caching) =====
+  // ===== FIRESTORE REAL-TIME LISTENERS (with immediate getDocs for instant first load) =====
   useEffect(() => {
     const unsubs = [];
     const demoIds = ['prod-1', 'prod-2', 'prod-3', 'prod-4', 'prod-5', 'prod-6'];
 
-    // Real-time listener: Products (supported by persistentLocalCache and IndexedDB)
+    // ── IMMEDIATE FETCH: Load products NOW (full images) before onSnapshot fires ──
+    // Products have base64 images (~80KB each × 103 products = ~8MB).
+    // With persistentLocalCache, this getDocs reads from LOCAL DISK on repeat visits — instant!
+    getDocs(collection(db, 'products'))
+      .then(snap => {
+        const prods = snap.docs.map(d => ({ ...d.data(), id: d.id }))
+          .filter(p => !demoIds.includes(p.id))
+          .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        if (prods.length > 0) {
+          setProducts(prods);
+          saveIdbProducts(prods); // IndexedDB for ultra-fast next visit
+        }
+      })
+      .catch(e => console.warn('Initial products fetch:', e));
+
+    // ── IMMEDIATE FETCH: Load config/payment NOW before onSnapshot fires ──
+    getDocs && getDocs(collection(db, 'config'))
+      .then(snap => {
+        snap.docs.forEach(d => {
+          if (d.id === 'main') {
+            const data = d.data();
+            if (data.categories && Array.isArray(data.categories)) {
+              setCategories(data.categories);
+              try { localStorage.setItem('moj_categories_cache', JSON.stringify(data.categories)); } catch (e) {}
+            }
+            if (data.subCategories) {
+              setSubCategories(data.subCategories);
+              try { localStorage.setItem('moj_subcategories_cache', JSON.stringify(data.subCategories)); } catch (e) {}
+            }
+            if (data.banners && Array.isArray(data.banners)) setBanners(data.banners);
+            if (data.payment) setPaymentConfigState(data.payment);
+          }
+        });
+      })
+      .catch(e => console.warn('Initial config fetch:', e));
+
+    // ── REAL-TIME: Products (fires on any add/edit/delete) ──
     const prodUnsub = onSnapshot(
       collection(db, 'products'),
       snap => {
-        const rawDocs = snap.docs.map(d => ({ ...d.data(), id: d.id }));
-        const cleanProds = rawDocs.filter(p => !demoIds.includes(p.id));
-        cleanProds.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-
-        if (cleanProds.length > 0) {
-          setProducts(cleanProds);
-          // Persist all products with images in high-capacity IndexedDB
-          saveIdbProducts(cleanProds);
-
-          // Save lightweight version without large base64 strings to localStorage
-          try {
-            const lite = cleanProds.map(p => ({
-              ...p,
-              image: (typeof p.image === 'string' && p.image.startsWith('data:')) ? '' : (p.image || ''),
-              images: Array.isArray(p.images)
-                ? p.images.map(img => (typeof img === 'string' && img.startsWith('data:')) ? '' : (img || ''))
-                : []
-            }));
-            localStorage.setItem('moj_products_cache', JSON.stringify(lite));
-          } catch (e) {}
+        const prods = snap.docs.map(d => ({ ...d.data(), id: d.id }))
+          .filter(p => !demoIds.includes(p.id))
+          .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        if (prods.length > 0) {
+          setProducts(prods);
+          saveIdbProducts(prods);
         }
         setIsLoading(false);
       },
@@ -233,7 +255,7 @@ export const StoreProvider = ({ children }) => {
     unsubs.push(prodUnsub);
 
 
-    // Real-time listener: Orders (instantly synced across devices)
+    // ── REAL-TIME: Orders (instantly synced across devices) ──
     const ordUnsub = onSnapshot(
       collection(db, 'orders'),
       snap => {
@@ -246,14 +268,12 @@ export const StoreProvider = ({ children }) => {
     );
     unsubs.push(ordUnsub);
 
-    // Real-time listener: Registered Users
+    // ── REAL-TIME: Registered Users ──
     const usrUnsub = onSnapshot(
       collection(db, 'users'),
       snap => {
         const data = snap.docs.map(d => ({ ...d.data(), id: d.id }));
         setRegisteredUsers(data);
-
-        // Auto logout & redirect if logged-in user account was deleted by Admin
         try {
           const savedStr = localStorage.getItem('moj_customer_user');
           if (savedStr) {
@@ -279,7 +299,7 @@ export const StoreProvider = ({ children }) => {
     );
     unsubs.push(usrUnsub);
 
-    // Real-time listener: Coupons
+    // ── REAL-TIME: Coupons ──
     const cupUnsub = onSnapshot(
       collection(db, 'coupons'),
       snap => {
@@ -300,7 +320,7 @@ export const StoreProvider = ({ children }) => {
     );
     unsubs.push(cupUnsub);
 
-    // Real-time listener: Used Coupons
+    // ── REAL-TIME: Used Coupons ──
     const ucUnsub = onSnapshot(
       collection(db, 'usedCoupons'),
       snap => {
@@ -311,7 +331,7 @@ export const StoreProvider = ({ children }) => {
     );
     unsubs.push(ucUnsub);
 
-    // Real-time listener: Reviews (from config/reviews)
+    // ── REAL-TIME: Reviews (from config/reviews) ──
     const revUnsub = onSnapshot(
       doc(db, 'config', 'reviews'),
       snap => {
@@ -326,7 +346,7 @@ export const StoreProvider = ({ children }) => {
     );
     unsubs.push(revUnsub);
 
-    // Real-time listener: Config (categories, subCategories, banners, payment)
+    // ── REAL-TIME: Config (categories, subCategories, banners, payment) ──
     const cfgUnsub = onSnapshot(
       doc(db, 'config', 'main'),
       snap => {

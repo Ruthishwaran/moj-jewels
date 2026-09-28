@@ -1,7 +1,7 @@
 // Firebase configuration for MOJ Jewels
 // Project: moj-jewels-58b8c
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
+import { initializeFirestore, persistentLocalCache, persistentSingleTabManager, getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: "AIzaSyDmvlo-MYNMdHzdNquGFdUfZpG6aIcJkyB",
@@ -13,5 +13,23 @@ const firebaseConfig = {
   measurementId: "G-2Y7MHK9SBY"
 };
 
+// Single app instance guard
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-export const db = getFirestore(app);
+
+let db;
+try {
+  // persistentLocalCache: caches ALL Firestore data on device disk (IndexedDB).
+  // After first visit, every load is INSTANT from local cache — even offline!
+  // persistentSingleTabManager: compatible with ALL mobile browsers (iOS Safari,
+  // Android Chrome, in-app WebViews) — does NOT require Web Locks API.
+  db = initializeFirestore(app, {
+    localCache: persistentLocalCache({
+      tabManager: persistentSingleTabManager({ forceOwnership: true })
+    })
+  });
+} catch (e) {
+  // Fallback for environments where persistentLocalCache is unavailable
+  try { db = getFirestore(app); } catch (e2) { db = getFirestore(); }
+}
+
+export { db };
