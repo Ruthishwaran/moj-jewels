@@ -160,7 +160,21 @@ export default function ShopPage() {
       </div>
 
       {/* Catalog Grid */}
-      {filtered.length === 0 ? (
+      {safeProducts.length === 0 ? (
+        // Products loading — show skeleton cards
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Array.from({ length: 9 }).map((_, i) => (
+            <div key={i} className="glass-card rounded-2xl border border-slate-800 overflow-hidden animate-pulse">
+              <div className="bg-slate-800 h-56 w-full" />
+              <div className="p-4 space-y-3">
+                <div className="bg-slate-700 h-3 rounded w-3/4" />
+                <div className="bg-slate-800 h-3 rounded w-1/2" />
+                <div className="bg-slate-700 h-4 rounded w-1/3" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : filtered.length === 0 ? (
         <div className="text-center py-20 space-y-3">
           <p className="text-slate-400 text-sm">No jewelry matched your search "{searchQuery}"</p>
           <button

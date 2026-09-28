@@ -35,19 +35,8 @@ function MainContent() {
   } = useStore();
   const [showPwaBanner, setShowPwaBanner] = useState(true);
 
-  // Loading screen while Firestore syncs data (only for storefront, never blocks admin)
-  if (isLoading && currentPage !== 'admin') {
-    return (
-      <div className="min-h-screen bg-[#0b0f19] flex items-center justify-center flex-col gap-5">
-        <div style={{ width: 56, height: 56, border: '4px solid rgba(212,175,55,0.2)', borderTopColor: '#d4af37', borderRadius: '50%', animation: 'spin 0.9s linear infinite' }} />
-        <div className="text-center">
-          <p className="text-gold-400 font-serif text-lg font-bold tracking-widest">MOJ JEWELS</p>
-          <p className="text-slate-400 text-xs mt-1">Connecting to store...</p>
-        </div>
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-      </div>
-    );
-  }
+  // NOTE: Full-page loading screen removed. Each page shows skeleton cards while products load.
+  // This prevents mobile getting stuck on a blank "Connecting to store..." screen.
 
 
   const renderPage = () => {

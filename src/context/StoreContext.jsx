@@ -35,7 +35,7 @@ export const StoreProvider = ({ children }) => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  // Always start with no blocking screen — products load from cache instantly, Firestore syncs in background
+  // Always start with no blocking screen — products load from IndexedDB / Firestore in background
   const [isLoading, setIsLoading] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState('');

@@ -81,9 +81,23 @@ export default function HomePage() {
 
         {/* Product Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
+          {filteredProducts.length > 0 ? (
+            filteredProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))
+          ) : (
+            // Loading skeleton — shown briefly while Firestore/IndexedDB loads products
+            Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="glass-card rounded-2xl border border-slate-800 overflow-hidden animate-pulse">
+                <div className="bg-slate-800 h-56 w-full" />
+                <div className="p-4 space-y-3">
+                  <div className="bg-slate-700 h-3 rounded w-3/4" />
+                  <div className="bg-slate-800 h-3 rounded w-1/2" />
+                  <div className="bg-slate-700 h-4 rounded w-1/3" />
+                </div>
+              </div>
+            ))
+          )}
         </div>
 
         {/* View All Button */}
