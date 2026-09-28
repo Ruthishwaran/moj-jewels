@@ -158,7 +158,7 @@ export const StoreProvider = ({ children }) => {
     try { localStorage.setItem('moj_wishlist', JSON.stringify(wishlist)); } catch {}
   }, [wishlist]);
 
-  // ===== Restore Products from IndexedDB (Instant 10-20ms load with full images) =====
+  // ===== Restore Products from IndexedDB & Universal REST Fetch (Instant display on all modes) =====
   useEffect(() => {
     const demoIds = ['prod-1', 'prod-2', 'prod-3', 'prod-4', 'prod-5', 'prod-6'];
     getIdbProducts().then((idbList) => {
@@ -167,8 +167,27 @@ export const StoreProvider = ({ children }) => {
       if (valid.length > 0 && hasImages) {
         setProducts(valid.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)));
         setIsLoading(false);
+      } else {
+        // In incognito mode or fresh visit: fetch via REST immediately (0.8s) so mobile incognito is instant!
+        fetchProductsViaRest().then(restList => {
+          const validRest = (restList || []).filter(p => !demoIds.includes(p.id));
+          if (validRest.length > 0) {
+            setProducts(validRest.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)));
+            saveIdbProducts(validRest);
+            setIsLoading(false);
+          }
+        });
       }
-    }).catch(err => console.warn('IDB restore note:', err));
+    }).catch(() => {
+      // If IndexedDB threw security error (incognito mode), immediately load via REST
+      fetchProductsViaRest().then(restList => {
+        const validRest = (restList || []).filter(p => !demoIds.includes(p.id));
+        if (validRest.length > 0) {
+          setProducts(validRest.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)));
+          setIsLoading(false);
+        }
+      });
+    });
   }, []);
 
   // ===== CROSS-TAB INSTANT ORDERS SYNC (BroadcastChannel) =====
@@ -1034,20 +1053,32 @@ export const StoreProvider = ({ children }) => {
       id: newOrderId,
       date: new Date().toISOString(),
       items: itemsToOrder,
-      subtotal,
-      wholesaleDiscount: wholesaleDiscountAmount,
-      discount: discountAmount,
-      total: grandTotal,
+      subtotal: Number(subtotal || 0),
+      wholesaleDiscount: Number(wholesaleDiscountAmount || 0),
+      discount: Number(discountAmount || 0),
+      total: Number(grandTotal || 0),
       couponCode: appliedCoupon ? appliedCoupon.code : '',
       paymentStatus: 'Pending Verification',
       orderStatus: 'Placed',
       courierPartner: '',
       trackingNumber: '',
-      ...orderData
+      customerName: (orderData?.customerName || '').trim(),
+      customerPhone: (orderData?.customerPhone || '').trim(),
+      customerEmail: (orderData?.customerEmail || '').trim(),
+      shippingAddress: (orderData?.shippingAddress || '').trim(),
+      paymentMethod: orderData?.paymentMethod || 'Manual UPI QR',
+      transactionId: cleanTx,
+      notes: orderData?.notes || 'Submitted by customer'
     };
 
+    // Sanitize to guarantee 0 undefined values (Firestore rejects undefined)
+    const sanitizedOrder = Object.entries(newOrder).reduce((acc, [k, v]) => {
+      acc[k] = v === undefined ? '' : v;
+      return acc;
+    }, {});
+
     // 2. Optimistically add to orders list IMMEDIATELY
-    setOrders(prev => [newOrder, ...(Array.isArray(prev) ? prev : [])]);
+    setOrders(prev => [sanitizedOrder, ...(Array.isArray(prev) ? prev : [])]);
 
     // 3. Clear cart IMMEDIATELY
     clearCart();
@@ -1058,26 +1089,61 @@ export const StoreProvider = ({ children }) => {
     // 5. Update local cache and BroadcastChannel for 0ms cross-tab sync
     try {
       const cached = safeParseJSON('moj_orders_cache', []);
-      const updatedOrders = [newOrder, ...cached.filter(o => o.id !== newOrderId)];
+      const updatedOrders = [sanitizedOrder, ...cached.filter(o => o.id !== newOrderId)];
       localStorage.setItem('moj_orders_cache', JSON.stringify(updatedOrders));
       if (typeof window !== 'undefined' && window.BroadcastChannel) {
         const channel = new BroadcastChannel('moj_orders_channel');
-        channel.postMessage({ type: 'NEW_ORDER', order: newOrder });
+        channel.postMessage({ type: 'NEW_ORDER', order: sanitizedOrder });
         channel.close();
       }
     } catch (e) {}
 
-    // 6. Persist to Firestore with guaranteed sync
+    // 6. Persist to Firestore with guaranteed sync & REST fallback
     try {
-      await setDoc(doc(db, 'orders', newOrderId), newOrder);
-      console.log('[MOJ] Order saved to Firestore:', newOrderId);
+      await setDoc(doc(db, 'orders', newOrderId), sanitizedOrder);
+      console.log('[MOJ] Order saved to Firestore SDK:', newOrderId);
     } catch (err) {
-      console.warn('placeOrder Firestore write initial try failed, queueing:', err);
+      console.warn('placeOrder Firestore write initial try failed, attempting REST fallback:', err);
       try {
-        const queue = JSON.parse(localStorage.getItem('moj_pending_orders') || '[]');
-        queue.push(newOrder);
-        localStorage.setItem('moj_pending_orders', JSON.stringify(queue));
-      } catch (e) {}
+        const restBody = { fields: {} };
+        for (const [k, v] of Object.entries(sanitizedOrder)) {
+          if (typeof v === 'string') restBody.fields[k] = { stringValue: v };
+          else if (typeof v === 'number') restBody.fields[k] = Number.isInteger(v) ? { integerValue: String(v) } : { doubleValue: v };
+          else if (typeof v === 'boolean') restBody.fields[k] = { booleanValue: v };
+          else if (Array.isArray(v)) {
+            restBody.fields[k] = {
+              arrayValue: {
+                values: v.map(it => ({
+                  mapValue: {
+                    fields: {
+                      id: { stringValue: String(it.id || '') },
+                      title: { stringValue: String(it.title || '') },
+                      price: { integerValue: String(it.price || 0) },
+                      quantity: { integerValue: String(it.quantity || 1) },
+                      selectedColor: { stringValue: String(it.selectedColor || '') },
+                      selectedSize: { stringValue: String(it.selectedSize || '') },
+                      image: { stringValue: String(it.image || '') }
+                    }
+                  }
+                }))
+              }
+            };
+          }
+        }
+        await fetch(`https://firestore.googleapis.com/v1/projects/moj-jewels-58b8c/databases/(default)/documents/orders?documentId=${newOrderId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(restBody)
+        });
+        console.log('[MOJ] Order saved to Firestore via REST fallback:', newOrderId);
+      } catch (restErr) {
+        console.error('REST order write also failed, queuing in pending:', restErr);
+        try {
+          const queue = JSON.parse(localStorage.getItem('moj_pending_orders') || '[]');
+          queue.push(sanitizedOrder);
+          localStorage.setItem('moj_pending_orders', JSON.stringify(queue));
+        } catch (e) {}
+      }
     }
 
 

@@ -81,11 +81,7 @@ export default function HomePage() {
 
         {/* Product Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProducts.length > 0 ? (
-            filteredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))
-          ) : (
+          {safeProducts.length === 0 ? (
             // Loading skeleton — shown briefly while Firestore/IndexedDB loads products
             Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="glass-card rounded-2xl border border-slate-800 overflow-hidden animate-pulse">
@@ -97,6 +93,20 @@ export default function HomePage() {
                 </div>
               </div>
             ))
+          ) : filteredProducts.length > 0 ? (
+            filteredProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))
+          ) : (
+            <div className="col-span-full text-center py-12 space-y-3">
+              <p className="text-slate-400 text-sm">No jewelry designs found under "{selectedCategory}"</p>
+              <button
+                onClick={() => setSelectedCategory('All')}
+                className="text-gold-400 underline text-xs font-semibold"
+              >
+                View All Categories ({safeProducts.length} Designs)
+              </button>
+            </div>
           )}
         </div>
 
