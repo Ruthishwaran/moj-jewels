@@ -199,13 +199,25 @@ export default function AdminDashboard() {
   const [couponExpiry, setCouponExpiry] = useState('2026-12-31');
 
   // QR Settings State
-  const [editUpiId, setEditUpiId] = useState(paymentConfig.upiId);
-  const [editPayeeName, setEditPayeeName] = useState(paymentConfig.payeeName);
-  const [editBankName, setEditBankName] = useState(paymentConfig.bankName);
-  const [editAccountNo, setEditAccountNo] = useState(paymentConfig.accountNumber);
-  const [editIfsc, setEditIfsc] = useState(paymentConfig.ifscCode);
-  const [editQrImg, setEditQrImg] = useState(paymentConfig.qrImageUrl);
+  const [editUpiId, setEditUpiId] = useState(paymentConfig?.upiId || '');
+  const [editPayeeName, setEditPayeeName] = useState(paymentConfig?.payeeName || '');
+  const [editBankName, setEditBankName] = useState(paymentConfig?.bankName || '');
+  const [editAccountNo, setEditAccountNo] = useState(paymentConfig?.accountNumber || '');
+  const [editIfsc, setEditIfsc] = useState(paymentConfig?.ifscCode || '');
+  const [editQrImg, setEditQrImg] = useState(paymentConfig?.qrImageUrl || '');
   const [qrSaveMsg, setQrSaveMsg] = useState('');
+
+  // Sync edit fields whenever paymentConfig updates from Firestore
+  useEffect(() => {
+    if (paymentConfig) {
+      if (paymentConfig.upiId) setEditUpiId(paymentConfig.upiId);
+      if (paymentConfig.payeeName) setEditPayeeName(paymentConfig.payeeName);
+      if (paymentConfig.bankName) setEditBankName(paymentConfig.bankName);
+      if (paymentConfig.accountNumber) setEditAccountNo(paymentConfig.accountNumber);
+      if (paymentConfig.ifscCode) setEditIfsc(paymentConfig.ifscCode);
+      if (paymentConfig.qrImageUrl) setEditQrImg(paymentConfig.qrImageUrl);
+    }
+  }, [paymentConfig]);
 
   // Local Storage QR Code Image Reader
   const handleQrFileUpload = async (e) => {
@@ -1361,8 +1373,11 @@ export default function AdminDashboard() {
           const stockNum = Number(p.stock) || 0;
           const isOutOfStock = stockNum <= 0;
           const isLowStock = stockNum > 0 && stockNum <= 5;
-          const prodImg = p.image || (Array.isArray(p.images) && p.images[0]) || '/images/hero_banner.jpg';
-          const hasMultipleImages = Array.isArray(p.images) && p.images.length > 1;
+          const prodImg = (typeof p.image === 'string' && p.image.length > 20)
+            ? p.image
+            : (Array.isArray(p.images) && p.images.find(img => typeof img === 'string' && img.length > 20))
+            || '/images/moj_logo.jpg';
+          const hasMultipleImages = Array.isArray(p.images) && p.images.filter(img => typeof img === 'string' && img.length > 20).length > 1;
 
           return (
             <div
@@ -1379,8 +1394,10 @@ export default function AdminDashboard() {
                   <img
                     src={prodImg}
                     alt={p.title}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-300"
-                    onError={(e) => { e.target.src = '/images/hero_banner.jpg'; }}
+                    onError={(e) => { e.target.src = '/images/moj_logo.jpg'; }}
                   />
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/img:opacity-100 flex flex-col items-center justify-center gap-1 text-gold-300 transition-opacity">
                     <Search className="w-5 h-5 text-gold-400" />

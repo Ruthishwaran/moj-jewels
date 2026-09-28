@@ -66,12 +66,24 @@ export const StoreProvider = ({ children }) => {
   const [isAppInstallable, setIsAppInstallable] = useState(false);
   const [isInstallModalOpen, setIsInstallModalOpen] = useState(false);
 
-  // ===== Cloud State (Firestore — with localStorage instant caching for 0ms refresh) =====
+  // ===== Cloud State (Firestore — with IndexedDB / localStorage instant caching) =====
   const [products, setProducts] = useState(() => {
-    const cached = safeParseJSON('moj_products_cache', []);
-    // Filter out the 6 demo items if present in old cache
-    const demoIds = ['prod-1', 'prod-2', 'prod-3', 'prod-4', 'prod-5', 'prod-6'];
-    return Array.isArray(cached) ? cached.filter(p => !demoIds.includes(p.id)) : [];
+    try {
+      const cached = localStorage.getItem('moj_products_cache');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        const demoIds = ['prod-1', 'prod-2', 'prod-3', 'prod-4', 'prod-5', 'prod-6'];
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const clean = parsed.filter(p => !demoIds.includes(p.id));
+          // ONLY use cache if it actually contains real product photos!
+          const hasImages = clean.some(p => (p.image && p.image.length > 50) || (Array.isArray(p.images) && p.images.some(img => img && img.length > 50)));
+          if (hasImages) return clean;
+          // Otherwise it was an old stripped cache: delete it immediately!
+          localStorage.removeItem('moj_products_cache');
+        }
+      }
+    } catch (e) {}
+    return [];
   });
   const [orders, setOrders] = useState(() => safeParseJSON('moj_orders_cache', []));
   const [registeredUsers, setRegisteredUsers] = useState([]);
@@ -90,7 +102,7 @@ export const StoreProvider = ({ children }) => {
   ]));
   const [subCategories, setSubCategories] = useState(() => safeParseJSON('moj_subcategories_cache', INITIAL_SUB_CATEGORIES));
   const [banners, setBanners] = useState(INITIAL_BANNERS);
-  const [paymentConfig, setPaymentConfigState] = useState(INITIAL_PAYMENT_CONFIG);
+  const [paymentConfig, setPaymentConfigState] = useState(() => safeParseJSON('moj_payment_config_cache', INITIAL_PAYMENT_CONFIG));
 
   // ===== URL path detection =====
   useEffect(() => {
@@ -146,33 +158,17 @@ export const StoreProvider = ({ children }) => {
     try { localStorage.setItem('moj_wishlist', JSON.stringify(wishlist)); } catch {}
   }, [wishlist]);
 
-  // ===== Restore Products from IndexedDB & Universal REST Fail-Safe (Mobile + Desktop) =====
+  // ===== Restore Products from IndexedDB (Instant 10-20ms load with full images) =====
   useEffect(() => {
     const demoIds = ['prod-1', 'prod-2', 'prod-3', 'prod-4', 'prod-5', 'prod-6'];
-    
-    // 1. Check local IndexedDB cache first (10-15ms)
     getIdbProducts().then((idbList) => {
       const valid = (idbList || []).filter(p => p && p.id && !demoIds.includes(p.id));
-      if (valid.length > 0) {
-        setProducts(prev => {
-          if (!prev || prev.length < valid.length) {
-            return valid.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-          }
-          return prev;
-        });
+      const hasImages = valid.some(p => (p.image && p.image.length > 50) || (Array.isArray(p.images) && p.images.some(img => img && img.length > 50)));
+      if (valid.length > 0 && hasImages) {
+        setProducts(valid.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)));
         setIsLoading(false);
-      } else {
-        // 2. If IndexedDB is empty (e.g. mobile fresh visit), immediately fetch via REST API
-        fetchProductsViaRest().then(restList => {
-          const validRest = (restList || []).filter(p => p && p.id && !demoIds.includes(p.id));
-          if (validRest.length > 0) {
-            setProducts(prev => (prev.length < validRest.length ? validRest : prev));
-            saveIdbProducts(validRest);
-            setIsLoading(false);
-          }
-        });
       }
-    });
+    }).catch(err => console.warn('IDB restore note:', err));
   }, []);
 
   // ===== CROSS-TAB INSTANT ORDERS SYNC (BroadcastChannel) =====
@@ -193,48 +189,13 @@ export const StoreProvider = ({ children }) => {
     return () => channel.close();
   }, []);
 
-  // ===== FIRESTORE REAL-TIME LISTENERS (with immediate getDocs for instant first load) =====
+  // ===== FIRESTORE REAL-TIME LISTENERS =====
   useEffect(() => {
     const unsubs = [];
     const demoIds = ['prod-1', 'prod-2', 'prod-3', 'prod-4', 'prod-5', 'prod-6'];
+    let hasReceivedProducts = false;
 
-    // ── IMMEDIATE FETCH: Load products NOW (full images) before onSnapshot fires ──
-    // Products have base64 images (~80KB each × 103 products = ~8MB).
-    // With persistentLocalCache, this getDocs reads from LOCAL DISK on repeat visits — instant!
-    getDocs(collection(db, 'products'))
-      .then(snap => {
-        const prods = snap.docs.map(d => ({ ...d.data(), id: d.id }))
-          .filter(p => !demoIds.includes(p.id))
-          .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-        if (prods.length > 0) {
-          setProducts(prods);
-          saveIdbProducts(prods); // IndexedDB for ultra-fast next visit
-        }
-      })
-      .catch(e => console.warn('Initial products fetch:', e));
-
-    // ── IMMEDIATE FETCH: Load config/payment NOW before onSnapshot fires ──
-    getDocs && getDocs(collection(db, 'config'))
-      .then(snap => {
-        snap.docs.forEach(d => {
-          if (d.id === 'main') {
-            const data = d.data();
-            if (data.categories && Array.isArray(data.categories)) {
-              setCategories(data.categories);
-              try { localStorage.setItem('moj_categories_cache', JSON.stringify(data.categories)); } catch (e) {}
-            }
-            if (data.subCategories) {
-              setSubCategories(data.subCategories);
-              try { localStorage.setItem('moj_subcategories_cache', JSON.stringify(data.subCategories)); } catch (e) {}
-            }
-            if (data.banners && Array.isArray(data.banners)) setBanners(data.banners);
-            if (data.payment) setPaymentConfigState(data.payment);
-          }
-        });
-      })
-      .catch(e => console.warn('Initial config fetch:', e));
-
-    // ── REAL-TIME: Products (fires on any add/edit/delete) ──
+    // ── REAL-TIME: Products (fires on any add/edit/delete; persistentLocalCache delivers local disk immediately) ──
     const prodUnsub = onSnapshot(
       collection(db, 'products'),
       snap => {
@@ -242,17 +203,39 @@ export const StoreProvider = ({ children }) => {
           .filter(p => !demoIds.includes(p.id))
           .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
         if (prods.length > 0) {
+          hasReceivedProducts = true;
           setProducts(prods);
-          saveIdbProducts(prods);
+          saveIdbProducts(prods); // Persist all products with full images in IndexedDB
         }
         setIsLoading(false);
       },
       err => {
-        console.warn('Products listener error:', err);
-        setIsLoading(false);
+        console.warn('Products onSnapshot error, falling back to REST:', err);
+        fetchProductsViaRest().then(restList => {
+          const valid = (restList || []).filter(p => !demoIds.includes(p.id));
+          if (valid.length > 0) {
+            setProducts(valid);
+            saveIdbProducts(valid);
+          }
+          setIsLoading(false);
+        });
       }
     );
     unsubs.push(prodUnsub);
+
+    // Fail-safe: if onSnapshot hasn't delivered products within 3.5s (e.g. mobile carrier throttling WebSockets)
+    const restFallbackTimer = setTimeout(() => {
+      if (!hasReceivedProducts) {
+        fetchProductsViaRest().then(restList => {
+          const valid = (restList || []).filter(p => !demoIds.includes(p.id));
+          if (valid.length > 0 && !hasReceivedProducts) {
+            setProducts(valid);
+            saveIdbProducts(valid);
+            setIsLoading(false);
+          }
+        });
+      }
+    }, 3500);
 
 
     // ── REAL-TIME: Orders (instantly synced across devices) ──
@@ -361,14 +344,20 @@ export const StoreProvider = ({ children }) => {
             try { localStorage.setItem('moj_subcategories_cache', JSON.stringify(data.subCategories)); } catch (e) {}
           }
           if (data.banners && Array.isArray(data.banners)) setBanners(data.banners);
-          if (data.payment) setPaymentConfigState(data.payment);
+          if (data.payment) {
+            setPaymentConfigState(data.payment);
+            try { localStorage.setItem('moj_payment_config_cache', JSON.stringify(data.payment)); } catch (e) {}
+          }
         }
       },
       err => console.warn('Config listener error:', err)
     );
     unsubs.push(cfgUnsub);
 
-    return () => unsubs.forEach(u => u());
+    return () => {
+      clearTimeout(restFallbackTimer);
+      unsubs.forEach(u => u());
+    };
   }, []);
 
   // Open shared product from URL query params (e.g. ?product=prod-12345 or ?p=prod-12345)
@@ -499,6 +488,7 @@ export const StoreProvider = ({ children }) => {
     try {
       await setDoc(doc(db, 'config', 'main'), { payment: config, updatedAt: new Date().toISOString() }, { merge: true });
       setPaymentConfigState(config);
+      try { localStorage.setItem('moj_payment_config_cache', JSON.stringify(config)); } catch (e) {}
     } catch (err) {
       console.error('setPaymentConfig error:', err);
     }

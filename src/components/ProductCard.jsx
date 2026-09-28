@@ -27,9 +27,13 @@ export default function ProductCard({ product }) {
   const stock = !isNaN(stockVal) ? stockVal : 10;
   const karat = product.karat || 'Premium Hallmarked';
 
-  const imageList = Array.isArray(product.images) && product.images.length > 0
-    ? product.images
-    : [product.image || '/images/moj_logo.jpg'];
+  const validImages = Array.isArray(product.images)
+    ? product.images.filter(img => typeof img === 'string' && img.length > 20)
+    : [];
+  const primaryImg = (typeof product.image === 'string' && product.image.length > 20) ? product.image : null;
+  const imageList = validImages.length > 0
+    ? validImages
+    : (primaryImg ? [primaryImg] : ['/images/moj_logo.jpg']);
 
   const [currentImgIdx, setCurrentImgIdx] = React.useState(0);
   const [addedFlash, setAddedFlash] = React.useState(false);
@@ -114,6 +118,8 @@ export default function ProductCard({ product }) {
         <img
           src={activeImage}
           alt={title}
+          loading="lazy"
+          decoding="async"
           className={`w-full h-full object-cover group-hover:scale-105 transition-all duration-700 ${isOutOfStock ? 'grayscale opacity-60' : ''}`}
           onError={(e) => { e.target.src = '/images/moj_logo.jpg'; }}
         />

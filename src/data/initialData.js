@@ -68,11 +68,11 @@ export const INITIAL_BANNERS = [
 ];
 
 export const INITIAL_PAYMENT_CONFIG = {
-  upiId: 'mojjewels@hdfcbank',
-  payeeName: 'MOJ JEWELS PRIVATE LIMITED',
+  upiId: 'harishramesh67-2@okhdfcbank',
+  payeeName: 'HARISH RAMESH',
   bankName: 'HDFC Bank Ltd',
-  accountNumber: '50100982736412',
-  ifscCode: 'HDFC0001892',
+  accountNumber: '50100518787919',
+  ifscCode: 'HDFC0009593',
   qrImageUrl: '/images/payment_qr.jpg',
   instructions: 'Scan QR code using Google Pay, PhonePe, Paytm or any UPI app. Pay exact total amount, then enter your 12-digit UTR/Transaction Reference ID below.'
 };
