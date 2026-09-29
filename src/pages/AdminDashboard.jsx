@@ -141,6 +141,28 @@ export default function AdminDashboard() {
   const [editProdImages, setEditProdImages] = useState([]);
   const [editProdDesc, setEditProdDesc] = useState('');
   const [isSavingProduct, setIsSavingProduct] = useState(false);
+  const addModalRef = useRef(null);
+  const editModalRef = useRef(null);
+
+  useEffect(() => {
+    if (isAddProductOpen) {
+      if (addModalRef.current) addModalRef.current.scrollTop = 0;
+      const t = setTimeout(() => {
+        if (addModalRef.current) addModalRef.current.scrollTop = 0;
+      }, 50);
+      return () => clearTimeout(t);
+    }
+  }, [isAddProductOpen]);
+
+  useEffect(() => {
+    if (editingProduct) {
+      if (editModalRef.current) editModalRef.current.scrollTop = 0;
+      const t = setTimeout(() => {
+        if (editModalRef.current) editModalRef.current.scrollTop = 0;
+      }, 50);
+      return () => clearTimeout(t);
+    }
+  }, [editingProduct]);
 
   // Admin Review Modal State
   const [isAddReviewOpen, setIsAddReviewOpen] = useState(false);
@@ -444,13 +466,22 @@ export default function AdminDashboard() {
 
   // Handle Local File Selection (Laptop / Mobile Local Storage) with Auto-Compression
   const handleImageFileUpload = async (e) => {
-    const files = Array.from(e.target.files);
+    const files = Array.from(e.target.files || []);
     if (!files.length) return;
 
+    const compressedList = [];
     for (const file of files) {
-      const compressed = await compressImage(file, 800, 0.75);
-      setNewProdImages(prev => [...prev, compressed]);
+      try {
+        const compressed = await compressImage(file, 800, 0.75);
+        if (compressed) compressedList.push(compressed);
+      } catch (err) {
+        console.warn('Image compression warning:', err);
+      }
     }
+    if (compressedList.length > 0) {
+      setNewProdImages(prev => [...prev, ...compressedList]);
+    }
+    e.target.value = ''; // Reset input so user can add more images or re-select
   };
 
   const removeUploadedImage = (index) => {
@@ -514,12 +545,21 @@ export default function AdminDashboard() {
   };
 
   const handleEditImageFileUpload = async (e) => {
-    const files = Array.from(e.target.files);
+    const files = Array.from(e.target.files || []);
     if (!files.length) return;
+    const compressedList = [];
     for (const file of files) {
-      const compressed = await compressImage(file, 800, 0.75);
-      setEditProdImages(prev => [...prev, compressed]);
+      try {
+        const compressed = await compressImage(file, 800, 0.75);
+        if (compressed) compressedList.push(compressed);
+      } catch (err) {
+        console.warn('Edit image compression warning:', err);
+      }
     }
+    if (compressedList.length > 0) {
+      setEditProdImages(prev => [...prev, ...compressedList]);
+    }
+    e.target.value = ''; // Reset input so user can add more images or re-select
   };
 
   const removeEditUploadedImage = (index) => {
@@ -1742,8 +1782,8 @@ export default function AdminDashboard() {
 
             {/* Add Product Modal */}
             {isAddProductOpen && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-                <div className="glass-modal border border-gold-500/40 p-6 rounded-2xl max-w-xl w-full space-y-4 max-h-[92vh] overflow-y-auto">
+              <div ref={addModalRef} className="fixed inset-0 z-50 overflow-y-auto flex items-start justify-center p-4 py-8 sm:py-12 bg-black/80 backdrop-blur-md animate-fade-in">
+                <div className="glass-modal border border-gold-500/40 p-6 rounded-2xl max-w-xl w-full space-y-4 relative my-2 sm:my-6 shadow-2xl">
                   <div className="flex justify-between items-center border-b border-slate-800 pb-3">
                     <h3 className="text-white font-serif font-bold text-lg flex items-center gap-2">
                       <Sparkles className="w-5 h-5 text-gold-400" /> Add New Fine Jewelry Item
@@ -2162,8 +2202,8 @@ export default function AdminDashboard() {
 
             {/* Edit Product Modal */}
             {editingProduct && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-                <div className="glass-modal border border-gold-500/40 p-6 rounded-2xl max-w-xl w-full space-y-4 max-h-[92vh] overflow-y-auto">
+              <div ref={editModalRef} className="fixed inset-0 z-50 overflow-y-auto flex items-start justify-center p-4 py-8 sm:py-12 bg-black/80 backdrop-blur-md animate-fade-in">
+                <div className="glass-modal border border-gold-500/40 p-6 rounded-2xl max-w-xl w-full space-y-4 relative my-2 sm:my-6 shadow-2xl">
                   <div className="flex justify-between items-center border-b border-slate-800 pb-3">
                     <div className="flex items-center gap-2">
                       <Edit className="w-5 h-5 text-amber-400" />

@@ -27,17 +27,19 @@ export default function ProductCard({ product }) {
   const stock = !isNaN(stockVal) ? stockVal : 10;
   const karat = product.karat || 'Premium Hallmarked';
 
+  const [currentImgIdx, setCurrentImgIdx] = React.useState(0);
+  const [addedFlash, setAddedFlash] = React.useState(false);
+  const [copiedShare, setCopiedShare] = React.useState(false);
+
   const validImages = Array.isArray(product.images)
     ? product.images.filter(img => typeof img === 'string' && img.length > 20)
     : [];
   const primaryImg = (typeof product.image === 'string' && product.image.length > 20) ? product.image : null;
   const imageList = validImages.length > 0
     ? validImages
-    : (primaryImg ? [primaryImg] : ['/images/moj_logo.jpg']);
-
-  const [currentImgIdx, setCurrentImgIdx] = React.useState(0);
-  const [addedFlash, setAddedFlash] = React.useState(false);
-  const [copiedShare, setCopiedShare] = React.useState(false);
+    : (primaryImg ? [primaryImg] : []);
+  const hasRealImage = imageList.length > 0;
+  const activeImage = hasRealImage ? (imageList[currentImgIdx] || imageList[0]) : '';
 
   const handleShareProduct = async (e) => {
     e.stopPropagation();
@@ -83,7 +85,6 @@ export default function ProductCard({ product }) {
     return () => clearInterval(timer);
   }, [imageList.length]);
 
-  const activeImage = imageList[currentImgIdx] || imageList[0];
   const isWishlisted = isInWishlist(id);
   const discountPercent = (originalPrice > price && originalPrice > 0)
     ? Math.round(((originalPrice - price) / originalPrice) * 100)
@@ -115,14 +116,20 @@ export default function ProductCard({ product }) {
         onClick={() => setSelectedProduct(product)}
         className="relative aspect-square overflow-hidden bg-slate-950 cursor-pointer"
       >
-        <img
-          src={activeImage}
-          alt={title}
-          loading="lazy"
-          decoding="async"
-          className={`w-full h-full object-cover group-hover:scale-105 transition-all duration-700 ${isOutOfStock ? 'grayscale opacity-60' : ''}`}
-          onError={(e) => { e.target.src = '/images/moj_logo.jpg'; }}
-        />
+        {hasRealImage ? (
+          <img
+            src={activeImage}
+            alt={title}
+            loading="lazy"
+            decoding="async"
+            className={`w-full h-full object-cover group-hover:scale-105 transition-all duration-700 ${isOutOfStock ? 'grayscale opacity-60' : ''}`}
+            onError={(e) => { e.target.src = '/images/moj_logo.jpg'; }}
+          />
+        ) : (
+          <div className="w-full h-full bg-slate-900/90 animate-pulse flex items-center justify-center">
+            <Sparkles className="w-8 h-8 text-gold-400/30" />
+          </div>
+        )}
 
         {/* Image dots */}
         {imageList.length > 1 && (

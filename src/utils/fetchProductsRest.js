@@ -2,7 +2,7 @@
 // Works on all mobile devices, WebViews, iOS Safari, Android, and restrictive mobile networks
 // where WebSocket or Firestore Web SDK connections might be blocked or throttled.
 
-export async function fetchProductsViaRest() {
+export async function fetchProductsViaRest(onBatch) {
   const demoIds = ['prod-1', 'prod-2', 'prod-3', 'prod-4', 'prod-5', 'prod-6'];
   const products = [];
   let pageToken = '';
@@ -34,6 +34,9 @@ export async function fetchProductsViaRest() {
             }
           }
           products.push(p);
+        }
+        if (typeof onBatch === 'function') {
+          onBatch([...products].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)));
         }
       }
       pageToken = data.nextPageToken;

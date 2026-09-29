@@ -42,6 +42,29 @@ export async function getIdbProducts() {
   }
 }
 
+// Atomically replaces all products in IDB with the fresh server list
+// This guarantees that any deleted products are completely removed from cache!
+export async function replaceIdbProducts(products) {
+  if (!Array.isArray(products) || products.length === 0) return;
+  try {
+    const db = await openIDB();
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    store.clear(); // Clear old cached entries including deleted items
+    for (const prod of products) {
+      if (prod && prod.id) {
+        store.put(prod);
+      }
+    }
+    return new Promise((resolve) => {
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => resolve(false);
+    });
+  } catch (e) {
+    // Non-fatal
+  }
+}
+
 export async function saveIdbProducts(products) {
   if (!Array.isArray(products) || products.length === 0) return;
   try {
@@ -53,6 +76,22 @@ export async function saveIdbProducts(products) {
         store.put(prod);
       }
     }
+    return new Promise((resolve) => {
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => resolve(false);
+    });
+  } catch (e) {
+    // Non-fatal
+  }
+}
+
+export async function deleteIdbProduct(id) {
+  if (!id) return;
+  try {
+    const db = await openIDB();
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    store.delete(id);
     return new Promise((resolve) => {
       tx.oncomplete = () => resolve(true);
       tx.onerror = () => resolve(false);

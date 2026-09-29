@@ -11,7 +11,7 @@ import {
   INITIAL_BANNERS,
   INITIAL_PAYMENT_CONFIG
 } from '../data/initialData';
-import { getIdbProducts, saveIdbProducts } from '../utils/idbProducts';
+import { getIdbProducts, saveIdbProducts, replaceIdbProducts, deleteIdbProduct } from '../utils/idbProducts';
 import { fetchProductsViaRest } from '../utils/fetchProductsRest';
 
 const StoreContext = createContext();
@@ -26,6 +26,29 @@ const safeParseJSON = (key, fallback) => {
   } catch {
     return fallback;
   }
+};
+
+const updateProductsMetaCache = (prods) => {
+  if (!Array.isArray(prods) || prods.length === 0) return;
+  try {
+    const meta = prods.map(p => ({
+      id: p.id,
+      title: p.title,
+      price: p.price,
+      originalPrice: p.originalPrice,
+      category: p.category,
+      subCategory: p.subCategory,
+      stock: p.stock,
+      karat: p.karat,
+      rating: p.rating,
+      reviewsCount: p.reviewsCount,
+      colors: p.colors || [],
+      sizes: p.sizes || [],
+      image: '',
+      images: []
+    }));
+    localStorage.setItem('moj_products_meta', JSON.stringify(meta));
+  } catch (e) {}
 };
 
 export const StoreProvider = ({ children }) => {
@@ -69,17 +92,12 @@ export const StoreProvider = ({ children }) => {
   // ===== Cloud State (Firestore — with IndexedDB / localStorage instant caching) =====
   const [products, setProducts] = useState(() => {
     try {
-      const cached = localStorage.getItem('moj_products_cache');
-      if (cached) {
-        const parsed = JSON.parse(cached);
+      const meta = localStorage.getItem('moj_products_meta');
+      if (meta) {
+        const parsed = JSON.parse(meta);
         const demoIds = ['prod-1', 'prod-2', 'prod-3', 'prod-4', 'prod-5', 'prod-6'];
         if (Array.isArray(parsed) && parsed.length > 0) {
-          const clean = parsed.filter(p => !demoIds.includes(p.id));
-          // ONLY use cache if it actually contains real product photos!
-          const hasImages = clean.some(p => (p.image && p.image.length > 50) || (Array.isArray(p.images) && p.images.some(img => img && img.length > 50)));
-          if (hasImages) return clean;
-          // Otherwise it was an old stripped cache: delete it immediately!
-          localStorage.removeItem('moj_products_cache');
+          return parsed.filter(p => !demoIds.includes(p.id));
         }
       }
     } catch (e) {}
@@ -165,25 +183,48 @@ export const StoreProvider = ({ children }) => {
       const valid = (idbList || []).filter(p => p && p.id && !demoIds.includes(p.id));
       const hasImages = valid.some(p => (p.image && p.image.length > 50) || (Array.isArray(p.images) && p.images.some(img => img && img.length > 50)));
       if (valid.length > 0 && hasImages) {
-        setProducts(valid.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)));
+        const sorted = valid.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        setProducts(sorted);
+        updateProductsMetaCache(sorted);
         setIsLoading(false);
       } else {
-        // In incognito mode or fresh visit: fetch via REST immediately (0.8s) so mobile incognito is instant!
-        fetchProductsViaRest().then(restList => {
+        // In incognito mode or fresh visit: fetch via REST immediately with streaming batches so items show immediately!
+        const handleBatch = (batch) => {
+          const valid = (batch || []).filter(p => !demoIds.includes(p.id));
+          if (valid.length > 0) {
+            setProducts(prev => (prev.length > valid.length ? prev : valid));
+            saveIdbProducts(valid);
+            updateProductsMetaCache(valid);
+            setIsLoading(false);
+          }
+        };
+        fetchProductsViaRest(handleBatch).then(restList => {
           const validRest = (restList || []).filter(p => !demoIds.includes(p.id));
           if (validRest.length > 0) {
-            setProducts(validRest.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)));
-            saveIdbProducts(validRest);
+            const sortedRest = validRest.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            setProducts(sortedRest);
+            replaceIdbProducts(sortedRest);
+            updateProductsMetaCache(sortedRest);
             setIsLoading(false);
           }
         });
       }
     }).catch(() => {
-      // If IndexedDB threw security error (incognito mode), immediately load via REST
-      fetchProductsViaRest().then(restList => {
+      // If IndexedDB threw security error (incognito mode), immediately load via REST with streaming batches
+      const handleBatch = (batch) => {
+        const valid = (batch || []).filter(p => !demoIds.includes(p.id));
+        if (valid.length > 0) {
+          setProducts(prev => (prev.length > valid.length ? prev : valid));
+          updateProductsMetaCache(valid);
+          setIsLoading(false);
+        }
+      };
+      fetchProductsViaRest(handleBatch).then(restList => {
         const validRest = (restList || []).filter(p => !demoIds.includes(p.id));
         if (validRest.length > 0) {
-          setProducts(validRest.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)));
+          const sortedRest = validRest.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+          setProducts(sortedRest);
+          updateProductsMetaCache(sortedRest);
           setIsLoading(false);
         }
       });
@@ -208,13 +249,45 @@ export const StoreProvider = ({ children }) => {
     return () => channel.close();
   }, []);
 
+  // ===== CROSS-TAB INSTANT PRODUCTS SYNC (BroadcastChannel) =====
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.BroadcastChannel) return;
+    const channel = new BroadcastChannel('moj_products_channel');
+    channel.onmessage = (event) => {
+      if (event.data?.type === 'PRODUCT_ADDED' && event.data?.product) {
+        setProducts(prev => {
+          const safe = Array.isArray(prev) ? prev : [];
+          if (safe.some(p => p.id === event.data.product.id)) return safe;
+          const updated = [event.data.product, ...safe];
+          updateProductsMetaCache(updated);
+          return updated;
+        });
+        saveIdbProducts([event.data.product]);
+      } else if (event.data?.type === 'PRODUCT_DELETED' && event.data?.id) {
+        setProducts(prev => {
+          const updated = (Array.isArray(prev) ? prev : []).filter(p => String(p.id) !== String(event.data.id));
+          updateProductsMetaCache(updated);
+          return updated;
+        });
+        deleteIdbProduct(event.data.id);
+      } else if (event.data?.type === 'PRODUCT_UPDATED' && event.data?.id) {
+        setProducts(prev => {
+          const updated = (Array.isArray(prev) ? prev : []).map(p => String(p.id) === String(event.data.id) ? { ...p, ...event.data.updates } : p);
+          updateProductsMetaCache(updated);
+          return updated;
+        });
+      }
+    };
+    return () => channel.close();
+  }, []);
+
   // ===== FIRESTORE REAL-TIME LISTENERS =====
   useEffect(() => {
     const unsubs = [];
     const demoIds = ['prod-1', 'prod-2', 'prod-3', 'prod-4', 'prod-5', 'prod-6'];
     let hasReceivedProducts = false;
 
-    // ── REAL-TIME: Products (fires on any add/edit/delete; persistentLocalCache delivers local disk immediately) ──
+    // ── REAL-TIME: Products (fires on any add/edit/delete; replaces IDB so deleted items are removed) ──
     const prodUnsub = onSnapshot(
       collection(db, 'products'),
       snap => {
@@ -224,7 +297,8 @@ export const StoreProvider = ({ children }) => {
         if (prods.length > 0) {
           hasReceivedProducts = true;
           setProducts(prods);
-          saveIdbProducts(prods); // Persist all products with full images in IndexedDB
+          replaceIdbProducts(prods); // Clears old IDB cache and stores fresh list (removes deleted items)
+          updateProductsMetaCache(prods);
         }
         setIsLoading(false);
       },
@@ -234,7 +308,8 @@ export const StoreProvider = ({ children }) => {
           const valid = (restList || []).filter(p => !demoIds.includes(p.id));
           if (valid.length > 0) {
             setProducts(valid);
-            saveIdbProducts(valid);
+            replaceIdbProducts(valid);
+            updateProductsMetaCache(valid);
           }
           setIsLoading(false);
         });
@@ -249,7 +324,8 @@ export const StoreProvider = ({ children }) => {
           const valid = (restList || []).filter(p => !demoIds.includes(p.id));
           if (valid.length > 0 && !hasReceivedProducts) {
             setProducts(valid);
-            saveIdbProducts(valid);
+            replaceIdbProducts(valid);
+            updateProductsMetaCache(valid);
             setIsLoading(false);
           }
         });
@@ -363,9 +439,10 @@ export const StoreProvider = ({ children }) => {
             try { localStorage.setItem('moj_subcategories_cache', JSON.stringify(data.subCategories)); } catch (e) {}
           }
           if (data.banners && Array.isArray(data.banners)) setBanners(data.banners);
-          if (data.payment) {
-            setPaymentConfigState(data.payment);
-            try { localStorage.setItem('moj_payment_config_cache', JSON.stringify(data.payment)); } catch (e) {}
+          const payData = data.payment || data.paymentConfig;
+          if (payData) {
+            setPaymentConfigState(payData);
+            try { localStorage.setItem('moj_payment_config_cache', JSON.stringify(payData)); } catch (e) {}
           }
         }
       },
@@ -395,7 +472,7 @@ export const StoreProvider = ({ children }) => {
     }
   }, [products]);
 
-  // ===== PRODUCT CRUD (Firestore) =====
+  // ===== PRODUCT CRUD (Firestore + IndexedDB + BroadcastChannel) =====
   const addProduct = async (newProd) => {
     const id = `prod-${Date.now()}`;
     const created = {
@@ -405,33 +482,117 @@ export const StoreProvider = ({ children }) => {
       reviewsCount: 1,
       createdAt: Date.now()
     };
-    setProducts(prev => [created, ...(Array.isArray(prev) ? prev : [])]);
+    // 1. Optimistic state update: add to state immediately
+    setProducts(prev => {
+      const safe = Array.isArray(prev) ? prev : [];
+      if (safe.some(p => p.id === id)) return safe;
+      const updated = [created, ...safe];
+      updateProductsMetaCache(updated);
+      return updated;
+    });
+    // 2. Immediate local cache write
+    saveIdbProducts([created]);
+    // 3. Cross-tab instant broadcast
+    if (typeof window !== 'undefined' && window.BroadcastChannel) {
+      try {
+        const channel = new BroadcastChannel('moj_products_channel');
+        channel.postMessage({ type: 'PRODUCT_ADDED', product: created });
+        channel.close();
+      } catch (e) {}
+    }
+    // 4. Cloud persist with REST fallback
     try {
       await setDoc(doc(db, 'products', id), created);
     } catch (err) {
-      console.error('addProduct error:', err);
+      console.warn('addProduct SDK write failed, attempting REST fallback:', err);
+      try {
+        const restBody = { fields: {} };
+        for (const [k, v] of Object.entries(created)) {
+          if (typeof v === 'string') restBody.fields[k] = { stringValue: v };
+          else if (typeof v === 'number') restBody.fields[k] = Number.isInteger(v) ? { integerValue: String(v) } : { doubleValue: v };
+          else if (typeof v === 'boolean') restBody.fields[k] = { booleanValue: v };
+          else if (Array.isArray(v)) {
+            restBody.fields[k] = {
+              arrayValue: {
+                values: v.map(it => typeof it === 'number' ? (Number.isInteger(it) ? { integerValue: String(it) } : { doubleValue: it }) : { stringValue: String(it || '') })
+              }
+            };
+          }
+        }
+        await fetch(`https://firestore.googleapis.com/v1/projects/moj-jewels-58b8c/databases/(default)/documents/products?documentId=${id}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(restBody)
+        });
+      } catch (restErr) {
+        console.error('REST addProduct failed:', restErr);
+      }
     }
   };
 
   const editProduct = async (id, updatedFields) => {
-    // Instant optimistic state update
-    setProducts(prev => (Array.isArray(prev) ? prev : []).map(p =>
-      String(p.id) === String(id) ? { ...p, ...updatedFields } : p
-    ));
+    const cleanId = String(id);
+    let updatedObj = null;
+    // 1. Optimistic state update
+    setProducts(prev => {
+      const updated = (Array.isArray(prev) ? prev : []).map(p => {
+        if (String(p.id) === cleanId) {
+          updatedObj = { ...p, ...updatedFields, updatedAt: Date.now() };
+          return updatedObj;
+        }
+        return p;
+      });
+      updateProductsMetaCache(updated);
+      return updated;
+    });
+    // 2. Immediate local cache write
+    if (updatedObj) saveIdbProducts([updatedObj]);
+    // 3. Cross-tab instant broadcast
+    if (typeof window !== 'undefined' && window.BroadcastChannel) {
+      try {
+        const channel = new BroadcastChannel('moj_products_channel');
+        channel.postMessage({ type: 'PRODUCT_UPDATED', id: cleanId, updates: updatedFields });
+        channel.close();
+      } catch (e) {}
+    }
+    // 4. Cloud update
     try {
-      await setDoc(doc(db, 'products', String(id)), { ...updatedFields, updatedAt: Date.now() }, { merge: true });
+      await setDoc(doc(db, 'products', cleanId), { ...updatedFields, updatedAt: Date.now() }, { merge: true });
     } catch (err) {
       console.error('editProduct error:', err);
     }
   };
 
   const deleteProduct = async (id) => {
-    // Instant optimistic state update
-    setProducts(prev => (Array.isArray(prev) ? prev : []).filter(p => String(p.id) !== String(id)));
+    const cleanId = String(id);
+    // 1. Optimistic state update: remove from state immediately
+    setProducts(prev => {
+      const updated = (Array.isArray(prev) ? prev : []).filter(p => String(p.id) !== cleanId);
+      updateProductsMetaCache(updated);
+      return updated;
+    });
+    // 2. Immediate local cache delete
+    deleteIdbProduct(cleanId);
+    // 3. Cross-tab instant broadcast
+    if (typeof window !== 'undefined' && window.BroadcastChannel) {
+      try {
+        const channel = new BroadcastChannel('moj_products_channel');
+        channel.postMessage({ type: 'PRODUCT_DELETED', id: cleanId });
+        channel.close();
+      } catch (e) {}
+    }
+    // 4. Cloud delete with REST fallback
     try {
-      await deleteDoc(doc(db, 'products', String(id)));
+      await deleteDoc(doc(db, 'products', cleanId));
     } catch (err) {
-      console.error('deleteProduct error:', err);
+      console.warn('deleteProduct SDK delete failed, attempting REST delete:', err);
+      try {
+        await fetch(`https://firestore.googleapis.com/v1/projects/moj-jewels-58b8c/databases/(default)/documents/products/${cleanId}`, {
+          method: 'DELETE'
+        });
+      } catch (restErr) {
+        console.error('deleteProduct error:', restErr);
+      }
     }
   };
 
@@ -505,7 +666,7 @@ export const StoreProvider = ({ children }) => {
   // ===== PAYMENT CONFIG (Firestore) =====
   const setPaymentConfig = async (config) => {
     try {
-      await setDoc(doc(db, 'config', 'main'), { payment: config, updatedAt: new Date().toISOString() }, { merge: true });
+      await setDoc(doc(db, 'config', 'main'), { payment: config, paymentConfig: config, updatedAt: new Date().toISOString() }, { merge: true });
       setPaymentConfigState(config);
       try { localStorage.setItem('moj_payment_config_cache', JSON.stringify(config)); } catch (e) {}
     } catch (err) {
