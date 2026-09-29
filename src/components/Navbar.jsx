@@ -613,7 +613,7 @@ export default function Navbar() {
                 {(categories || ['Rings', 'Necklaces', 'Earrings', 'Bracelets']).filter(c => c !== 'All').map((cat) => (
                   <button
                     key={cat}
-                    onClick={() => { setCurrentPage('shop'); setMobileMenuOpen(false); }}
+                    onClick={() => { handleSelectCategory(cat); setMobileMenuOpen(false); }}
                     className="w-full text-left py-1.5 text-slate-300 hover:text-gold-300 text-xs pl-3 border-l-2 border-slate-800 hover:border-gold-400 block transition-colors"
                   >
                     {cat} Collection

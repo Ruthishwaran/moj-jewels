@@ -47,7 +47,7 @@ export default function CheckoutPage() {
 
   // Form Fields
   const [customerName, setCustomerName] = useState(user?.name || '');
-  const [customerPhone, setCustomerPhone] = useState('+91 98765 43210');
+  const [customerPhone, setCustomerPhone] = useState(user?.phone || '');
   const [customerEmail, setCustomerEmail] = useState(user?.email || '');
   const [shippingAddress, setShippingAddress] = useState('');
   const [city, setCity] = useState('');

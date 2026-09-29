@@ -211,7 +211,12 @@ export default function CustomerDashboard() {
                     
                     <div className="flex flex-col sm:flex-row items-end sm:items-center justify-end gap-2 mt-2">
                       <button
-                        onClick={() => setCurrentPage('track')}
+                        onClick={() => {
+                          try {
+                            sessionStorage.setItem('moj_track_order_id', ord.id);
+                          } catch (e) {}
+                          setCurrentPage('track');
+                        }}
                         className="bg-slate-900 hover:bg-slate-800 text-gold-300 border border-gold-500/30 px-3 py-1.5 rounded-lg text-xs font-semibold inline-flex items-center gap-1 transition-colors"
                       >
                         <Truck className="w-3.5 h-3.5 text-gold-400" />

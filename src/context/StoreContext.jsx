@@ -758,7 +758,7 @@ export const StoreProvider = ({ children }) => {
     if (!found) {
       return { success: false, message: 'No account found with this email/phone. Please register first.' };
     }
-    if (password && found.password && found.password !== password) {
+    if (!password || (found.password && found.password !== password)) {
       return { success: false, message: 'Incorrect password. Please try again.' };
     }
     setUser(found);
@@ -1005,9 +1005,13 @@ export const StoreProvider = ({ children }) => {
         const prodReviews = [...currentList.filter(r => String(r.productId) === cleanProdId), revData];
         avgRating = Number((prodReviews.reduce((acc, r) => acc + (Number(r.rating) || 5), 0) / prodReviews.length).toFixed(1));
         newCount = prodReviews.length;
-        setProducts(prev => (Array.isArray(prev) ? prev : []).map(p =>
-          String(p.id) === cleanProdId ? { ...p, rating: avgRating, reviewsCount: newCount } : p
-        ));
+        setProducts(prev => {
+          const updated = (Array.isArray(prev) ? prev : []).map(p =>
+            String(p.id) === cleanProdId ? { ...p, rating: avgRating, reviewsCount: newCount } : p
+          );
+          updateProductsMetaCache(updated);
+          return updated;
+        });
       }
 
       // 3. Persist to Firestore config/reviews (Fully permitted by Firestore security rules)
@@ -1057,9 +1061,13 @@ export const StoreProvider = ({ children }) => {
         : 5.0;
       const newCount = remainingForProd.length;
 
-      setProducts(prev => (Array.isArray(prev) ? prev : []).map(p =>
-        String(p.id) === prodId ? { ...p, rating: avgRating, reviewsCount: newCount } : p
-      ));
+      setProducts(prev => {
+        const updated = (Array.isArray(prev) ? prev : []).map(p =>
+          String(p.id) === prodId ? { ...p, rating: avgRating, reviewsCount: newCount } : p
+        );
+        updateProductsMetaCache(updated);
+        return updated;
+      });
 
       try {
         await setDoc(doc(db, 'products', prodId), { rating: avgRating, reviewsCount: newCount }, { merge: true });
@@ -1074,6 +1082,14 @@ export const StoreProvider = ({ children }) => {
     const safeCoupons = Array.isArray(coupons) ? coupons : [];
     const found = safeCoupons.find(c => c.code === cleanCode && c.active);
     if (!found) return { success: false, message: 'Invalid or inactive coupon code.' };
+
+    if (found.expiry) {
+      const expDate = new Date(found.expiry);
+      expDate.setHours(23, 59, 59, 999);
+      if (new Date() > expDate) {
+        return { success: false, message: `Coupon "${found.code}" has expired on ${found.expiry}.` };
+      }
+    }
 
     // Single-use enforcement
     const currentUserId = user?.email?.toLowerCase() || user?.id || 'guest';

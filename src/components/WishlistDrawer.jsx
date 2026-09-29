@@ -9,7 +9,8 @@ export default function WishlistDrawer() {
     wishlist,
     toggleWishlist,
     addToCart,
-    setCurrentPage
+    setCurrentPage,
+    setSelectedProduct
   } = useStore();
 
   if (!isWishlistOpen) return null;
@@ -80,8 +81,16 @@ export default function WishlistDrawer() {
 
                     <button
                       onClick={() => {
-                        addToCart(item);
-                        toggleWishlist(item);
+                        const hasVariants = (Array.isArray(item.colors) && item.colors.length > 0) ||
+                                            (Array.isArray(item.sizes) && item.sizes.length > 0) ||
+                                            (item.category || '').toLowerCase().includes('bangle');
+                        if (hasVariants) {
+                          setSelectedProduct(item);
+                          setIsWishlistOpen(false);
+                        } else {
+                          addToCart(item);
+                          toggleWishlist(item);
+                        }
                       }}
                       className="mt-2 bg-gold-500/20 hover:bg-gold-500 hover:text-black text-gold-300 border border-gold-500/30 text-xs py-1.5 px-3 rounded-lg font-semibold flex items-center justify-center space-x-1.5 transition-colors"
                     >

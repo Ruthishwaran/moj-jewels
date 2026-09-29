@@ -1,6 +1,6 @@
 import React from 'react';
 import { useStore } from '../context/StoreContext';
-import { Heart, ShoppingBag, Star, ShieldCheck, CheckCircle, ArrowRight, Share2, Check } from 'lucide-react';
+import { Heart, ShoppingBag, Star, ShieldCheck, CheckCircle, ArrowRight, Share2, Check, Sparkles } from 'lucide-react';
 
 export default function ProductCard({ product }) {
   const {

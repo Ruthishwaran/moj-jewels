@@ -17,8 +17,42 @@ export default function OrderTrackPage() {
   const { orders } = useStore();
   const safeOrders = Array.isArray(orders) ? orders : [];
 
-  const [searchId, setSearchId] = useState('');
-  const [trackedOrder, setTrackedOrder] = useState(safeOrders[0] || null);
+  const [searchId, setSearchId] = useState(() => {
+    try {
+      return sessionStorage.getItem('moj_track_order_id') || '';
+    } catch (e) {
+      return '';
+    }
+  });
+
+  const [trackedOrder, setTrackedOrder] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('moj_track_order_id');
+      if (saved && Array.isArray(orders)) {
+        const found = orders.find(o => o.id?.toUpperCase() === saved.trim().toUpperCase());
+        if (found) {
+          sessionStorage.removeItem('moj_track_order_id');
+          return found;
+        }
+      }
+    } catch (e) {}
+    return safeOrders[0] || null;
+  });
+
+  React.useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem('moj_track_order_id');
+      if (saved && safeOrders.length > 0) {
+        const found = safeOrders.find(o => o.id?.toUpperCase() === saved.trim().toUpperCase());
+        if (found) {
+          setTrackedOrder(found);
+          setSearchId(saved);
+          sessionStorage.removeItem('moj_track_order_id');
+        }
+      }
+    } catch (e) {}
+  }, [orders]);
+
   const [errorMsg, setErrorMsg] = useState('');
 
   const handleSearchOrder = (e) => {
