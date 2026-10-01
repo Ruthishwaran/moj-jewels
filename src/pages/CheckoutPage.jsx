@@ -23,6 +23,7 @@ export default function CheckoutPage() {
   const {
     cart,
     orders,
+    products,
     subtotal,
     discountAmount,
     grandTotal,
@@ -744,15 +745,18 @@ export default function CheckoutPage() {
               <div className="pt-3 border-t border-slate-800 space-y-2">
                 <span className="text-slate-400 font-semibold block text-[11px]">Ordered Jewelry Items:</span>
                 <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                  {createdOrder.items.map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between bg-slate-950/60 p-2 rounded-xl border border-slate-800">
-                      <div className="flex items-center space-x-2.5">
-                        <img
-                          src={item.image || '/images/hero_banner.jpg'}
-                          alt={item.title}
-                          className="w-10 h-10 object-cover rounded-lg border border-slate-700 bg-slate-900 shrink-0"
-                          onError={(e) => { e.target.src = '/images/hero_banner.jpg'; }}
-                        />
+                  {createdOrder.items.map((item, idx) => {
+                    const matchedProduct = (products || []).find(p => String(p.id) === String(item.productId || item.id));
+                    const itemImg = item.image || matchedProduct?.image || (matchedProduct?.images && matchedProduct.images[0]) || '/images/hero_banner.jpg';
+                    return (
+                      <div key={idx} className="flex items-center justify-between bg-slate-950/60 p-2 rounded-xl border border-slate-800">
+                        <div className="flex items-center space-x-2.5">
+                          <img
+                            src={itemImg}
+                            alt={item.title}
+                            className="w-10 h-10 object-cover rounded-lg border border-slate-700 bg-slate-900 shrink-0"
+                            onError={(e) => { e.target.src = '/images/hero_banner.jpg'; }}
+                          />
                         <div>
                           <p className="text-white font-semibold text-xs line-clamp-1">{item.title}</p>
                           <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
@@ -770,7 +774,8 @@ export default function CheckoutPage() {
                         ₹{((Number(item.price) || 0) * (Number(item.quantity) || 1)).toLocaleString()}
                       </span>
                     </div>
-                  ))}
+                  );
+                })}
                 </div>
               </div>
             )}

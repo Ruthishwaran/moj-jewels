@@ -485,7 +485,11 @@ export default function AdminDashboard() {
   };
 
   const removeUploadedImage = (index) => {
-    setNewProdImages(prev => prev.filter((_, i) => i !== index));
+    setNewProdImages(prev => {
+      const updated = prev.filter((_, i) => i !== index);
+      setNewProdImage(updated.length > 0 ? updated[0] : '');
+      return updated;
+    });
   };
 
   const handleCreateProduct = (e) => {
@@ -563,14 +567,18 @@ export default function AdminDashboard() {
   };
 
   const removeEditUploadedImage = (index) => {
-    setEditProdImages(prev => prev.filter((_, i) => i !== index));
+    setEditProdImages(prev => {
+      const updated = prev.filter((_, i) => i !== index);
+      setEditProdImage(updated.length > 0 ? updated[0] : '');
+      return updated;
+    });
   };
 
   const handleSaveEditedProduct = async (e) => {
     e.preventDefault();
     if (!editingProduct) return;
     setIsSavingProduct(true);
-    const finalImages = editProdImages.length > 0 ? editProdImages : [editProdImage || editingProduct.image || '/images/hero_banner.jpg'];
+    const finalImages = editProdImages.length > 0 ? editProdImages : (editProdImage ? [editProdImage] : ['/images/hero_banner.jpg']);
     const priceNum = parseFloat(editProdPrice) || 0;
     let origPriceNum = parseFloat(editProdOrigPrice);
     if (!origPriceNum || origPriceNum <= priceNum) {
@@ -960,7 +968,7 @@ export default function AdminDashboard() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
                       {(ord.items || []).map((i, idx) => {
                         const matchedProduct = (products || []).find(
-                          p => String(p.id) === String(i.id) || p.title?.toLowerCase() === i.title?.toLowerCase()
+                          p => String(p.id) === String(i.productId || i.id)
                         );
                         const itemImg = i.image || matchedProduct?.image || (matchedProduct?.images && matchedProduct.images[0]) || '/images/hero_banner.jpg';
                         const itemPrice = Number(i.price || matchedProduct?.price || 0);
@@ -1219,7 +1227,7 @@ export default function AdminDashboard() {
                     <div className="flex flex-wrap gap-2">
                       {(ord.items || []).map((i, idx) => {
                         const matchedProduct = (products || []).find(
-                          p => String(p.id) === String(i.id) || p.title?.toLowerCase() === i.title?.toLowerCase()
+                          p => String(p.id) === String(i.productId || i.id)
                         );
                         const itemImg = i.image || matchedProduct?.image || (matchedProduct?.images && matchedProduct.images[0]) || '/images/hero_banner.jpg';
                         const itemPrice = Number(i.price || matchedProduct?.price || 0);

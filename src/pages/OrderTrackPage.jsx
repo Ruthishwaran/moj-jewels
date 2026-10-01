@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 
 export default function OrderTrackPage() {
-  const { orders } = useStore();
+  const { orders, products } = useStore();
   const safeOrders = Array.isArray(orders) ? orders : [];
 
   const [searchId, setSearchId] = useState(() => {
@@ -225,15 +225,26 @@ export default function OrderTrackPage() {
             <div className="space-y-3">
               <h4 className="text-white font-semibold">Jewelry Items Included:</h4>
               <div className="space-y-2">
-                {trackedOrder.items.map((it) => (
-                  <div key={it.id} className="flex items-center space-x-3 bg-slate-900/60 p-2.5 rounded-lg border border-slate-800">
-                    <img src={it.image} alt="" className="w-10 h-10 object-cover rounded bg-slate-950" />
-                    <div>
-                      <p className="text-white font-semibold line-clamp-1">{it.title}</p>
-                      <span className="text-slate-400 text-[10px]">Qty: {it.quantity} x ₹{(Number(it?.price) || 0).toLocaleString()}</span>
+                {(trackedOrder.items || []).map((it, idx) => {
+                  const matchedProduct = (products || []).find(
+                    p => String(p.id) === String(it.productId || it.id)
+                  );
+                  const itemImg = it.image || matchedProduct?.image || (matchedProduct?.images && matchedProduct.images[0]) || '/images/hero_banner.jpg';
+                  return (
+                    <div key={idx} className="flex items-center space-x-3 bg-slate-900/60 p-2.5 rounded-lg border border-slate-800">
+                      <img 
+                        src={itemImg} 
+                        alt={it.title || 'Jewelry item'} 
+                        className="w-10 h-10 object-cover rounded-lg border border-slate-700 bg-slate-950 shrink-0" 
+                        onError={(e) => { e.target.src = '/images/hero_banner.jpg'; }}
+                      />
+                      <div>
+                        <p className="text-white font-semibold line-clamp-1">{it.title}</p>
+                        <span className="text-slate-400 text-[10px]">Qty: {it.quantity} x ₹{(Number(it?.price) || 0).toLocaleString()}</span>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 

@@ -3,7 +3,7 @@ import { useStore } from '../context/StoreContext';
 import { User, Package, Heart, Tag, Truck, ShieldCheck, ShoppingBag, Clock, Copy, Check, Sparkles, Star } from 'lucide-react';
 
 export default function CustomerDashboard() {
-  const { user, orders, wishlist, coupons, setCurrentPage, setIsAuthModalOpen, logoutCustomer, setSelectedProduct } = useStore();
+  const { user, orders, products, wishlist, coupons, setCurrentPage, setIsAuthModalOpen, logoutCustomer, setSelectedProduct } = useStore();
   const [copiedCode, setCopiedCode] = useState(null);
 
   const currentUser = user || { name: 'Valued Customer', email: 'guest@mojjewels.com', role: 'customer' };
@@ -173,34 +173,39 @@ export default function CustomerDashboard() {
                       Purchased Items ({ord.items?.length || 0})
                     </span>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
-                      {ord.items.map((it) => (
-                        <div
-                          key={it.id}
-                          className="relative rounded-xl overflow-hidden bg-slate-950 border border-slate-800/80 group hover:border-gold-500/50 transition-all shadow-md"
-                        >
-                          <div className="aspect-square w-full relative overflow-hidden">
-                            <img
-                              src={it.image}
-                              alt={it.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            />
-                            {/* Quantity Pill Badge */}
-                            <span className="absolute top-1.5 right-1.5 bg-gold-500 text-black text-[10px] font-bold px-1.5 py-0.5 rounded-md shadow">
-                              x{it.quantity}
-                            </span>
-                          </div>
+                      {(ord.items || []).map((it, idx) => {
+                        const matchedProduct = (products || []).find(p => String(p.id) === String(it.productId || it.id));
+                        const itemImg = it.image || matchedProduct?.image || (matchedProduct?.images && matchedProduct.images[0]) || '/images/hero_banner.jpg';
+                        return (
+                          <div
+                            key={idx}
+                            className="relative rounded-xl overflow-hidden bg-slate-950 border border-slate-800/80 group hover:border-gold-500/50 transition-all shadow-md"
+                          >
+                            <div className="aspect-square w-full relative overflow-hidden">
+                              <img
+                                src={itemImg}
+                                alt={it.title}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                onError={(e) => { e.target.src = '/images/hero_banner.jpg'; }}
+                              />
+                              {/* Quantity Pill Badge */}
+                              <span className="absolute top-1.5 right-1.5 bg-gold-500 text-black text-[10px] font-bold px-1.5 py-0.5 rounded-md shadow">
+                                x{it.quantity}
+                              </span>
+                            </div>
 
-                          {/* Item Details Bottom Overlay */}
-                          <div className="p-1.5 bg-slate-900/90 border-t border-slate-800 text-left">
-                            <h4 className="text-white font-medium text-[11px] truncate" title={it.title}>
-                              {it.title}
-                            </h4>
-                            <span className="text-gold-400 font-bold text-[10px] block">
-                              ₹{((Number(it?.price) || 0) * (Number(it?.quantity) || 1)).toLocaleString()}
-                            </span>
+                            {/* Item Details Bottom Overlay */}
+                            <div className="p-1.5 bg-slate-900/90 border-t border-slate-800 text-left">
+                              <h4 className="text-white font-medium text-[11px] truncate" title={it.title}>
+                                {it.title}
+                              </h4>
+                              <span className="text-gold-400 font-bold text-[10px] block">
+                                ₹{((Number(it?.price) || 0) * (Number(it?.quantity) || 1)).toLocaleString()}
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
 

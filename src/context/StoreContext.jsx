@@ -105,7 +105,7 @@ export const StoreProvider = ({ children }) => {
   });
   const [orders, setOrders] = useState(() => safeParseJSON('moj_orders_cache', []));
   const [registeredUsers, setRegisteredUsers] = useState([]);
-  const [coupons, setCoupons] = useState(INITIAL_COUPONS);
+  const [coupons, setCoupons] = useState(() => safeParseJSON('moj_coupons_cache', INITIAL_COUPONS));
   const [usedCoupons, setUsedCoupons] = useState([]);
   const [reviews, setReviews] = useState(() => {
     try {
@@ -381,19 +381,18 @@ export const StoreProvider = ({ children }) => {
     const cupUnsub = onSnapshot(
       collection(db, 'coupons'),
       snap => {
-        const data = snap.docs.map(d => ({ ...d.data(), id: d.id }));
-        const sourceList = data.length > 0 ? data : INITIAL_COUPONS;
-        const normalized = sourceList.map(c => ({
+        const data = snap.docs.map(d => ({ ...d.data(), id: d.id, code: d.data().code || d.id }));
+        const normalized = data.map(c => ({
           ...c,
           minAmount: Number(c.minAmount || 0),
           value: Number(c.value || 0),
           discountType: c.discountType || 'percentage'
         }));
         setCoupons(normalized);
+        try { localStorage.setItem('moj_coupons_cache', JSON.stringify(normalized)); } catch (e) {}
       },
       err => {
         console.warn('Coupons listener error:', err);
-        setCoupons(INITIAL_COUPONS);
       }
     );
     unsubs.push(cupUnsub);
@@ -674,20 +673,39 @@ export const StoreProvider = ({ children }) => {
     }
   };
 
-  // ===== COUPON CRUD (Firestore) =====
+  // ===== COUPON CRUD (Firestore + Local Optimistic Cache) =====
   const addCoupon = async (newCoupon) => {
+    const code = (newCoupon.code || '').trim().toUpperCase();
+    const created = { ...newCoupon, code, id: code, active: true };
+    setCoupons(prev => {
+      const safe = Array.isArray(prev) ? prev : [];
+      const updated = [created, ...safe.filter(c => c.code?.toUpperCase() !== code)];
+      try { localStorage.setItem('moj_coupons_cache', JSON.stringify(updated)); } catch (e) {}
+      return updated;
+    });
     try {
-      await setDoc(doc(db, 'coupons', newCoupon.code), newCoupon);
+      await setDoc(doc(db, 'coupons', code), created);
     } catch (err) {
       console.error('addCoupon error:', err);
     }
   };
 
   const toggleCouponStatus = async (code) => {
+    const cleanCode = (code || '').trim().toUpperCase();
+    setCoupons(prev => {
+      const updated = (Array.isArray(prev) ? prev : []).map(c => {
+        if (c.code?.toUpperCase() === cleanCode || c.id?.toUpperCase() === cleanCode) {
+          return { ...c, active: !c.active };
+        }
+        return c;
+      });
+      try { localStorage.setItem('moj_coupons_cache', JSON.stringify(updated)); } catch (e) {}
+      return updated;
+    });
     try {
-      const coupon = coupons.find(c => c.code === code);
+      const coupon = (coupons || []).find(c => c.code?.toUpperCase() === cleanCode || c.id?.toUpperCase() === cleanCode);
       if (coupon) {
-        await setDoc(doc(db, 'coupons', code), { active: !coupon.active }, { merge: true });
+        await setDoc(doc(db, 'coupons', cleanCode), { active: !coupon.active }, { merge: true });
       }
     } catch (err) {
       console.error('toggleCouponStatus error:', err);
@@ -695,8 +713,14 @@ export const StoreProvider = ({ children }) => {
   };
 
   const deleteCoupon = async (code) => {
+    const cleanCode = (code || '').trim().toUpperCase();
+    setCoupons(prev => {
+      const updated = (Array.isArray(prev) ? prev : []).filter(c => c.code?.toUpperCase() !== cleanCode && c.id?.toUpperCase() !== cleanCode);
+      try { localStorage.setItem('moj_coupons_cache', JSON.stringify(updated)); } catch (e) {}
+      return updated;
+    });
     try {
-      await deleteDoc(doc(db, 'coupons', code));
+      await deleteDoc(doc(db, 'coupons', cleanCode));
     } catch (err) {
       console.error('deleteCoupon error:', err);
     }
@@ -1214,16 +1238,21 @@ export const StoreProvider = ({ children }) => {
       placedTransactionIds.current.add(cleanTx.toLowerCase());
     }
 
-    // Clean itemsToOrder to ensure lightweight payload (< 3KB instead of 2MB base64)
-    const itemsToOrder = safeCart.map(item => ({
-      id: item.id,
-      title: item.title,
-      price: item.price,
-      quantity: item.quantity,
-      selectedColor: item.selectedColor || '',
-      selectedSize: item.selectedSize || '',
-      image: (typeof item.image === 'string' && item.image.startsWith('data:')) ? '' : (item.image || '')
-    }));
+    // Clean itemsToOrder with exact product reference & image preservation
+    const itemsToOrder = safeCart.map(item => {
+      const originalProduct = (products || []).find(p => String(p.id) === String(item.id));
+      const finalImage = item.image || originalProduct?.image || (originalProduct?.images && originalProduct.images[0]) || '';
+      return {
+        id: item.id,
+        productId: item.id,
+        title: item.title,
+        price: item.price,
+        quantity: item.quantity,
+        selectedColor: item.selectedColor || '',
+        selectedSize: item.selectedSize || '',
+        image: finalImage
+      };
+    });
 
     const newOrderId = `MOJ-${Math.floor(10000 + Math.random() * 90000)}`;
     const newOrder = {

@@ -20,30 +20,12 @@ export const INITIAL_SUB_CATEGORIES = {
 
 export const INITIAL_COUPONS = [
   {
-    code: 'ROYAL10',
-    discountType: 'percentage',
-    value: 10,
-    minAmount: 2000,
-    description: '10% OFF on all Wholesale & Retail orders',
+    code: 'WELCOM100',
+    discountType: 'flat',
+    value: 100,
+    minAmount: 1000,
+    description: 'Flat ₹100 OFF on orders above ₹1,000',
     expiry: '2026-12-31',
-    active: true
-  },
-  {
-    code: 'MOJGLAM20',
-    discountType: 'flat',
-    value: 500,
-    minAmount: 3000,
-    description: 'Flat ₹500 OFF on orders above ₹3,000',
-    expiry: '2026-11-30',
-    active: true
-  },
-  {
-    code: 'WELCOME500',
-    discountType: 'flat',
-    value: 300,
-    minAmount: 1500,
-    description: '₹300 OFF for new customer registrations',
-    expiry: '2026-10-15',
     active: true
   }
 ];
@@ -53,7 +35,7 @@ export const INITIAL_BANNERS = [
     id: 'banner-1',
     title: 'MOJ JEWELS - WHOLESALE & RETAIL',
     subtitle: 'Premium Imitation Jewellery • Bridal • Antique • Daily Wear',
-    couponCode: 'ROYAL10',
+    couponCode: 'WELCOM100',
     image: '/images/moj_banner_1.jpg',
     btnText: 'Explore New Weekly Collection'
   },
@@ -61,7 +43,7 @@ export const INITIAL_BANNERS = [
     id: 'banner-2',
     title: 'TIMELESS BEAUTY MADE FOR YOU',
     subtitle: 'Follow Us For Exclusive Updates & Direct WhatsApp Orders',
-    couponCode: 'MOJGLAM20',
+    couponCode: 'WELCOM100',
     image: '/images/moj_banner_2.jpg',
     btnText: 'WhatsApp DM to Order'
   }
