@@ -18,24 +18,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,700;1,400&display=swap" rel="stylesheet">
 
-    <!-- Unregister any stale service workers and purge browser cache on all domains -->
-    <script>
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-          for (let registration of registrations) {
-            registration.unregister();
-            console.log('Unregistered service worker registration.');
-          }
-        });
-      }
-      if ('caches' in window) {
-        caches.keys().then(function(names) {
-          for (let name of names) {
-            caches.delete(name);
-          }
-        });
-      }
-    </script>
+    <!-- Preconnect to image resources -->
+    <link rel="dns-prefetch" href="https://firestore.googleapis.com">
   </head>
   <body class="bg-[#0b0f19] text-slate-100 font-sans antialiased selection:bg-gold-500 selection:text-black min-h-screen">
     <div id="root"></div>

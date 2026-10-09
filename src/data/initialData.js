@@ -1,5 +1,7 @@
-// Demo/testing products removed permanently — only admin created products populate the catalog
-export const INITIAL_PRODUCTS = [];
+import fallbackProducts from './fallbackProducts.json';
+
+// Authentic catalog products loaded instantly on first cold start; auto-synced with Firestore
+export const INITIAL_PRODUCTS = fallbackProducts;
 
 // Default sub-categories mapped per main jewelry category (admin can add/edit/delete from Admin Dashboard)
 export const INITIAL_SUB_CATEGORIES = {

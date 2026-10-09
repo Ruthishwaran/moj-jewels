@@ -281,8 +281,15 @@ export default function CartDrawer() {
                 )}
                 <div className="flex justify-between">
                   <span>Insured Shipping:</span>
-                  <span className="text-emerald-400 font-bold">FREE</span>
+                  <span className="text-emerald-400 font-semibold text-[11px]">
+                    {subtotal >= 2000 ? 'FREE (Orders ₹2,000+)' : 'From ₹50 at checkout'}
+                  </span>
                 </div>
+                {subtotal < 2000 && (
+                  <div className="text-[10px] text-amber-300 bg-amber-500/10 border border-amber-500/25 px-2 py-1 rounded-lg">
+                    Add ₹{(2000 - (Number(subtotal) || 0)).toLocaleString()} more for FREE Delivery!
+                  </div>
+                )}
                 <div className="flex justify-between text-base font-bold text-white pt-2 border-t border-slate-800">
                   <span>Grand Total:</span>
                   <span className="gold-gradient-text text-lg">₹{(Number(grandTotal) || 0).toLocaleString()}</span>

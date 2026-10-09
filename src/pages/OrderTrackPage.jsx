@@ -10,16 +10,18 @@ import {
   AlertCircle,
   MapPin,
   Sparkles,
-  ExternalLink
+  ExternalLink,
+  X
 } from 'lucide-react';
 
 export default function OrderTrackPage() {
-  const { orders, products } = useStore();
+  const { orders, products, setCurrentPage } = useStore();
   const safeOrders = Array.isArray(orders) ? orders : [];
+  const [selectedTrackImage, setSelectedTrackImage] = useState(null);
 
   const [searchId, setSearchId] = useState(() => {
     try {
-      return sessionStorage.getItem('moj_track_order_id') || '';
+      return sessionStorage.getItem('moj_track_order_id') || localStorage.getItem('moj_last_placed_order_id') || '';
     } catch (e) {
       return '';
     }
@@ -27,11 +29,10 @@ export default function OrderTrackPage() {
 
   const [trackedOrder, setTrackedOrder] = useState(() => {
     try {
-      const saved = sessionStorage.getItem('moj_track_order_id');
+      const saved = sessionStorage.getItem('moj_track_order_id') || localStorage.getItem('moj_last_placed_order_id');
       if (saved && Array.isArray(orders)) {
         const found = orders.find(o => o.id?.toUpperCase() === saved.trim().toUpperCase());
         if (found) {
-          sessionStorage.removeItem('moj_track_order_id');
           return found;
         }
       }
@@ -41,13 +42,12 @@ export default function OrderTrackPage() {
 
   React.useEffect(() => {
     try {
-      const saved = sessionStorage.getItem('moj_track_order_id');
+      const saved = sessionStorage.getItem('moj_track_order_id') || localStorage.getItem('moj_last_placed_order_id');
       if (saved && safeOrders.length > 0) {
         const found = safeOrders.find(o => o.id?.toUpperCase() === saved.trim().toUpperCase());
         if (found) {
           setTrackedOrder(found);
           setSearchId(saved);
-          sessionStorage.removeItem('moj_track_order_id');
         }
       }
     } catch (e) {}
@@ -231,16 +231,39 @@ export default function OrderTrackPage() {
                   );
                   const itemImg = it.image || matchedProduct?.image || (matchedProduct?.images && matchedProduct.images[0]) || '/images/hero_banner.jpg';
                   return (
-                    <div key={idx} className="flex items-center space-x-3 bg-slate-900/60 p-2.5 rounded-lg border border-slate-800">
-                      <img 
-                        src={itemImg} 
-                        alt={it.title || 'Jewelry item'} 
-                        className="w-10 h-10 object-cover rounded-lg border border-slate-700 bg-slate-950 shrink-0" 
-                        onError={(e) => { e.target.src = '/images/hero_banner.jpg'; }}
-                      />
-                      <div>
-                        <p className="text-white font-semibold line-clamp-1">{it.title}</p>
-                        <span className="text-slate-400 text-[10px]">Qty: {it.quantity} x ₹{(Number(it?.price) || 0).toLocaleString()}</span>
+                    <div
+                      key={idx}
+                      onClick={() => setSelectedTrackImage({
+                        title: it.title || matchedProduct?.title || 'Jewelry Design',
+                        image: itemImg,
+                        price: Number(it.price || matchedProduct?.price || 0),
+                        quantity: it.quantity || 1,
+                        selectedColor: it.selectedColor,
+                        selectedSize: it.selectedSize,
+                        category: matchedProduct?.category,
+                        description: matchedProduct?.description
+                      })}
+                      className="flex items-center space-x-3 bg-slate-900/60 p-2.5 rounded-lg border border-slate-800 hover:border-gold-500/50 cursor-pointer transition-all group"
+                      title="Click to view full high-res jewelry design"
+                    >
+                      <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-slate-700 bg-slate-950 shrink-0">
+                        <img 
+                          src={itemImg} 
+                          alt={it.title || 'Jewelry item'} 
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" 
+                          onError={(e) => { e.target.src = '/images/hero_banner.jpg'; }}
+                        />
+                        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                          <Search className="w-4 h-4 text-gold-300" />
+                        </div>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-white font-semibold line-clamp-1 group-hover:text-gold-300 transition-colors">{it.title}</p>
+                        <div className="flex items-center gap-2 text-slate-400 text-[10px]">
+                          <span>Qty: {it.quantity || 1} &bull; ₹{(Number(it?.price || matchedProduct?.price || 0)).toLocaleString()}</span>
+                          {it.selectedColor && <span className="text-gold-400">&bull; {it.selectedColor}</span>}
+                        </div>
+                        <span className="text-[9px] text-gold-400/80 block mt-0.5">Click photo to view design</span>
                       </div>
                     </div>
                   );
@@ -260,6 +283,12 @@ export default function OrderTrackPage() {
                   <span className="text-slate-500 text-[10px] block">Customer Contact</span>
                   <p className="text-white font-medium">{trackedOrder.customerName} ({trackedOrder.customerPhone})</p>
                 </div>
+                {trackedOrder.shippingFee !== undefined && Number(trackedOrder.shippingFee) > 0 && (
+                  <div className="flex justify-between text-xs pt-1 border-t border-slate-800/60">
+                    <span className="text-slate-400">Insured Shipping Fee:</span>
+                    <span className="text-gold-300 font-semibold">₹{Number(trackedOrder.shippingFee).toLocaleString()} ({trackedOrder.shippingState || 'Tamil Nadu'})</span>
+                  </div>
+                )}
                 <div className="pt-2 border-t border-slate-800 flex justify-between">
                   <div>
                     <span className="text-slate-500 text-[10px] block">Transaction Ref (UTR)</span>
@@ -270,6 +299,77 @@ export default function OrderTrackPage() {
                     <strong className="text-white">₹{(Number(trackedOrder?.total) || 0).toLocaleString()}</strong>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Jewelry Product Image Full View Modal */}
+      {selectedTrackImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
+          <div className="glass-modal max-w-lg w-full rounded-2xl border border-gold-500/40 p-5 space-y-4 shadow-2xl relative">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <div className="min-w-0 pr-3">
+                <h3 className="text-white font-serif font-bold text-base truncate">
+                  {selectedTrackImage.title}
+                </h3>
+                {selectedTrackImage.category && (
+                  <span className="text-[10px] text-gold-400 uppercase tracking-wider block">
+                    {selectedTrackImage.category} Collection
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={() => setSelectedTrackImage(null)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="aspect-square w-full rounded-xl overflow-hidden border border-slate-800 bg-slate-950 flex items-center justify-center p-2">
+              <img
+                src={selectedTrackImage.image}
+                alt={selectedTrackImage.title}
+                className="w-full h-full object-contain"
+                onError={(e) => { e.target.src = '/images/hero_banner.jpg'; }}
+              />
+            </div>
+
+            {selectedTrackImage.description && (
+              <p className="text-xs text-slate-300 bg-slate-900/60 p-3 rounded-xl border border-slate-800">
+                {selectedTrackImage.description}
+              </p>
+            )}
+
+            <div className="flex items-center justify-between text-xs pt-1">
+              <div>
+                <span className="text-gold-400 font-bold text-base block">
+                  ₹{(Number(selectedTrackImage.price) || 0).toLocaleString()}
+                </span>
+                <span className="text-slate-400 text-[11px]">
+                  Ordered Qty: {selectedTrackImage.quantity || 1}
+                  {selectedTrackImage.selectedColor && ` • Color: ${selectedTrackImage.selectedColor}`}
+                  {selectedTrackImage.selectedSize && ` • Size: ${selectedTrackImage.selectedSize}`}
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    setSelectedTrackImage(null);
+                    setCurrentPage('shop');
+                  }}
+                  className="bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 px-3 py-2 rounded-xl text-xs font-semibold"
+                >
+                  Shop More
+                </button>
+                <button
+                  onClick={() => setSelectedTrackImage(null)}
+                  className="btn-gold-shimmer px-4 py-2 rounded-xl text-xs font-bold text-black"
+                >
+                  Close
+                </button>
               </div>
             </div>
           </div>

@@ -36,6 +36,8 @@ export default function AdminDashboard() {
     refreshOrders,
     verifyOrderPayment,
     updateOrderStatus,
+    deleteOrder,
+    deleteAllOrders,
     products,
     addProduct,
     editProduct,
@@ -778,7 +780,7 @@ export default function AdminDashboard() {
           }`}
         >
           <Tag className="w-4 h-4 text-amber-400" />
-          <span>Categories ({categories?.length || 0})</span>
+          <span>Categories ({(categories || []).filter(c => c !== 'All').length})</span>
         </button>
 
         <button
@@ -956,6 +958,20 @@ export default function AdminDashboard() {
                       >
                         <X className="w-4 h-4" />
                         <span>Reject Payment</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (window.confirm(`Delete test order "${ord.id}"? This cannot be undone.`)) {
+                            await deleteOrder(ord.id);
+                          }
+                        }}
+                        className="w-full bg-slate-900/80 hover:bg-rose-950 border border-slate-800 hover:border-rose-700/60 text-slate-400 hover:text-rose-200 font-medium py-1.5 px-3 rounded-xl text-[11px] flex items-center justify-center space-x-1.5 transition-colors"
+                        title="Delete test order permanently"
+                      >
+                        <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+                        <span>Delete Test Order</span>
                       </button>
                     </div>
                   </div>
@@ -1156,6 +1172,7 @@ export default function AdminDashboard() {
                 // Date Filter
                 if (!ord.date) return true;
                 const ordDateObj = new Date(ord.date);
+                if (isNaN(ordDateObj.getTime())) return true;
                 const todayStr = new Date().toISOString().split('T')[0];
                 const ordDateStr = ordDateObj.toISOString().split('T')[0];
 
@@ -1185,10 +1202,26 @@ export default function AdminDashboard() {
               <div key={ord.id} className="glass-card p-6 rounded-2xl border border-slate-800 space-y-4">
                 <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-800 pb-3 gap-2 text-xs">
                   <div>
-                    <span className="text-gold-400 font-mono font-bold text-sm mr-3">Order ID: {ord.id}</span>
-                    <span className="text-slate-300 font-medium">{ord.customerName} ({ord.customerPhone})</span>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-gold-400 font-mono font-bold text-sm">Order ID: {ord.id}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (window.confirm(`Delete order ${ord.id} permanently?`)) {
+                            deleteOrder(ord.id);
+                          }
+                        }}
+                        className="text-slate-500 hover:text-rose-400 p-1 rounded transition-colors"
+                        title="Delete test order"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                    <span className="text-slate-300 font-medium">
+                      {ord.customerName || 'Customer'} {ord.customerPhone ? `(${ord.customerPhone})` : ''}
+                    </span>
                     <span className="text-slate-500 text-[11px] block mt-0.5">
-                      📅 Date: {new Date(ord.date).toLocaleString()}
+                      📅 Date: {ord.date && !isNaN(new Date(ord.date).getTime()) ? new Date(ord.date).toLocaleString('en-IN') : 'Recently Placed'}
                     </span>
                   </div>
 
@@ -3182,65 +3215,7 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* TAB 6: Dynamic Categories Management */}
-      {activeTab === 'categories' && (
-        <div className="glass-card p-6 md:p-8 rounded-2xl border border-amber-500/40 space-y-6 max-w-3xl mx-auto animate-fade-in">
-          <div className="border-b border-slate-800 pb-4 flex justify-between items-center">
-            <div>
-              <h2 className="text-2xl font-serif font-bold text-white flex items-center gap-2">
-                <Tag className="w-6 h-6 text-gold-400" /> Dynamic Category Management
-              </h2>
-              <p className="text-xs text-slate-400 mt-1">
-                Add custom categories for products (e.g. Antique Sets, Temple Jewellery, Matte Bangles).
-              </p>
-            </div>
-          </div>
 
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (newCatInput) {
-                addCategory(newCatInput);
-                setNewCatInput('');
-              }
-            }}
-            className="flex gap-3 text-xs"
-          >
-            <input
-              type="text"
-              required
-              placeholder="e.g. Temple Jewellery"
-              value={newCatInput}
-              onChange={(e) => setNewCatInput(e.target.value)}
-              className="flex-1 bg-slate-900 border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-gold-400"
-            />
-            <button
-              type="submit"
-              className="btn-gold-shimmer px-6 py-3 rounded-xl font-bold text-xs"
-            >
-              + Add Category
-            </button>
-          </form>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-            {(categories || []).map((cat) => (
-              <div key={cat} className="flex justify-between items-center p-3.5 bg-slate-900/80 rounded-xl border border-slate-800 text-xs">
-                <span className="text-white font-semibold">{cat}</span>
-                {cat !== 'All' && (
-                  <button
-                    onClick={() => {
-                      if (confirm(`Remove category "${cat}"?`)) deleteCategory(cat);
-                    }}
-                    className="text-slate-500 hover:text-rose-400 p-1"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* TAB 7: Customer Account Control */}
       {activeTab === 'customers' && (
@@ -3673,16 +3648,13 @@ export default function AdminDashboard() {
             <p className="text-xs text-slate-400">Permanently delete test or demo data from the store. All deletions sync instantly across all devices via Firebase.</p>
             <div className="flex flex-wrap gap-3">
               <button
-                onClick={() => {
+                onClick={async () => {
                   if (window.confirm('Delete ALL orders permanently? This cannot be undone.')) {
-                    safeOrders.forEach(o => {
-                      import('../firebase').then(({ db }) => {
-                        import('firebase/firestore').then(({ doc, deleteDoc }) => deleteDoc(doc(db, 'orders', o.id)));
-                      });
-                    });
+                    await deleteAllOrders();
+                    alert('All test orders have been permanently cleared from store and cloud.');
                   }
                 }}
-                className="flex items-center gap-2 bg-rose-900/60 hover:bg-rose-800 border border-rose-700/60 text-rose-200 font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors"
+                className="flex items-center gap-2 bg-rose-900/60 hover:bg-rose-800 border border-rose-700/60 text-rose-200 font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors active:scale-95"
               >
                 <Trash2 className="w-4 h-4" /> Delete All Orders
               </button>

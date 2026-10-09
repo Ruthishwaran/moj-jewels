@@ -1,0 +1,91 @@
+[
+  {
+    "id": "prod-1790182000810",
+    "price": 379,
+    "createdAt": 1790182000810,
+    "stock": 12,
+    "category": "Necklace",
+    "originalPrice": 699,
+    "description": "Sri Venkateswara Namam inspired centre design\nPremium Ruby & Green Kemp stone detailing\nSparkling white stone work\nIntricate traditional side motifs\nRich antique-gold finish\nMatching earrings included\nElegant traditional & devotional look\nSuitable for festive and wedding wear",
+    "rating": 5,
+    "images": [
+      "/products/prod-1790182000810-0.jpg",
+      "/products/prod-1790182000810-1.jpg",
+      "/products/prod-1790182000810-2.jpg",
+      "/products/prod-1790182000810-3.jpg"
+    ],
+    "karat": "Brass ",
+    "updatedAt": 1790182786510,
+    "reviewsCount": 1,
+    "title": "✨ Perumal Namam Kemp Necklace ✨",
+    "image": "/products/prod-1790182000810-0.jpg"
+  },
+  {
+    "id": "prod-1790181674064",
+    "category": "Necklace",
+    "stock": 2,
+    "price": 849,
+    "createdAt": 1790181674064,
+    "images": [
+      "/products/prod-1790181674064-0.jpg",
+      "/products/prod-1790181674064-1.jpg",
+      "/products/prod-1790181674064-2.jpg",
+      "/products/prod-1790181674064-3.jpg"
+    ],
+    "rating": 5,
+    "reviewsCount": 1,
+    "image": "/products/prod-1790181674064-0.jpg",
+    "title": "Lakshmi Devi Pearl Drop Necklace",
+    "description": "• Premium Kemp Stone Work\n• Ruby Pink & Green Stone Detailing\n• Sparkling White Stone Accents\n• Beautiful Pearl Drop Finish\n• Intricate Antique-Gold Detailing\n• Matching Earrings Included\n• Traditional & Elegant Look\n• Ideal for Bridal & Festive Wear",
+    "originalPrice": 1200,
+    "karat": "Brass ",
+    "updatedAt": 1790182853999
+  },
+  {
+    "id": "prod-1790181332862",
+    "karat": "Brass ",
+    "createdAt": 1790181332862,
+    "reviewsCount": 1,
+    "category": "Necklace",
+    "title": "Ruby Kemp Mango Pendant Necklace”",
+    "image": "/products/prod-1790181332862-0.jpg",
+    "originalPrice": 899,
+    "stock": 23,
+    "price": 549,
+    "images": [
+      "/products/prod-1790181332862-0.jpg",
+      "/products/prod-1790181332862-1.jpg",
+      "/products/prod-1790181332862-2.jpg",
+      "/products/prod-1790181332862-3.jpg"
+    ],
+    "rating": 5,
+    "description": "✨ Premium Look\n✨ Mango Design Pendant\n✨ Ruby Kemp Stone Work\n✨ Green Centre Stone\n✨ Matching Earrings Included\n✨ Perfect for Bridal & Festive Wear"
+  },
+  {
+    "id": "prod-1790091774985",
+    "subCategory": "",
+    "price": 249,
+    "category": "Bangles",
+    "updatedAt": 1790266058616,
+    "originalPrice": 599,
+    "stock": 9,
+    "colors": [],
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8"
+    ],
+    "createdAt": 1790091774985,
+    "karat": "22k Gold BIS Hallmarked",
+    "description": "⭐ Beautiful Lakshmi Devi Motif Design\n⭐ Rich Antique Gold-Tone Finish\n⭐ Green & Ruby Stone Detailing\n⭐ Intricate Floral & Traditional Patterns\n⭐ Elegant Temple-Jewellery Inspired Look\n⭐ Premium Statement Bangle Design\n⭐ Perfect for Silk Sarees & Ethnic Wear\n⭐ Suitable for Weddings & Festivals\n⭐ Ideal for Traditional Functions & Special Occasions\n⭐ Beautiful Choice for Gifting\n💎 Product Type: Bangle Set\n🎨 Stone Colours: Green & Ruby",
+    "rating": 5,
+    "images": [
+      "/products/prod-1790091774985-0.jpg",
+      "/products/prod-1790091774985-1.jpg",
+      "/products/prod-1790091774985-2.jpg"
+    ],
+    "reviewsCount": 1,
+    "image": "/products/prod-1790091774985-0.jpg",
+    "title": "✨Matt Bangles"
+  }
+]

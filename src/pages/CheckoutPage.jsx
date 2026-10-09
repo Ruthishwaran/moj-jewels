@@ -19,6 +19,33 @@ import {
   Download
 } from 'lucide-react';
 
+const INDIAN_STATES = [
+  'Tamil Nadu',
+  'Andhra Pradesh',
+  'Karnataka',
+  'Kerala',
+  'Telangana',
+  'Maharashtra',
+  'Delhi',
+  'Gujarat',
+  'Goa',
+  'Puducherry',
+  'Rajasthan',
+  'Uttar Pradesh',
+  'West Bengal',
+  'Punjab',
+  'Haryana',
+  'Madhya Pradesh',
+  'Bihar',
+  'Odisha',
+  'Assam',
+  'Jharkhand',
+  'Uttarakhand',
+  'Himachal Pradesh',
+  'Jammu and Kashmir',
+  'Other States / UT'
+];
+
 export default function CheckoutPage() {
   const {
     cart,
@@ -51,10 +78,23 @@ export default function CheckoutPage() {
   const [customerPhone, setCustomerPhone] = useState(user?.phone || '');
   const [customerEmail, setCustomerEmail] = useState(user?.email || '');
   const [shippingAddress, setShippingAddress] = useState('');
+  const [shippingState, setShippingState] = useState('Tamil Nadu');
   const [city, setCity] = useState('');
   const [pincode, setPincode] = useState('');
   const [transactionId, setTransactionId] = useState('');
   const [notes, setNotes] = useState('');
+  const [previewingProduct, setPreviewingProduct] = useState(null);
+
+  // Shipping Fee Logic:
+  // - Orders ₹2,000 & above: Insured Express Shipping is 100% FREE
+  // - Orders below ₹2,000:
+  //   - Inside Tamil Nadu: ₹50
+  //   - Outside Tamil Nadu: ₹100
+  const netOrderAmount = Math.max(0, (Number(subtotal) || 0) - (Number(discountAmount) || 0));
+  const isFreeShipping = netOrderAmount >= 2000;
+  const isTamilNadu = shippingState.trim().toLowerCase() === 'tamil nadu' || shippingState.toLowerCase().includes('tamil');
+  const shippingFee = isFreeShipping ? 0 : (isTamilNadu ? 50 : 100);
+  const payableTotal = netOrderAmount + shippingFee;
 
   if (cart.length === 0 && step !== 3) {
     return (
@@ -77,11 +117,6 @@ export default function CheckoutPage() {
   const totalCartQty = (cart || []).reduce((acc, item) => acc + (item.quantity || 1), 0);
   const isWholesaleAccount = user?.accountType === 'wholesale';
   const isWholesaleApproved = user?.isApproved !== false;
-
-  // Safe Payable Total calculation (ensures items are never ₹0 when subtotal > 0)
-  const payableTotal = (grandTotal !== undefined && grandTotal !== null && !isNaN(Number(grandTotal)) && Number(grandTotal) > 0)
-    ? Number(grandTotal)
-    : Math.max(0, (Number(subtotal) || 0) - (Number(discountAmount) || 0));
 
   const handleDownloadQr = async () => {
     try {
@@ -183,12 +218,17 @@ export default function CheckoutPage() {
     setIsPlacingOrder(true);
 
     try {
-      const fullAddress = `${shippingAddress.trim()}, ${city.trim()} - ${pincode.trim()}`;
+      const fullAddress = `${shippingAddress.trim()}, ${city.trim()} - ${pincode.trim()} (${shippingState})`;
       const newOrd = await placeOrder({
         customerName: customerName.trim(),
         customerPhone: customerPhone.trim(),
         customerEmail: customerEmail.trim(),
         shippingAddress: fullAddress,
+        shippingFee,
+        shippingState,
+        subtotal: Number(subtotal || 0),
+        discount: Number(discountAmount || 0),
+        total: payableTotal,
         paymentMethod: 'Manual UPI QR',
         transactionId: cleanTx,
         notes: notes || 'Submitted by customer'
@@ -306,13 +346,29 @@ export default function CheckoutPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="text-xs text-slate-300 font-medium block mb-1">State / Region</label>
+                  <select
+                    value={shippingState}
+                    onChange={(e) => setShippingState(e.target.value)}
+                    className="w-full bg-slate-900 border border-slate-700/80 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-gold-400 font-medium"
+                  >
+                    {INDIAN_STATES.map(s => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
+                  <span className="text-[10px] text-slate-400 mt-0.5 block">
+                    {isTamilNadu ? 'Inside Tamil Nadu (₹50)' : 'Outside Tamil Nadu (₹100)'}
+                  </span>
+                </div>
+
                 <div>
                   <label className="text-xs text-slate-300 font-medium block mb-1">City</label>
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Bangalore"
+                    placeholder="e.g. Chennai"
                     value={city}
                     onChange={(e) => setCity(e.target.value.replace(/[^A-Za-z\s]/g, ''))}
                     className="w-full bg-slate-900 border border-slate-700/80 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-gold-400"
@@ -326,13 +382,50 @@ export default function CheckoutPage() {
                     type="text"
                     required
                     maxLength={6}
-                    placeholder="e.g. 560001"
+                    placeholder="e.g. 600001"
                     value={pincode}
-                    onChange={(e) => setPincode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+                      setPincode(val);
+                      if (val.length >= 2) {
+                        const prefix = parseInt(val.slice(0, 2), 10);
+                        if (prefix >= 60 && prefix <= 64) {
+                          setShippingState('Tamil Nadu');
+                        }
+                      }
+                    }}
                     className="w-full bg-slate-900 border border-slate-700/80 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-gold-400 font-mono"
                   />
                   <span className="text-[10px] text-slate-400 mt-0.5 block">6-digit number</span>
                 </div>
+              </div>
+
+              {/* Real-time Courier Shipping Fee Indicator */}
+              <div className={`p-3 rounded-xl border text-xs flex items-center justify-between ${
+                isFreeShipping
+                  ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300'
+                  : 'bg-amber-950/30 border-amber-500/30 text-amber-300'
+              }`}>
+                <div className="flex items-center gap-2.5">
+                  <span className="text-base">🚚</span>
+                  <div>
+                    <span className="font-bold block">
+                      {isFreeShipping
+                        ? 'FREE Insured Express Courier'
+                        : isTamilNadu
+                        ? '₹50 Express Courier (Inside Tamil Nadu)'
+                        : '₹100 Express Courier (Outside Tamil Nadu)'}
+                    </span>
+                    <span className="text-[10px] opacity-80 block">
+                      {isFreeShipping
+                        ? 'Order ₹2,000+ unlocked 100% Free Shipping.'
+                        : `Orders below ₹2,000: ₹50 inside TN, ₹100 outside TN. Add ₹${(2000 - netOrderAmount).toLocaleString()} more for FREE shipping!`}
+                    </span>
+                  </div>
+                </div>
+                <span className="font-mono font-bold text-sm shrink-0">
+                  {isFreeShipping ? 'FREE' : `₹${shippingFee}`}
+                </span>
               </div>
 
               <button
@@ -505,8 +598,26 @@ export default function CheckoutPage() {
                 )}
                 <div className="flex justify-between text-slate-400">
                   <span>Insured Express Shipping</span>
-                  <span className="text-emerald-400 font-bold">FREE</span>
+                  {shippingFee === 0 ? (
+                    <span className="text-emerald-400 font-bold">FREE (Orders ₹2,000+)</span>
+                  ) : (
+                    <span className="text-gold-300 font-bold">
+                      ₹{shippingFee} ({isTamilNadu ? 'Inside TN' : 'Outside TN'})
+                    </span>
+                  )}
                 </div>
+                {shippingFee > 0 && (
+                  <div className="text-[10px] text-amber-300 bg-amber-500/10 border border-amber-500/25 px-2.5 py-1.5 rounded-lg flex items-center justify-between">
+                    <span>Add ₹{(2000 - netOrderAmount).toLocaleString()} more for FREE Delivery</span>
+                    <button
+                      type="button"
+                      onClick={() => setCurrentPage('shop')}
+                      className="underline text-gold-300 font-bold hover:text-white"
+                    >
+                      Add items +
+                    </button>
+                  </div>
+                )}
                 <div className="flex justify-between text-base font-bold text-white pt-2 border-t border-slate-800">
                   <span>Total Amount Payable</span>
                   <span className="gold-gradient-text">₹{(Number(payableTotal) || 0).toLocaleString()}</span>
@@ -729,6 +840,12 @@ export default function CheckoutPage() {
               <span className="text-slate-400">Total Amount Paid:</span>
               <span className="gold-gradient-text font-bold text-base">₹{(Number(createdOrder?.total) || 0).toLocaleString()}</span>
             </div>
+            {createdOrder?.shippingFee !== undefined && Number(createdOrder.shippingFee) > 0 && (
+              <div className="flex justify-between">
+                <span className="text-slate-400">Insured Courier Fee:</span>
+                <span className="text-gold-300 font-semibold">₹{Number(createdOrder.shippingFee).toLocaleString()} ({createdOrder.shippingState || 'Tamil Nadu'})</span>
+              </div>
+            )}
             <div className="flex justify-between">
               <span className="text-slate-400">Shipping Address:</span>
               <span className="text-slate-200 max-w-[220px] text-right line-clamp-2">{createdOrder.shippingAddress}</span>
@@ -743,7 +860,7 @@ export default function CheckoutPage() {
             {/* Ordered Items with Thumbnails in Confirmation Screen */}
             {Array.isArray(createdOrder.items) && createdOrder.items.length > 0 && (
               <div className="pt-3 border-t border-slate-800 space-y-2">
-                <span className="text-slate-400 font-semibold block text-[11px]">Ordered Jewelry Items:</span>
+                <span className="text-slate-400 font-semibold block text-[11px]">Ordered Jewelry Items (Click image to view):</span>
                 <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                   {createdOrder.items.map((item, idx) => {
                     const matchedProduct = (products || []).find(p => String(p.id) === String(item.productId || item.id));
@@ -751,12 +868,25 @@ export default function CheckoutPage() {
                     return (
                       <div key={idx} className="flex items-center justify-between bg-slate-950/60 p-2 rounded-xl border border-slate-800">
                         <div className="flex items-center space-x-2.5">
-                          <img
-                            src={itemImg}
-                            alt={item.title}
-                            className="w-10 h-10 object-cover rounded-lg border border-slate-700 bg-slate-900 shrink-0"
-                            onError={(e) => { e.target.src = '/images/hero_banner.jpg'; }}
-                          />
+                          <div
+                            onClick={() => setPreviewingProduct({
+                              title: item.title,
+                              image: itemImg,
+                              price: Number(item.price || 0),
+                              quantity: item.quantity,
+                              selectedColor: item.selectedColor,
+                              selectedSize: item.selectedSize
+                            })}
+                            className="w-10 h-10 rounded-lg overflow-hidden border border-slate-700 bg-slate-900 shrink-0 cursor-pointer hover:border-gold-400 transition-colors"
+                            title="Click to view full jewelry design"
+                          >
+                            <img
+                              src={itemImg}
+                              alt={item.title}
+                              className="w-full h-full object-cover hover:scale-110 transition-transform"
+                              onError={(e) => { e.target.src = '/images/hero_banner.jpg'; }}
+                            />
+                          </div>
                         <div>
                           <p className="text-white font-semibold text-xs line-clamp-1">{item.title}</p>
                           <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
@@ -790,7 +920,15 @@ export default function CheckoutPage() {
 
           <div className="pt-2 flex flex-col sm:flex-row gap-3">
             <button
-              onClick={() => setCurrentPage('track')}
+              onClick={() => {
+                if (createdOrder?.id) {
+                  try {
+                    sessionStorage.setItem('moj_track_order_id', createdOrder.id);
+                    localStorage.setItem('moj_last_placed_order_id', createdOrder.id);
+                  } catch (e) {}
+                }
+                setCurrentPage('track');
+              }}
               className="flex-1 btn-gold-shimmer py-3.5 rounded-xl text-xs font-bold shadow-lg flex items-center justify-center gap-1.5"
             >
               <CheckCircle2 className="w-4 h-4 text-black" />
@@ -802,6 +940,51 @@ export default function CheckoutPage() {
             >
               Continue Shopping
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Jewelry Product Image Preview Modal */}
+      {previewingProduct && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
+          <div className="glass-modal max-w-md w-full rounded-2xl border border-gold-500/40 p-5 space-y-4 shadow-2xl relative">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <h3 className="text-white font-serif font-bold text-sm truncate pr-2">
+                {previewingProduct.title}
+              </h3>
+              <button
+                onClick={() => setPreviewingProduct(null)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="aspect-square w-full rounded-xl overflow-hidden border border-slate-800 bg-slate-950 flex items-center justify-center">
+              <img
+                src={previewingProduct.image}
+                alt={previewingProduct.title}
+                className="w-full h-full object-contain"
+                onError={(e) => { e.target.src = '/images/hero_banner.jpg'; }}
+              />
+            </div>
+            <div className="flex items-center justify-between text-xs pt-1">
+              <div>
+                <span className="text-gold-400 font-bold text-sm block">
+                  ₹{(Number(previewingProduct.price) || 0).toLocaleString()}
+                </span>
+                <span className="text-slate-400 text-[11px]">
+                  Qty: {previewingProduct.quantity || 1}
+                  {previewingProduct.selectedColor && ` • Color: ${previewingProduct.selectedColor}`}
+                  {previewingProduct.selectedSize && ` • Size: ${previewingProduct.selectedSize}`}
+                </span>
+              </div>
+              <button
+                onClick={() => setPreviewingProduct(null)}
+                className="btn-gold-shimmer px-4 py-2 rounded-xl text-xs font-bold text-black"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

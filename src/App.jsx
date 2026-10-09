@@ -14,8 +14,9 @@ import ShopPage from './pages/ShopPage';
 import CheckoutPage from './pages/CheckoutPage';
 import OrderTrackPage from './pages/OrderTrackPage';
 import CustomerDashboard from './pages/CustomerDashboard';
-import AdminDashboard from './pages/AdminDashboard';
-import AdminLoginPage from './pages/AdminLoginPage';
+
+const AdminDashboard = React.lazy(() => import('./pages/AdminDashboard'));
+const AdminLoginPage = React.lazy(() => import('./pages/AdminLoginPage'));
 import { ShieldCheck, LogOut, Search, ShoppingBag, ArrowRight } from 'lucide-react';
 
 function MainContent() {
@@ -85,7 +86,13 @@ function MainContent() {
       )}
 
       <main className="flex-1">
-        {renderPage()}
+        <Suspense fallback={
+          <div className="min-h-[50vh] flex items-center justify-center">
+            <div className="w-8 h-8 border-2 border-gold-400 border-t-transparent rounded-full animate-spin" />
+          </div>
+        }>
+          {renderPage()}
+        </Suspense>
       </main>
 
       {!isAdminView && <Footer />}
