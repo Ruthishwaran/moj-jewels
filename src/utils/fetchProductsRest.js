@@ -109,8 +109,20 @@ export async function fetchProductsViaRest(onBatch) {
             p.image = fb.image;
             p.images = fb.images;
           } else {
-            p.image = p.image || '/images/hero_banner.jpg';
-            p.images = Array.isArray(p.images) && p.images.length > 0 ? p.images : [p.image];
+            // New dynamic product created in Admin: fetch full doc with authentic images
+            try {
+              const full = await fetchSingleProductViaRest(id);
+              if (full && (full.image || (Array.isArray(full.images) && full.images.length > 0))) {
+                p.image = full.image || full.images[0];
+                p.images = Array.isArray(full.images) && full.images.length > 0 ? full.images : [p.image];
+              } else {
+                p.image = p.image || '/images/hero_banner.jpg';
+                p.images = Array.isArray(p.images) && p.images.length > 0 ? p.images : [p.image];
+              }
+            } catch (e) {
+              p.image = p.image || '/images/hero_banner.jpg';
+              p.images = Array.isArray(p.images) && p.images.length > 0 ? p.images : [p.image];
+            }
           }
 
           products.push(p);
@@ -121,18 +133,6 @@ export async function fetchProductsViaRest(onBatch) {
       }
       pageToken = data.nextPageToken;
     } while (pageToken);
-
-    // If any newly created products (not in fallbackMap) lack an image, fetch their single doc
-    const newItemsNeedingImages = products.filter(p => !fallbackMap.has(p.id) && (!p.image || p.image === '/images/hero_banner.jpg'));
-    if (newItemsNeedingImages.length > 0) {
-      await Promise.all(newItemsNeedingImages.map(async (item) => {
-        const full = await fetchSingleProductViaRest(item.id);
-        if (full && full.image) {
-          item.image = full.image;
-          item.images = full.images || [full.image];
-        }
-      }));
-    }
 
     return products.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
   } catch (err) {
@@ -149,6 +149,11 @@ export async function fetchConfigViaRest() {
     const fields = data.fields || {};
     const config = {};
 
+    if (fields.deletedProductIds?.arrayValue?.values) {
+      config.deletedProductIds = fields.deletedProductIds.arrayValue.values
+        .map(v => v.stringValue)
+        .filter(Boolean);
+    }
     if (fields.categories?.arrayValue?.values) {
       config.categories = fields.categories.arrayValue.values
         .map(v => v.stringValue)

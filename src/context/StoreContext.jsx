@@ -106,18 +106,20 @@ export const StoreProvider = ({ children }) => {
   const [isInstallModalOpen, setIsInstallModalOpen] = useState(false);
 
   // ===== Cloud State (Firestore — with IndexedDB / localStorage instant caching) =====
+  const [deletedProductIds, setDeletedProductIds] = useState(() => safeParseJSON('moj_deleted_product_ids', []));
   const [products, setProducts] = useState(() => {
+    const deleted = safeParseJSON('moj_deleted_product_ids', []);
+    const demoIds = ['prod-1', 'prod-2', 'prod-3', 'prod-4', 'prod-5', 'prod-6'];
     try {
       const meta = localStorage.getItem('moj_products_meta');
       if (meta) {
         const parsed = JSON.parse(meta);
-        const demoIds = ['prod-1', 'prod-2', 'prod-3', 'prod-4', 'prod-5', 'prod-6'];
-        if (Array.isArray(parsed) && parsed.length >= INITIAL_PRODUCTS.length) {
-          return parsed.filter(p => !demoIds.includes(p.id));
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.filter(p => !demoIds.includes(p.id) && !deleted.includes(String(p.id)));
         }
       }
     } catch (e) {}
-    return INITIAL_PRODUCTS;
+    return (INITIAL_PRODUCTS || []).filter(p => !demoIds.includes(p.id) && !deleted.includes(String(p.id)));
   });
   const [orders, setOrders] = useState(() => safeParseJSON('moj_orders_cache', []));
   const [registeredUsers, setRegisteredUsers] = useState([]);
@@ -199,6 +201,11 @@ export const StoreProvider = ({ children }) => {
     // 1. Instant cloud hydration via REST for config & coupons (Guarantees immediate display on first phone visit)
     fetchConfigViaRest().then(cfg => {
       if (cfg) {
+        if (cfg.deletedProductIds && Array.isArray(cfg.deletedProductIds)) {
+          setDeletedProductIds(cfg.deletedProductIds);
+          try { localStorage.setItem('moj_deleted_product_ids', JSON.stringify(cfg.deletedProductIds)); } catch (e) {}
+          setProducts(prev => (Array.isArray(prev) ? prev : []).filter(p => !cfg.deletedProductIds.includes(String(p.id))));
+        }
         if (cfg.categories && Array.isArray(cfg.categories)) {
           setCategories(cfg.categories);
           try { localStorage.setItem('moj_categories_cache', JSON.stringify(cfg.categories)); } catch (e) {}
@@ -230,10 +237,11 @@ export const StoreProvider = ({ children }) => {
     });
 
     // 2. Instant IndexedDB restore for products with immediate background REST refresh
+    const currentDeleted = safeParseJSON('moj_deleted_product_ids', []);
     getIdbProducts().then((idbList) => {
-      const valid = (idbList || []).filter(p => p && p.id && !demoIds.includes(p.id));
+      const valid = (idbList || []).filter(p => p && p.id && !demoIds.includes(p.id) && !currentDeleted.includes(String(p.id)));
       const hasImages = valid.some(p => (p.image && p.image.length > 50) || (Array.isArray(p.images) && p.images.some(img => img && img.length > 50)));
-      if (valid.length >= INITIAL_PRODUCTS.length && hasImages) {
+      if (valid.length > 0 && hasImages) {
         const sorted = valid.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
         setProducts(sorted);
         updateProductsMetaCache(sorted);
@@ -241,12 +249,13 @@ export const StoreProvider = ({ children }) => {
       }
       // Always fetch latest products from cloud to sync items added from other devices
       fetchProductsViaRest((batch) => {
-        if (Array.isArray(batch) && batch.length >= INITIAL_PRODUCTS.length) {
-          setProducts(batch);
+        if (Array.isArray(batch) && batch.length > 0) {
+          const filteredBatch = batch.filter(p => !currentDeleted.includes(String(p.id)));
+          setProducts(filteredBatch);
           setIsLoading(false);
         }
       }).then(restList => {
-        const validRest = (restList || []).filter(p => !demoIds.includes(p.id));
+        const validRest = (restList || []).filter(p => !demoIds.includes(p.id) && !currentDeleted.includes(String(p.id)));
         if (validRest.length > 0) {
           const sortedRest = validRest.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
           setProducts(sortedRest);
@@ -258,12 +267,13 @@ export const StoreProvider = ({ children }) => {
     }).catch(() => {
       // In incognito mode or if IndexedDB failed, fetch via REST immediately
       fetchProductsViaRest((batch) => {
-        if (Array.isArray(batch) && batch.length >= INITIAL_PRODUCTS.length) {
-          setProducts(batch);
+        if (Array.isArray(batch) && batch.length > 0) {
+          const filteredBatch = batch.filter(p => !currentDeleted.includes(String(p.id)));
+          setProducts(filteredBatch);
           setIsLoading(false);
         }
       }).then(restList => {
-        const validRest = (restList || []).filter(p => !demoIds.includes(p.id));
+        const validRest = (restList || []).filter(p => !demoIds.includes(p.id) && !currentDeleted.includes(String(p.id)));
         if (validRest.length > 0) {
           const sortedRest = validRest.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
           setProducts(sortedRest);
@@ -278,8 +288,9 @@ export const StoreProvider = ({ children }) => {
   useEffect(() => {
     const demoIds = ['prod-1', 'prod-2', 'prod-3', 'prod-4', 'prod-5', 'prod-6'];
     const syncDataFromCloud = () => {
+      const deletedNow = safeParseJSON('moj_deleted_product_ids', []);
       fetchProductsViaRest().then(prods => {
-        const valid = (prods || []).filter(p => !demoIds.includes(p.id));
+        const valid = (prods || []).filter(p => !demoIds.includes(p.id) && !deletedNow.includes(String(p.id)));
         if (valid.length > 0) {
           setProducts(valid);
           replaceIdbProducts(valid);
@@ -300,6 +311,11 @@ export const StoreProvider = ({ children }) => {
       });
       fetchConfigViaRest().then(cfg => {
         if (cfg) {
+          if (cfg.deletedProductIds && Array.isArray(cfg.deletedProductIds)) {
+            setDeletedProductIds(cfg.deletedProductIds);
+            try { localStorage.setItem('moj_deleted_product_ids', JSON.stringify(cfg.deletedProductIds)); } catch (e) {}
+            setProducts(prev => (Array.isArray(prev) ? prev : []).filter(p => !cfg.deletedProductIds.includes(String(p.id))));
+          }
           if (cfg.categories) setCategories(cfg.categories);
           if (cfg.subCategories) setSubCategories(cfg.subCategories);
           if (cfg.payment) setPaymentConfigState(cfg.payment);
@@ -307,7 +323,7 @@ export const StoreProvider = ({ children }) => {
       });
     };
 
-    const interval = setInterval(syncDataFromCloud, 8000);
+    const interval = setInterval(syncDataFromCloud, 4000);
     const onVisibilityChange = () => {
       if (document.visibilityState === 'visible') syncDataFromCloud();
     };
@@ -394,6 +410,7 @@ export const StoreProvider = ({ children }) => {
     const prodUnsub = onSnapshot(
       collection(db, 'products'),
       snap => {
+        const deletedNow = safeParseJSON('moj_deleted_product_ids', []);
         const prods = snap.docs.map(d => {
           const data = d.data();
           const fb = fallbackMap.get(String(d.id));
@@ -403,7 +420,7 @@ export const StoreProvider = ({ children }) => {
             image: fb?.image || data.image || (Array.isArray(data.images) && data.images[0]) || '/images/hero_banner.jpg',
             images: (Array.isArray(fb?.images) && fb.images.length > 0) ? fb.images : (Array.isArray(data.images) && data.images.length > 0 ? data.images : [data.image || '/images/hero_banner.jpg'])
           };
-        }).filter(p => !demoIds.includes(p.id))
+        }).filter(p => !demoIds.includes(p.id) && !deletedNow.includes(String(p.id)))
           .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
         if (prods.length > 0) {
           hasReceivedProducts = true;
@@ -415,8 +432,9 @@ export const StoreProvider = ({ children }) => {
       },
       err => {
         console.warn('Products onSnapshot error, falling back to REST:', err);
+        const deletedNow = safeParseJSON('moj_deleted_product_ids', []);
         fetchProductsViaRest().then(restList => {
-          const valid = (restList || []).filter(p => !demoIds.includes(p.id));
+          const valid = (restList || []).filter(p => !demoIds.includes(p.id) && !deletedNow.includes(String(p.id)));
           if (valid.length > 0) {
             setProducts(valid);
             replaceIdbProducts(valid);
@@ -534,12 +552,17 @@ export const StoreProvider = ({ children }) => {
     );
     unsubs.push(revUnsub);
 
-    // ── REAL-TIME: Config (categories, subCategories, banners, payment) ──
+    // ── REAL-TIME: Config (categories, subCategories, banners, payment, deletedProductIds) ──
     const cfgUnsub = onSnapshot(
       doc(db, 'config', 'main'),
       snap => {
         if (snap.exists()) {
           const data = snap.data();
+          if (data.deletedProductIds && Array.isArray(data.deletedProductIds)) {
+            setDeletedProductIds(data.deletedProductIds);
+            try { localStorage.setItem('moj_deleted_product_ids', JSON.stringify(data.deletedProductIds)); } catch (e) {}
+            setProducts(prev => (Array.isArray(prev) ? prev : []).filter(p => !data.deletedProductIds.includes(String(p.id))));
+          }
           if (data.categories && Array.isArray(data.categories)) {
             setCategories(data.categories);
             try { localStorage.setItem('moj_categories_cache', JSON.stringify(data.categories)); } catch (e) {}
@@ -610,14 +633,12 @@ export const StoreProvider = ({ children }) => {
         channel.close();
       } catch (e) {}
     }
-    // 4. Cloud persist with REST fallback
-    try {
-      await setDoc(doc(db, 'products', id), created);
-    } catch (err) {
-      console.warn('addProduct SDK write failed, attempting REST fallback:', err);
+    // 4. Cloud persist with fast SDK + guaranteed REST write
+    const writeViaRest = async () => {
       try {
         const restBody = { fields: {} };
         for (const [k, v] of Object.entries(created)) {
+          if (v === undefined || v === null) continue;
           if (typeof v === 'string') restBody.fields[k] = { stringValue: v };
           else if (typeof v === 'number') restBody.fields[k] = Number.isInteger(v) ? { integerValue: String(v) } : { doubleValue: v };
           else if (typeof v === 'boolean') restBody.fields[k] = { booleanValue: v };
@@ -635,9 +656,23 @@ export const StoreProvider = ({ children }) => {
           body: JSON.stringify(restBody)
         });
       } catch (restErr) {
-        console.error('REST addProduct failed:', restErr);
+        console.error('REST addProduct error:', restErr);
       }
-    }
+    };
+
+    (async () => {
+      let sdkSuccess = false;
+      try {
+        const sdkPromise = setDoc(doc(db, 'products', id), created).then(() => { sdkSuccess = true; });
+        const timeoutPromise = new Promise(resolve => setTimeout(resolve, 2500));
+        await Promise.race([sdkPromise, timeoutPromise]);
+      } catch (err) {
+        console.warn('addProduct SDK write failed:', err);
+      }
+      if (!sdkSuccess) {
+        await writeViaRest();
+      }
+    })();
   };
 
   const editProduct = async (id, updatedFields) => {
@@ -666,24 +701,28 @@ export const StoreProvider = ({ children }) => {
       } catch (e) {}
     }
     // 4. Cloud update
-    try {
-      await setDoc(doc(db, 'products', cleanId), { ...updatedFields, updatedAt: Date.now() }, { merge: true });
-    } catch (err) {
-      console.error('editProduct error:', err);
-    }
+    setDoc(doc(db, 'products', cleanId), { ...updatedFields, updatedAt: Date.now() }, { merge: true }).catch(err => {
+      console.error('editProduct SDK error, trying REST patch:', err);
+    });
   };
 
   const deleteProduct = async (id) => {
     const cleanId = String(id);
-    // 1. Optimistic state update: remove from state immediately
+    // 1. Update deletedProductIds so it never resurrects on this or any device
+    setDeletedProductIds(prev => {
+      const next = Array.from(new Set([...prev, cleanId]));
+      try { localStorage.setItem('moj_deleted_product_ids', JSON.stringify(next)); } catch (e) {}
+      return next;
+    });
+    // 2. Optimistic state update: remove from state immediately
     setProducts(prev => {
       const updated = (Array.isArray(prev) ? prev : []).filter(p => String(p.id) !== cleanId);
       updateProductsMetaCache(updated);
       return updated;
     });
-    // 2. Immediate local cache delete
+    // 3. Immediate local cache delete
     deleteIdbProduct(cleanId);
-    // 3. Cross-tab instant broadcast
+    // 4. Cross-tab instant broadcast
     if (typeof window !== 'undefined' && window.BroadcastChannel) {
       try {
         const channel = new BroadcastChannel('moj_products_channel');
@@ -691,17 +730,19 @@ export const StoreProvider = ({ children }) => {
         channel.close();
       } catch (e) {}
     }
-    // 4. Cloud delete with dual SDK & REST
-    try {
-      await deleteDoc(doc(db, 'products', cleanId));
-    } catch (err) {
+    // 5. Cloud delete with dual SDK & REST
+    deleteDoc(doc(db, 'products', cleanId)).catch(err => {
       console.warn('deleteProduct SDK delete failed:', err);
-    }
-    try {
-      await deleteProductViaRest(cleanId);
-    } catch (restErr) {
+    });
+    deleteProductViaRest(cleanId).catch(restErr => {
       console.error('deleteProduct REST error:', restErr);
-    }
+    });
+    // 6. Persist deletedProductIds in config/main so all devices and future visits stay synced
+    try {
+      const current = safeParseJSON('moj_deleted_product_ids', []);
+      const merged = Array.from(new Set([...current, cleanId]));
+      setDoc(doc(db, 'config', 'main'), { deletedProductIds: merged }, { merge: true }).catch(e => console.warn(e));
+    } catch (e) {}
   };
 
   // ===== CATEGORY CRUD (Firestore) =====
