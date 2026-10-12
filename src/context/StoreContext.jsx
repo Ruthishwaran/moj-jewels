@@ -17,7 +17,8 @@ import {
   fetchConfigViaRest,
   fetchCouponsViaRest,
   fetchOrdersViaRest,
-  deleteOrderViaRest
+  deleteOrderViaRest,
+  deleteProductViaRest
 } from '../utils/fetchProductsRest';
 
 const StoreContext = createContext();
@@ -111,7 +112,7 @@ export const StoreProvider = ({ children }) => {
       if (meta) {
         const parsed = JSON.parse(meta);
         const demoIds = ['prod-1', 'prod-2', 'prod-3', 'prod-4', 'prod-5', 'prod-6'];
-        if (Array.isArray(parsed) && parsed.length > 0) {
+        if (Array.isArray(parsed) && parsed.length >= INITIAL_PRODUCTS.length) {
           return parsed.filter(p => !demoIds.includes(p.id));
         }
       }
@@ -232,14 +233,19 @@ export const StoreProvider = ({ children }) => {
     getIdbProducts().then((idbList) => {
       const valid = (idbList || []).filter(p => p && p.id && !demoIds.includes(p.id));
       const hasImages = valid.some(p => (p.image && p.image.length > 50) || (Array.isArray(p.images) && p.images.some(img => img && img.length > 50)));
-      if (valid.length > 0 && hasImages) {
+      if (valid.length >= INITIAL_PRODUCTS.length && hasImages) {
         const sorted = valid.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
         setProducts(sorted);
         updateProductsMetaCache(sorted);
         setIsLoading(false);
       }
       // Always fetch latest products from cloud to sync items added from other devices
-      fetchProductsViaRest().then(restList => {
+      fetchProductsViaRest((batch) => {
+        if (Array.isArray(batch) && batch.length >= INITIAL_PRODUCTS.length) {
+          setProducts(batch);
+          setIsLoading(false);
+        }
+      }).then(restList => {
         const validRest = (restList || []).filter(p => !demoIds.includes(p.id));
         if (validRest.length > 0) {
           const sortedRest = validRest.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
@@ -251,7 +257,12 @@ export const StoreProvider = ({ children }) => {
       });
     }).catch(() => {
       // In incognito mode or if IndexedDB failed, fetch via REST immediately
-      fetchProductsViaRest().then(restList => {
+      fetchProductsViaRest((batch) => {
+        if (Array.isArray(batch) && batch.length >= INITIAL_PRODUCTS.length) {
+          setProducts(batch);
+          setIsLoading(false);
+        }
+      }).then(restList => {
         const validRest = (restList || []).filter(p => !demoIds.includes(p.id));
         if (validRest.length > 0) {
           const sortedRest = validRest.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
@@ -379,16 +390,25 @@ export const StoreProvider = ({ children }) => {
     let hasReceivedProducts = false;
 
     // ── REAL-TIME: Products (fires on any add/edit/delete; replaces IDB so deleted items are removed) ──
+    const fallbackMap = new Map((INITIAL_PRODUCTS || []).map(p => [String(p.id), p]));
     const prodUnsub = onSnapshot(
       collection(db, 'products'),
       snap => {
-        const prods = snap.docs.map(d => ({ ...d.data(), id: d.id }))
-          .filter(p => !demoIds.includes(p.id))
+        const prods = snap.docs.map(d => {
+          const data = d.data();
+          const fb = fallbackMap.get(String(d.id));
+          return {
+            ...data,
+            id: d.id,
+            image: fb?.image || data.image || (Array.isArray(data.images) && data.images[0]) || '/images/hero_banner.jpg',
+            images: (Array.isArray(fb?.images) && fb.images.length > 0) ? fb.images : (Array.isArray(data.images) && data.images.length > 0 ? data.images : [data.image || '/images/hero_banner.jpg'])
+          };
+        }).filter(p => !demoIds.includes(p.id))
           .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
         if (prods.length > 0) {
           hasReceivedProducts = true;
           setProducts(prods);
-          replaceIdbProducts(prods); // Clears old IDB cache and stores fresh list (removes deleted items)
+          replaceIdbProducts(prods);
           updateProductsMetaCache(prods);
         }
         setIsLoading(false);
@@ -671,18 +691,16 @@ export const StoreProvider = ({ children }) => {
         channel.close();
       } catch (e) {}
     }
-    // 4. Cloud delete with REST fallback
+    // 4. Cloud delete with dual SDK & REST
     try {
       await deleteDoc(doc(db, 'products', cleanId));
     } catch (err) {
-      console.warn('deleteProduct SDK delete failed, attempting REST delete:', err);
-      try {
-        await fetch(`https://firestore.googleapis.com/v1/projects/moj-jewels-58b8c/databases/(default)/documents/products/${cleanId}`, {
-          method: 'DELETE'
-        });
-      } catch (restErr) {
-        console.error('deleteProduct error:', restErr);
-      }
+      console.warn('deleteProduct SDK delete failed:', err);
+    }
+    try {
+      await deleteProductViaRest(cleanId);
+    } catch (restErr) {
+      console.error('deleteProduct REST error:', restErr);
     }
   };
 

@@ -1,91 +1,2799 @@
 [
   {
-    "id": "prod-1790182000810",
-    "price": 379,
-    "createdAt": 1790182000810,
-    "stock": 12,
-    "category": "Necklace",
-    "originalPrice": 699,
-    "description": "Sri Venkateswara Namam inspired centre design\nPremium Ruby & Green Kemp stone detailing\nSparkling white stone work\nIntricate traditional side motifs\nRich antique-gold finish\nMatching earrings included\nElegant traditional & devotional look\nSuitable for festive and wedding wear",
+    "id": "prod-1790478940929",
+    "subCategory": "Matte Necklace",
+    "price": 999,
+    "sizes": [
+      "Adjustable Thread / Dori"
+    ],
+    "colors": [],
     "rating": 5,
+    "originalPrice": 1399,
+    "reviewsCount": 1,
+    "createdAt": 1790478940929,
+    "image": "/products/prod-1790478940929-0.jpg",
+    "images": [
+      "/products/prod-1790478940929-0.jpg",
+      "/products/prod-1790478940929-1.jpg",
+      "/products/prod-1790478940929-2.jpg",
+      "/products/prod-1790478940929-3.jpg"
+    ],
+    "stock": 10,
+    "title": "Matt Necklace",
+    "karat": "Premium ",
+    "category": "Necklace",
+    "description": "Crafted luxury jewelry piece."
+  },
+  {
+    "id": "prod-1790478878452",
+    "rating": 5,
+    "sizes": [
+      "Adjustable Thread / Dori"
+    ],
+    "price": 449,
+    "images": [
+      "/products/prod-1790478878452-0.jpg",
+      "/products/prod-1790478878452-1.jpg",
+      "/products/prod-1790478878452-2.jpg"
+    ],
+    "createdAt": 1790478878452,
+    "originalPrice": 699,
+    "image": "/products/prod-1790478878452-0.jpg",
+    "subCategory": "Matte Necklace",
+    "colors": [],
+    "stock": 10,
+    "reviewsCount": 1,
+    "title": "Matt Necklace",
+    "description": "Crafted luxury jewelry piece.",
+    "karat": "Premium ",
+    "category": "Necklace"
+  },
+  {
+    "id": "prod-1790478831870",
+    "images": [
+      "/products/prod-1790478831870-0.jpg",
+      "/products/prod-1790478831870-1.jpg",
+      "/products/prod-1790478831870-2.jpg"
+    ],
+    "reviewsCount": 1,
+    "rating": 5,
+    "image": "/products/prod-1790478831870-0.jpg",
+    "description": "Crafted luxury jewelry piece.",
+    "sizes": [
+      "Adjustable Thread / Dori"
+    ],
+    "price": 519,
+    "colors": [],
+    "category": "Necklace",
+    "subCategory": "Matte Necklace",
+    "createdAt": 1790478831870,
+    "title": "Matt Necklace",
+    "originalPrice": 799,
+    "stock": 10,
+    "karat": "Premium "
+  },
+  {
+    "id": "prod-1790478784560",
+    "reviewsCount": 1,
+    "originalPrice": 699,
+    "image": "/products/prod-1790478784560-0.jpg",
+    "description": "Crafted luxury jewelry piece.",
+    "sizes": [
+      "Adjustable Thread / Dori"
+    ],
+    "price": 399,
+    "category": "Necklace",
+    "createdAt": 1790478784560,
+    "images": [
+      "/products/prod-1790478784560-0.jpg",
+      "/products/prod-1790478784560-1.jpg",
+      "/products/prod-1790478784560-2.jpg"
+    ],
+    "rating": 5,
+    "title": "Matt Necklace",
+    "stock": 8,
+    "colors": [],
+    "subCategory": "Matte Necklace",
+    "karat": "Premium "
+  },
+  {
+    "id": "prod-1790478714650",
+    "images": [
+      "/products/prod-1790478714650-0.jpg",
+      "/products/prod-1790478714650-1.jpg",
+      "/products/prod-1790478714650-2.jpg",
+      "/products/prod-1790478714650-3.jpg",
+      "/products/prod-1790478714650-4.jpg",
+      "/products/prod-1790478714650-5.jpg"
+    ],
+    "rating": 5,
+    "image": "/products/prod-1790478714650-0.jpg",
+    "subCategory": "Matte Necklace",
+    "sizes": [
+      "Adjustable Thread / Dori"
+    ],
+    "price": 549,
+    "colors": [
+      "Pearl White",
+      "Pearl Gold"
+    ],
+    "category": "Necklace",
+    "description": "Crafted luxury jewelry piece.",
+    "reviewsCount": 1,
+    "originalPrice": 799,
+    "title": "Matt Necklace",
+    "stock": 10,
+    "karat": "Premium ",
+    "createdAt": 1790478714650
+  },
+  {
+    "id": "prod-1790478588303",
+    "category": "Necklace",
+    "karat": "Premium ",
+    "description": "Crafted luxury jewelry piece.",
+    "rating": 5,
+    "createdAt": 1790478588303,
+    "image": "/products/prod-1790478588303-0.jpg",
+    "price": 699,
+    "reviewsCount": 1,
+    "sizes": [
+      "Adjustable Thread / Dori"
+    ],
+    "subCategory": "Matte Necklace",
+    "colors": [],
+    "images": [
+      "/products/prod-1790478588303-0.jpg",
+      "/products/prod-1790478588303-1.jpg",
+      "/products/prod-1790478588303-2.jpg"
+    ],
+    "title": "Matt Necklace",
+    "stock": 10,
+    "originalPrice": 999
+  },
+  {
+    "id": "prod-1790478527109",
+    "rating": 5,
+    "stock": 10,
+    "title": "Matt Necklace",
+    "sizes": [
+      "Adjustable Thread / Dori"
+    ],
+    "price": 679,
+    "reviewsCount": 1,
+    "subCategory": "Matte Necklace",
+    "createdAt": 1790478527109,
+    "image": "/products/prod-1790478527109-0.jpg",
+    "images": [
+      "/products/prod-1790478527109-0.jpg",
+      "/products/prod-1790478527109-1.jpg",
+      "/products/prod-1790478527109-2.jpg",
+      "/products/prod-1790478527109-3.jpg"
+    ],
+    "colors": [],
+    "originalPrice": 999,
+    "category": "Necklace",
+    "description": "Crafted luxury jewelry piece.",
+    "karat": "Premium "
+  },
+  {
+    "id": "prod-1790478473778",
+    "rating": 5,
+    "reviewsCount": 1,
+    "subCategory": "Matte Necklace",
+    "category": "Necklace",
+    "originalPrice": 899,
+    "karat": "Premium ",
+    "colors": [],
+    "images": [
+      "/products/prod-1790478473778-0.jpg",
+      "/products/prod-1790478473778-1.jpg",
+      "/products/prod-1790478473778-2.jpg"
+    ],
+    "createdAt": 1790478473778,
+    "stock": 10,
+    "title": "Matt Necklace",
+    "sizes": [
+      "Adjustable Thread / Dori"
+    ],
+    "price": 659,
+    "image": "/products/prod-1790478473778-0.jpg",
+    "description": "Crafted luxury jewelry piece."
+  },
+  {
+    "id": "prod-1790478430148",
+    "rating": 5,
+    "originalPrice": 599,
+    "karat": "Premium ",
+    "description": "Crafted luxury jewelry piece.",
+    "createdAt": 1790478430148,
+    "category": "Necklace",
+    "image": "/products/prod-1790478430148-0.jpg",
+    "sizes": [
+      "Adjustable Thread / Dori"
+    ],
+    "colors": [],
+    "images": [
+      "/products/prod-1790478430148-0.jpg",
+      "/products/prod-1790478430148-1.jpg",
+      "/products/prod-1790478430148-2.jpg"
+    ],
+    "price": 399,
+    "stock": 10,
+    "title": "Matt Necklace",
+    "subCategory": "Matte Necklace",
+    "reviewsCount": 1
+  },
+  {
+    "id": "prod-1790478369973",
+    "originalPrice": 499,
+    "sizes": [
+      "Adjustable Thread / Dori"
+    ],
+    "createdAt": 1790478369973,
+    "price": 249,
+    "image": "/products/prod-1790478369973-0.jpg",
+    "subCategory": "Matte Necklace",
+    "colors": [],
+    "images": [
+      "/products/prod-1790478369973-0.jpg",
+      "/products/prod-1790478369973-1.jpg",
+      "/products/prod-1790478369973-2.jpg"
+    ],
+    "stock": 10,
+    "title": "Matt Necklace",
+    "category": "Necklace",
+    "description": "Crafted luxury jewelry piece.",
+    "karat": "Premium ",
+    "rating": 5,
+    "reviewsCount": 1
+  },
+  {
+    "id": "prod-1790478323015",
+    "price": 949,
+    "rating": 5,
+    "sizes": [
+      "Adjustable Thread / Dori"
+    ],
+    "image": "/products/prod-1790478323015-0.jpg",
+    "originalPrice": 1299,
+    "reviewsCount": 1,
+    "title": "Matt Necklace",
+    "description": "Crafted luxury jewelry piece.",
+    "stock": 10,
+    "category": "Necklace",
+    "createdAt": 1790478323015,
+    "karat": "Premium ",
+    "images": [
+      "/products/prod-1790478323015-0.jpg",
+      "/products/prod-1790478323015-1.jpg",
+      "/products/prod-1790478323015-2.jpg"
+    ],
+    "colors": [],
+    "subCategory": "Matte Necklace"
+  },
+  {
+    "id": "prod-1790478247433",
+    "stock": 10,
+    "createdAt": 1790478247433,
+    "price": 699,
+    "title": "Matt Necklace",
+    "sizes": [
+      "Adjustable Thread / Dori"
+    ],
+    "karat": "Premium ",
+    "category": "Necklace",
+    "originalPrice": 899,
+    "colors": [],
+    "rating": 5,
+    "description": "Crafted luxury jewelry piece.",
+    "image": "/products/prod-1790478247433-0.jpg",
+    "subCategory": "Matte Necklace",
+    "reviewsCount": 1,
+    "images": [
+      "/products/prod-1790478247433-0.jpg",
+      "/products/prod-1790478247433-1.jpg",
+      "/products/prod-1790478247433-2.jpg"
+    ]
+  },
+  {
+    "id": "prod-1790477814471",
+    "image": "/products/prod-1790477814471-0.jpg",
+    "category": "Necklace",
+    "reviewsCount": 1,
+    "createdAt": 1790477814471,
+    "price": 759,
+    "title": "Matt Necklace ",
+    "karat": "Premium ",
+    "sizes": [
+      "Adjustable Thread / Dori"
+    ],
+    "description": "Crafted luxury jewelry piece.",
+    "images": [
+      "/products/prod-1790477814471-0.jpg",
+      "/products/prod-1790477814471-1.jpg",
+      "/products/prod-1790477814471-2.jpg",
+      "/products/prod-1790477814471-3.jpg"
+    ],
+    "stock": 10,
+    "colors": [],
+    "rating": 5,
+    "subCategory": "Matte Necklace",
+    "originalPrice": 899
+  },
+  {
+    "id": "prod-1790392976523",
+    "createdAt": 1790392976523,
+    "reviewsCount": 1,
+    "rating": 5,
+    "description": "Crafted luxury jewelry piece.",
+    "colors": [],
+    "subCategory": "Matte Necklace",
+    "images": [
+      "/products/prod-1790392976523-0.jpg",
+      "/products/prod-1790392976523-1.jpg",
+      "/products/prod-1790392976523-2.jpg"
+    ],
+    "image": "/products/prod-1790392976523-0.jpg",
+    "stock": 10,
+    "category": "Necklace",
+    "originalPrice": 899,
+    "karat": "Premium ",
+    "sizes": [
+      "Adjustable Thread / Dori"
+    ],
+    "title": "Matt Necklace",
+    "price": 549
+  },
+  {
+    "id": "prod-1790392929406",
+    "price": 689,
+    "title": "Matt Necklace",
+    "karat": "Premium ",
+    "sizes": [
+      "Adjustable Thread / Dori"
+    ],
+    "subCategory": "Matte Necklace",
+    "stock": 10,
+    "description": "Crafted luxury jewelry piece.",
+    "createdAt": 1790392929406,
+    "image": "/products/prod-1790392929406-0.jpg",
+    "images": [
+      "/products/prod-1790392929406-0.jpg",
+      "/products/prod-1790392929406-1.jpg",
+      "/products/prod-1790392929406-2.jpg"
+    ],
+    "colors": [],
+    "reviewsCount": 1,
+    "rating": 5,
+    "category": "Necklace",
+    "originalPrice": 899
+  },
+  {
+    "id": "prod-1790392876919",
+    "description": "Crafted luxury jewelry piece.",
+    "createdAt": 1790392876919,
+    "images": [
+      "/products/prod-1790392876919-0.jpg",
+      "/products/prod-1790392876919-1.jpg",
+      "/products/prod-1790392876919-2.jpg",
+      "/products/prod-1790392876919-3.jpg"
+    ],
+    "originalPrice": 899,
+    "subCategory": "Matte Necklace",
+    "image": "/products/prod-1790392876919-0.jpg",
+    "colors": [],
+    "category": "Necklace",
+    "rating": 5,
+    "stock": 10,
+    "reviewsCount": 1,
+    "price": 579,
+    "sizes": [
+      "Adjustable Thread / Dori"
+    ],
+    "karat": "Premium ",
+    "title": "Matt Necklace "
+  },
+  {
+    "id": "prod-1790392644358",
+    "originalPrice": 799,
+    "createdAt": 1790392644358,
+    "images": [
+      "/products/prod-1790392644358-0.jpg",
+      "/products/prod-1790392644358-1.jpg",
+      "/products/prod-1790392644358-2.jpg"
+    ],
+    "subCategory": "Matte Necklace",
+    "description": "Crafted luxury jewelry piece.",
+    "stock": 12,
+    "price": 449,
+    "title": "Matt necklace ",
+    "karat": "Ad/cz stone ",
+    "sizes": [
+      "Adjustable Thread / Dori"
+    ],
+    "colors": [],
+    "rating": 5,
+    "reviewsCount": 1,
+    "image": "/products/prod-1790392644358-0.jpg",
+    "category": "Necklace"
+  },
+  {
+    "id": "prod-1790392480540",
+    "description": "Crafted luxury jewelry piece.",
+    "stock": 24,
+    "subCategory": "Victoria bangles",
+    "reviewsCount": 1,
+    "karat": "Ad/cz stone ",
+    "title": "Victoria bangles",
+    "originalPrice": 999,
+    "images": [
+      "/products/prod-1790392480540-0.jpg",
+      "/products/prod-1790392480540-1.jpg",
+      "/products/prod-1790392480540-2.jpg",
+      "/products/prod-1790392480540-3.jpg"
+    ],
+    "category": "Bangles",
+    "price": 779,
+    "rating": 5,
+    "image": "/products/prod-1790392480540-0.jpg",
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "createdAt": 1790392480540,
+    "colors": [
+      "Ruby stone",
+      "Green stone"
+    ]
+  },
+  {
+    "id": "prod-1790392397575",
+    "category": "Bangles",
+    "stock": 24,
+    "images": [
+      "/products/prod-1790392397575-0.jpg",
+      "/products/prod-1790392397575-1.jpg"
+    ],
+    "karat": "Ad/cz stone ",
+    "title": "Victoria bangles",
+    "description": "Crafted luxury jewelry piece.",
+    "price": 959,
+    "subCategory": "Victoria bangles",
+    "createdAt": 1790392397575,
+    "image": "/products/prod-1790392397575-0.jpg",
+    "reviewsCount": 1,
+    "colors": [
+      "Emerald Green"
+    ],
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "originalPrice": 1399,
+    "rating": 5
+  },
+  {
+    "id": "prod-1790392320033",
+    "category": "Bangles",
+    "originalPrice": 1199,
+    "colors": [
+      "Ruby Kemp (Red)",
+      "Emerald Green"
+    ],
+    "price": 849,
+    "reviewsCount": 1,
+    "title": "Victoria bangles",
+    "karat": "Ad/cz stone ",
+    "rating": 5,
+    "stock": 24,
+    "images": [
+      "/products/prod-1790392320033-0.jpg",
+      "/products/prod-1790392320033-1.jpg",
+      "/products/prod-1790392320033-2.jpg",
+      "/products/prod-1790392320033-3.jpg"
+    ],
+    "createdAt": 1790392320033,
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "subCategory": "Victoria bangles",
+    "description": "Crafted luxury jewelry piece.",
+    "image": "/products/prod-1790392320033-0.jpg"
+  },
+  {
+    "id": "prod-1790392175832",
+    "colors": [
+      "Ruby stone",
+      "Green stone"
+    ],
+    "price": 1259,
+    "subCategory": "Victoria bangles",
+    "createdAt": 1790392175832,
+    "title": "Victoria bangles",
+    "karat": "Ad/cz stone ",
+    "description": "Crafted luxury jewelry piece.",
+    "stock": 24,
+    "rating": 5,
+    "images": [
+      "/products/prod-1790392175832-0.jpg",
+      "/products/prod-1790392175832-1.jpg",
+      "/products/prod-1790392175832-2.jpg",
+      "/products/prod-1790392175832-3.jpg"
+    ],
+    "originalPrice": 1899,
+    "reviewsCount": 1,
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "category": "Bangles",
+    "image": "/products/prod-1790392175832-0.jpg"
+  },
+  {
+    "id": "prod-1790392095114",
+    "price": 1349,
+    "colors": [
+      "Ruby stone",
+      "Green stone",
+      "White stone"
+    ],
+    "category": "Bangles",
+    "title": "Victoria bangles",
+    "karat": "Ad/cz stone ",
+    "reviewsCount": 1,
+    "stock": 24,
+    "rating": 5,
+    "description": "Crafted luxury jewelry piece.",
+    "images": [
+      "/products/prod-1790392095114-0.jpg",
+      "/products/prod-1790392095114-1.jpg",
+      "/products/prod-1790392095114-2.jpg",
+      "/products/prod-1790392095114-3.jpg",
+      "/products/prod-1790392095114-4.jpg",
+      "/products/prod-1790392095114-5.jpg",
+      "/products/prod-1790392095114-6.jpg",
+      "/products/prod-1790392095114-7.jpg",
+      "/products/prod-1790392095114-8.jpg"
+    ],
+    "subCategory": "Victoria bangles",
+    "originalPrice": 1899,
+    "createdAt": 1790392095114,
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "image": "/products/prod-1790392095114-0.jpg"
+  },
+  {
+    "id": "prod-1790391974741",
+    "category": "Bangles",
+    "image": "/products/prod-1790391974741-0.jpg",
+    "subCategory": "Victoria bangles",
+    "images": [
+      "/products/prod-1790391974741-0.jpg",
+      "/products/prod-1790391974741-1.jpg",
+      "/products/prod-1790391974741-2.jpg"
+    ],
+    "description": "Crafted luxury jewelry piece.",
+    "title": "Victoria bangles",
+    "colors": [],
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "stock": 24,
+    "karat": "Ad/cz stone ",
+    "price": 599,
+    "reviewsCount": 1,
+    "originalPrice": 899,
+    "createdAt": 1790391974741,
+    "rating": 5
+  },
+  {
+    "id": "prod-1790391917621",
+    "price": 899,
+    "stock": 24,
+    "karat": "Ad/cz stone ",
+    "images": [
+      "/products/prod-1790391917621-0.jpg",
+      "/products/prod-1790391917621-1.jpg",
+      "/products/prod-1790391917621-2.jpg"
+    ],
+    "subCategory": "Victoria bangles",
+    "description": "Crafted luxury jewelry piece.",
+    "reviewsCount": 1,
+    "colors": [],
+    "category": "Bangles",
+    "createdAt": 1790391917621,
+    "image": "/products/prod-1790391917621-0.jpg",
+    "title": "Victoria bangles",
+    "rating": 5,
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "originalPrice": 1299
+  },
+  {
+    "id": "prod-1790391834310",
+    "images": [
+      "/products/prod-1790391834310-0.jpg",
+      "/products/prod-1790391834310-1.jpg",
+      "/products/prod-1790391834310-2.jpg"
+    ],
+    "reviewsCount": 1,
+    "stock": 12,
+    "karat": "Ad/cz stone ",
+    "price": 799,
+    "createdAt": 1790391834310,
+    "colors": [],
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "subCategory": "Victoria Bangles",
+    "category": "Bangles",
+    "description": "Crafted luxury jewelry piece.",
+    "image": "/products/prod-1790391834310-0.jpg",
+    "originalPrice": 1199,
+    "title": "Victoria bangles ",
+    "rating": 5
+  },
+  {
+    "id": "prod-1790358709592",
+    "stock": 36,
+    "karat": "Ad/cz Bangles ",
+    "price": 699,
+    "originalPrice": 999,
+    "rating": 5,
+    "category": "Bangles",
+    "title": "Impon Bangles ",
+    "reviewsCount": 1,
+    "image": "/products/prod-1790358709592-0.jpg",
+    "images": [
+      "/products/prod-1790358709592-0.jpg",
+      "/products/prod-1790358709592-1.jpg",
+      "/products/prod-1790358709592-2.jpg",
+      "/products/prod-1790358709592-3.jpg",
+      "/products/prod-1790358709592-4.jpg",
+      "/products/prod-1790358709592-5.jpg"
+    ],
+    "colors": [
+      "Ruby stone",
+      "Green stone",
+      "White stone"
+    ],
+    "description": "Crafted luxury jewelry piece.",
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "subCategory": "",
+    "createdAt": 1790358709592
+  },
+  {
+    "id": "prod-1790358582403",
+    "description": "Crafted luxury jewelry piece.",
+    "subCategory": "",
+    "category": "Bangles",
+    "createdAt": 1790358582403,
+    "price": 849,
+    "karat": "Ad/cz Bangles ",
+    "stock": 36,
+    "reviewsCount": 1,
+    "rating": 5,
+    "images": [
+      "/products/prod-1790358582403-0.jpg",
+      "/products/prod-1790358582403-1.jpg",
+      "/products/prod-1790358582403-2.jpg",
+      "/products/prod-1790358582403-3.jpg"
+    ],
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "originalPrice": 1299,
+    "title": "AD/CZ BANGLES",
+    "image": "/products/prod-1790358582403-0.jpg",
+    "colors": [
+      "Ruby stone",
+      "White stone"
+    ]
+  },
+  {
+    "id": "prod-1790358509811",
+    "originalPrice": 899,
+    "reviewsCount": 1,
+    "rating": 5,
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "title": "AD/CZ BANGLES",
+    "image": "/products/prod-1790358509811-0.jpg",
+    "createdAt": 1790358509811,
+    "colors": [
+      "Ruby stone",
+      "White stone"
+    ],
+    "subCategory": "",
+    "description": "Crafted luxury jewelry piece.",
+    "images": [
+      "/products/prod-1790358509811-0.jpg",
+      "/products/prod-1790358509811-1.jpg",
+      "/products/prod-1790358509811-2.jpg",
+      "/products/prod-1790358509811-3.jpg"
+    ],
+    "stock": 36,
+    "karat": "Ad/cz Bangles ",
+    "price": 649,
+    "category": "Bangles"
+  },
+  {
+    "id": "prod-1790358431259",
+    "price": 599,
+    "description": "Crafted luxury jewelry piece.",
+    "createdAt": 1790358431259,
+    "category": "Bangles",
+    "title": "AD/CZ BANGLES",
+    "rating": 5,
+    "originalPrice": 899,
+    "stock": 15,
+    "subCategory": "",
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "colors": [],
+    "karat": "Ad/cz Bangles ",
+    "images": [
+      "/products/prod-1790358431259-0.jpg",
+      "/products/prod-1790358431259-1.jpg"
+    ],
+    "reviewsCount": 1,
+    "image": "/products/prod-1790358431259-0.jpg"
+  },
+  {
+    "id": "prod-1790358383832",
+    "subCategory": "",
+    "price": 599,
+    "category": "Bangles",
+    "colors": [],
+    "reviewsCount": 1,
+    "title": "AD/CZ BANGLES",
+    "originalPrice": 749,
+    "description": "Crafted luxury jewelry piece.",
+    "stock": 15,
+    "images": [
+      "/products/prod-1790358383832-0.jpg",
+      "/products/prod-1790358383832-1.jpg"
+    ],
+    "createdAt": 1790358383832,
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "rating": 5,
+    "karat": "Ad/cz Bangles ",
+    "image": "/products/prod-1790358383832-0.jpg"
+  },
+  {
+    "id": "prod-1790358316519",
+    "subCategory": "",
+    "price": 599,
+    "createdAt": 1790358316519,
+    "title": "AD/CZ BANGLES",
+    "rating": 5,
+    "stock": 15,
+    "description": "Crafted luxury jewelry piece.",
+    "originalPrice": 899,
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "category": "Bangles",
+    "colors": [],
+    "reviewsCount": 1,
+    "karat": "Ad/cz Bangles ",
+    "image": "/products/prod-1790358316519-0.jpg",
+    "images": [
+      "/products/prod-1790358316519-0.jpg",
+      "/products/prod-1790358316519-1.jpg"
+    ]
+  },
+  {
+    "id": "prod-1790358250177",
+    "subCategory": "",
+    "images": [
+      "/products/prod-1790358250177-0.jpg",
+      "/products/prod-1790358250177-1.jpg"
+    ],
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "category": "Bangles",
+    "karat": "Ad/cz Bangles ",
+    "image": "/products/prod-1790358250177-0.jpg",
+    "description": "Crafted luxury jewelry piece.",
+    "colors": [],
+    "rating": 5,
+    "createdAt": 1790358250177,
+    "price": 699,
+    "stock": 15,
+    "originalPrice": 899,
+    "reviewsCount": 1,
+    "title": "AD/CZ BANGLES"
+  },
+  {
+    "id": "prod-1790358197579",
+    "colors": [],
+    "price": 649,
+    "stock": 15,
+    "images": [
+      "/products/prod-1790358197579-0.jpg",
+      "/products/prod-1790358197579-1.jpg"
+    ],
+    "title": "AD/CZ BANGLES",
+    "reviewsCount": 1,
+    "category": "Bangles",
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "subCategory": "",
+    "createdAt": 1790358197579,
+    "rating": 5,
+    "karat": "Ad/cz Bangles ",
+    "description": "Crafted luxury jewelry piece.",
+    "image": "/products/prod-1790358197579-0.jpg",
+    "originalPrice": 899
+  },
+  {
+    "id": "prod-1790358148034",
+    "stock": 14,
+    "subCategory": "",
+    "rating": 5,
+    "title": "AD/CZ BANGLES",
+    "createdAt": 1790358148034,
+    "price": 599,
+    "description": "Crafted luxury jewelry piece.",
+    "images": [
+      "/products/prod-1790358148034-0.jpg",
+      "/products/prod-1790358148034-1.jpg"
+    ],
+    "image": "/products/prod-1790358148034-0.jpg",
+    "karat": "Ad/cz Bangles ",
+    "colors": [],
+    "reviewsCount": 1,
+    "category": "Bangles",
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "originalPrice": 799
+  },
+  {
+    "id": "prod-1790358075579",
+    "images": [
+      "/products/prod-1790358075579-0.jpg",
+      "/products/prod-1790358075579-1.jpg",
+      "/products/prod-1790358075579-2.jpg"
+    ],
+    "description": "Crafted luxury jewelry piece.",
+    "originalPrice": 1499,
+    "reviewsCount": 1,
+    "karat": "Ad/cz Bangles ",
+    "image": "/products/prod-1790358075579-0.jpg",
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "colors": [],
+    "subCategory": "",
+    "title": "AD/CZ BANGLES",
+    "createdAt": 1790358075579,
+    "stock": 15,
+    "rating": 5,
+    "price": 999,
+    "category": "Bangles"
+  },
+  {
+    "id": "prod-1790358020793",
+    "images": [
+      "/products/prod-1790358020793-0.jpg",
+      "/products/prod-1790358020793-1.jpg",
+      "/products/prod-1790358020793-2.jpg"
+    ],
+    "karat": "Ad/cz Bangles ",
+    "image": "/products/prod-1790358020793-0.jpg",
+    "subCategory": "",
+    "description": "Crafted luxury jewelry piece.",
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "colors": [],
+    "category": "Bangles",
+    "reviewsCount": 1,
+    "originalPrice": 999,
+    "title": "AD/CZ BANGLES",
+    "stock": 15,
+    "rating": 5,
+    "price": 799,
+    "createdAt": 1790358020793
+  },
+  {
+    "id": "prod-1790357973704",
+    "description": "Crafted luxury jewelry piece.",
+    "rating": 5,
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "category": "Bangles",
+    "karat": "Ad/cz Bangles ",
+    "subCategory": "",
+    "image": "/products/prod-1790357973704-0.jpg",
+    "createdAt": 1790357973704,
+    "originalPrice": 999,
+    "reviewsCount": 1,
+    "price": 699,
+    "images": [
+      "/products/prod-1790357973704-0.jpg",
+      "/products/prod-1790357973704-1.jpg",
+      "/products/prod-1790357973704-2.jpg"
+    ],
+    "title": "AD/CZ BANGLES",
+    "stock": 15,
+    "colors": []
+  },
+  {
+    "id": "prod-1790357903022",
+    "images": [
+      "/products/prod-1790357903022-0.jpg",
+      "/products/prod-1790357903022-1.jpg",
+      "/products/prod-1790357903022-2.jpg"
+    ],
+    "price": 849,
+    "title": "AD/CZ BANGLES",
+    "image": "/products/prod-1790357903022-0.jpg",
+    "category": "Bangles",
+    "originalPrice": 1299,
+    "stock": 35,
+    "createdAt": 1790357903022,
+    "reviewsCount": 1,
+    "description": "Crafted luxury jewelry piece.",
+    "karat": "Ad/cz Bangles ",
+    "colors": [],
+    "subCategory": "",
+    "rating": 5,
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ]
+  },
+  {
+    "id": "prod-1790357820564",
+    "rating": 5,
+    "createdAt": 1790357820564,
+    "karat": "Ad/cz Bangles ",
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "colors": [],
+    "originalPrice": 899,
+    "reviewsCount": 1,
+    "stock": 10,
+    "subCategory": "",
+    "title": "AD/CZ BANGLES",
+    "price": 599,
+    "category": "Bangles",
+    "description": "Crafted luxury jewelry piece.",
+    "images": [
+      "/products/prod-1790357820564-0.jpg",
+      "/products/prod-1790357820564-1.jpg",
+      "/products/prod-1790357820564-2.jpg"
+    ],
+    "image": "/products/prod-1790357820564-0.jpg"
+  },
+  {
+    "id": "prod-1790357517955",
+    "createdAt": 1790357517955,
+    "images": [
+      "/products/prod-1790357517955-0.jpg",
+      "/products/prod-1790357517955-1.jpg",
+      "/products/prod-1790357517955-2.jpg"
+    ],
+    "image": "/products/prod-1790357517955-0.jpg",
+    "price": 889,
+    "title": "AD/CZ BANGLES",
+    "stock": 10,
+    "category": "Bangles",
+    "reviewsCount": 1,
+    "originalPrice": 1199,
+    "subCategory": "",
+    "colors": [],
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "description": "Crafted luxury jewelry piece.",
+    "karat": "Ad/cz Bangles ",
+    "rating": 5
+  },
+  {
+    "id": "prod-1790357447588",
+    "stock": 10,
+    "createdAt": 1790357447588,
+    "reviewsCount": 1,
+    "images": [
+      "/products/prod-1790357447588-0.jpg",
+      "/products/prod-1790357447588-1.jpg",
+      "/products/prod-1790357447588-2.jpg"
+    ],
+    "image": "/products/prod-1790357447588-0.jpg",
+    "title": "AD/CZ BANGLES",
+    "price": 749,
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "description": "Crafted luxury jewelry piece.",
+    "karat": "Ad/cz Bangles ",
+    "subCategory": "",
+    "rating": 5,
+    "colors": [],
+    "originalPrice": 999,
+    "category": "Bangles"
+  },
+  {
+    "id": "prod-1790357366436",
+    "image": "/products/prod-1790357366436-0.jpg",
+    "title": "AD/CZ BANGLES",
+    "price": 799,
+    "colors": [],
+    "createdAt": 1790357366436,
+    "stock": 10,
+    "rating": 5,
+    "reviewsCount": 1,
+    "images": [
+      "/products/prod-1790357366436-0.jpg",
+      "/products/prod-1790357366436-1.jpg",
+      "/products/prod-1790357366436-2.jpg"
+    ],
+    "subCategory": "",
+    "category": "Bangles",
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "karat": "Ad/cz Bangles ",
+    "description": "Crafted luxury jewelry piece.",
+    "originalPrice": 1199
+  },
+  {
+    "id": "prod-1790357178425",
+    "image": "/products/prod-1790357178425-0.jpg",
+    "price": 699,
+    "title": "AD/CZ BANGLES",
+    "description": "Crafted luxury jewelry piece.",
+    "reviewsCount": 1,
+    "colors": [],
+    "stock": 10,
+    "createdAt": 1790357178425,
+    "rating": 5,
+    "subCategory": "",
+    "originalPrice": 899,
+    "images": [
+      "/products/prod-1790357178425-0.jpg",
+      "/products/prod-1790357178425-1.jpg",
+      "/products/prod-1790357178425-2.jpg",
+      "/products/prod-1790357178425-3.jpg"
+    ],
+    "category": "Bangles",
+    "updatedAt": 1790357206025,
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "karat": "Ad/cz Bangles "
+  },
+  {
+    "id": "prod-1790353522984",
+    "images": [
+      "/products/prod-1790353522984-0.jpg",
+      "/products/prod-1790353522984-1.jpg",
+      "/products/prod-1790353522984-2.jpg",
+      "/products/prod-1790353522984-3.jpg",
+      "/products/prod-1790353522984-4.jpg"
+    ],
+    "createdAt": 1790353522984,
+    "subCategory": "",
+    "reviewsCount": 1,
+    "description": "Crafted luxury jewelry piece.",
+    "karat": "Ad/cz stone ",
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "price": 699,
+    "title": "Ad/cz bangles",
+    "image": "/products/prod-1790353522984-0.jpg",
+    "category": "Bangles",
+    "colors": [],
+    "rating": 5,
+    "stock": 18,
+    "originalPrice": 899
+  },
+  {
+    "id": "prod-1790353402514",
+    "originalPrice": 899,
+    "image": "/products/prod-1790353402514-0.jpg",
+    "karat": "Ad/cz stone ",
+    "price": 699,
+    "images": [
+      "/products/prod-1790353402514-0.jpg",
+      "/products/prod-1790353402514-1.jpg",
+      "/products/prod-1790353402514-2.jpg"
+    ],
+    "description": "Crafted luxury jewelry piece.",
+    "subCategory": "",
+    "reviewsCount": 1,
+    "category": "Bangles",
+    "title": "Ad/cz bangles",
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "createdAt": 1790353402514,
+    "colors": [],
+    "stock": 18,
+    "rating": 5
+  },
+  {
+    "id": "prod-1790353362927",
+    "images": [
+      "/products/prod-1790353362927-0.jpg",
+      "/products/prod-1790353362927-1.jpg",
+      "/products/prod-1790353362927-2.jpg"
+    ],
+    "category": "Bangles",
+    "price": 1149,
+    "reviewsCount": 1,
+    "karat": "Ad/cz stone ",
+    "image": "/products/prod-1790353362927-0.jpg",
+    "createdAt": 1790353362927,
+    "subCategory": "",
+    "rating": 5,
+    "colors": [
+      "White stone"
+    ],
+    "stock": 18,
+    "title": "Ad/cz bangles",
+    "description": "Crafted luxury jewelry piece.",
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "originalPrice": 1499
+  },
+  {
+    "id": "prod-1790353278516",
+    "images": [
+      "/products/prod-1790353278516-0.jpg",
+      "/products/prod-1790353278516-1.jpg",
+      "/products/prod-1790353278516-2.jpg",
+      "/products/prod-1790353278516-3.jpg"
+    ],
+    "originalPrice": 899,
+    "price": 679,
+    "subCategory": "",
+    "createdAt": 1790353278516,
+    "description": "Crafted luxury jewelry piece.",
+    "category": "Bangles",
+    "karat": "Ad/cz stone ",
+    "image": "/products/prod-1790353278516-0.jpg",
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "colors": [],
+    "rating": 5,
+    "title": "Ad/cz bangles",
+    "stock": 18,
+    "reviewsCount": 1
+  },
+  {
+    "id": "prod-1790353184807",
+    "title": "Ad/cz bangles ",
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "stock": 18,
+    "category": "Bangles",
+    "images": [
+      "/products/prod-1790353184807-0.jpg",
+      "/products/prod-1790353184807-1.jpg",
+      "/products/prod-1790353184807-2.jpg"
+    ],
+    "description": "Crafted luxury jewelry piece.",
+    "originalPrice": 899,
+    "subCategory": "",
+    "reviewsCount": 1,
+    "price": 639,
+    "colors": [
+      "White stone"
+    ],
+    "rating": 5,
+    "createdAt": 1790353184807,
+    "karat": "Ad/cz stone ",
+    "image": "/products/prod-1790353184807-0.jpg"
+  },
+  {
+    "id": "prod-1790352845256",
+    "description": "Crafted luxury jewelry piece.",
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "colors": [],
+    "rating": 5,
+    "title": "Premium Brass bangles ",
+    "subCategory": "",
+    "stock": 18,
+    "createdAt": 1790352845256,
+    "reviewsCount": 1,
+    "images": [
+      "/products/prod-1790352845256-0.jpg",
+      "/products/prod-1790352845256-1.jpg",
+      "/products/prod-1790352845256-2.jpg",
+      "/products/prod-1790352845256-3.jpg"
+    ],
+    "price": 1199,
+    "category": "Bangles",
+    "originalPrice": 1499,
+    "karat": "Premium Brass ",
+    "image": "/products/prod-1790352845256-0.jpg"
+  },
+  {
+    "id": "prod-1790352778705",
+    "stock": 3,
+    "images": [
+      "/products/prod-1790352778705-0.jpg",
+      "/products/prod-1790352778705-1.jpg",
+      "/products/prod-1790352778705-2.jpg",
+      "/products/prod-1790352778705-3.jpg"
+    ],
+    "category": "Bangles",
+    "title": "Premium Brass bangles ",
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "originalPrice": 899,
+    "rating": 5,
+    "colors": [],
+    "subCategory": "",
+    "price": 649,
+    "description": "Crafted luxury jewelry piece.",
+    "karat": "Premium Brass ",
+    "image": "/products/prod-1790352778705-0.jpg",
+    "createdAt": 1790352778705,
+    "reviewsCount": 1
+  },
+  {
+    "id": "prod-1790352720817",
+    "originalPrice": 1199,
+    "karat": "Premium Brass ",
+    "image": "/products/prod-1790352720817-0.jpg",
+    "description": "Crafted luxury jewelry piece.",
+    "price": 799,
+    "images": [
+      "/products/prod-1790352720817-0.jpg",
+      "/products/prod-1790352720817-1.jpg",
+      "/products/prod-1790352720817-2.jpg",
+      "/products/prod-1790352720817-3.jpg"
+    ],
+    "subCategory": "",
+    "category": "Bangles",
+    "reviewsCount": 1,
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "createdAt": 1790352720817,
+    "title": "Premium Brass bangles ",
+    "stock": 6,
+    "colors": [],
+    "rating": 5
+  },
+  {
+    "id": "prod-1790352644930",
+    "description": "Crafted luxury jewelry piece.",
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "colors": [],
+    "stock": 6,
+    "price": 529,
+    "category": "Bangles",
+    "image": "/products/prod-1790352644930-0.jpg",
+    "karat": "Premium Brass ",
+    "reviewsCount": 1,
+    "subCategory": "",
+    "rating": 5,
+    "createdAt": 1790352644930,
+    "title": "Premium Brass bangles ",
+    "originalPrice": 899,
+    "images": [
+      "/products/prod-1790352644930-0.jpg",
+      "/products/prod-1790352644930-1.jpg",
+      "/products/prod-1790352644930-2.jpg",
+      "/products/prod-1790352644930-3.jpg"
+    ]
+  },
+  {
+    "id": "prod-1790352564556",
+    "rating": 5,
+    "subCategory": "",
+    "image": "/products/prod-1790352564556-0.jpg",
+    "price": 1199,
+    "reviewsCount": 1,
+    "images": [
+      "/products/prod-1790352564556-0.jpg",
+      "/products/prod-1790352564556-1.jpg",
+      "/products/prod-1790352564556-2.jpg",
+      "/products/prod-1790352564556-3.jpg"
+    ],
+    "stock": 24,
+    "createdAt": 1790352564556,
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "description": "Crafted luxury jewelry piece.",
+    "colors": [],
+    "title": "Premium Brass bangles ",
+    "originalPrice": 1499,
+    "category": "Bangles",
+    "karat": "Premium Brass "
+  },
+  {
+    "id": "prod-1790352472582",
+    "title": "Premium Brass bangles ",
+    "images": [
+      "/products/prod-1790352472582-0.jpg",
+      "/products/prod-1790352472582-1.jpg",
+      "/products/prod-1790352472582-2.jpg",
+      "/products/prod-1790352472582-3.jpg"
+    ],
+    "rating": 5,
+    "karat": "Premium Brass ",
+    "description": "Crafted luxury jewelry piece.",
+    "createdAt": 1790352472582,
+    "price": 699,
+    "category": "Bangles",
+    "image": "/products/prod-1790352472582-0.jpg",
+    "reviewsCount": 1,
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "originalPrice": 999,
+    "subCategory": "",
+    "stock": 24,
+    "colors": []
+  },
+  {
+    "id": "prod-1790352392324",
+    "images": [
+      "/products/prod-1790352392324-0.jpg",
+      "/products/prod-1790352392324-1.jpg",
+      "/products/prod-1790352392324-2.jpg",
+      "/products/prod-1790352392324-3.jpg",
+      "/products/prod-1790352392324-4.jpg",
+      "/products/prod-1790352392324-5.jpg"
+    ],
+    "title": "Premium Brass bangles ",
+    "karat": "Premium Brass ",
+    "subCategory": "",
+    "rating": 5,
+    "reviewsCount": 1,
+    "category": "Bangles",
+    "price": 1599,
+    "createdAt": 1790352392324,
+    "originalPrice": 1999,
+    "image": "/products/prod-1790352392324-0.jpg",
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "description": "Crafted luxury jewelry piece.",
+    "colors": [
+      "Ruby Kemp (Red)",
+      "Emerald Green"
+    ],
+    "stock": 24
+  },
+  {
+    "id": "prod-1790352302304",
+    "karat": "Premium Brass ",
+    "subCategory": "",
+    "colors": [],
+    "title": "Premium Brass bangles ",
+    "createdAt": 1790352302304,
+    "reviewsCount": 1,
+    "originalPrice": 1999,
+    "stock": 24,
+    "description": "Crafted luxury jewelry piece.",
+    "category": "Bangles",
+    "images": [
+      "/products/prod-1790352302304-0.jpg",
+      "/products/prod-1790352302304-1.jpg",
+      "/products/prod-1790352302304-2.jpg",
+      "/products/prod-1790352302304-3.jpg"
+    ],
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "image": "/products/prod-1790352302304-0.jpg",
+    "price": 1599,
+    "rating": 5
+  },
+  {
+    "id": "prod-1790352224808",
+    "reviewsCount": 1,
+    "images": [
+      "/products/prod-1790352224808-0.jpg",
+      "/products/prod-1790352224808-1.jpg",
+      "/products/prod-1790352224808-2.jpg",
+      "/products/prod-1790352224808-3.jpg"
+    ],
+    "createdAt": 1790352224808,
+    "subCategory": "",
+    "price": 949,
+    "image": "/products/prod-1790352224808-0.jpg",
+    "category": "Bangles",
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "rating": 5,
+    "stock": 24,
+    "originalPrice": 1299,
+    "title": "Premium Brass bangles ",
+    "description": "Crafted luxury jewelry piece.",
+    "karat": "Premium Brass ",
+    "colors": []
+  },
+  {
+    "id": "prod-1790352130650",
+    "title": "Premium Brass bangles ",
+    "images": [
+      "/products/prod-1790352130650-0.jpg",
+      "/products/prod-1790352130650-1.jpg",
+      "/products/prod-1790352130650-2.jpg",
+      "/products/prod-1790352130650-3.jpg"
+    ],
+    "karat": "Premium Brass ",
+    "rating": 5,
+    "category": "Bangles",
+    "description": "Crafted luxury jewelry piece.",
+    "originalPrice": 899,
+    "price": 599,
+    "image": "/products/prod-1790352130650-0.jpg",
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "stock": 24,
+    "subCategory": "",
+    "colors": [],
+    "reviewsCount": 1,
+    "createdAt": 1790352130650
+  },
+  {
+    "id": "prod-1790352057524",
+    "rating": 5,
+    "createdAt": 1790352057524,
+    "description": "Crafted luxury jewelry piece.",
+    "price": 699,
+    "karat": "Premium Brass ",
+    "stock": 24,
+    "originalPrice": 999,
+    "title": "Premium Brass bangles ",
+    "colors": [],
+    "images": [
+      "/products/prod-1790352057524-0.jpg",
+      "/products/prod-1790352057524-1.jpg",
+      "/products/prod-1790352057524-2.jpg"
+    ],
+    "image": "/products/prod-1790352057524-0.jpg",
+    "reviewsCount": 1,
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "category": "Bangles",
+    "subCategory": ""
+  },
+  {
+    "id": "prod-1790351995052",
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "category": "Bangles",
+    "reviewsCount": 1,
+    "image": "/products/prod-1790351995052-0.jpg",
+    "description": "Crafted luxury jewelry piece.",
+    "title": "Premium Brass bangles ",
+    "stock": 24,
+    "images": [
+      "/products/prod-1790351995052-0.jpg",
+      "/products/prod-1790351995052-1.jpg",
+      "/products/prod-1790351995052-2.jpg",
+      "/products/prod-1790351995052-3.jpg"
+    ],
+    "originalPrice": 899,
+    "karat": "Premium Brass ",
+    "colors": [],
+    "createdAt": 1790351995052,
+    "rating": 5,
+    "price": 639,
+    "subCategory": ""
+  },
+  {
+    "id": "prod-1790351915736",
+    "title": "Premium Brass bangles ",
+    "stock": 24,
+    "reviewsCount": 1,
+    "karat": "Premium Brass ",
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "rating": 5,
+    "image": "/products/prod-1790351915736-0.jpg",
+    "description": "Crafted luxury jewelry piece.",
+    "price": 779,
+    "images": [
+      "/products/prod-1790351915736-0.jpg",
+      "/products/prod-1790351915736-1.jpg",
+      "/products/prod-1790351915736-2.jpg",
+      "/products/prod-1790351915736-3.jpg"
+    ],
+    "colors": [],
+    "createdAt": 1790351915736,
+    "subCategory": "",
+    "category": "Bangles",
+    "originalPrice": 999
+  },
+  {
+    "id": "prod-1790351833666",
+    "reviewsCount": 1,
+    "price": 779,
+    "rating": 5,
+    "description": "Crafted luxury jewelry piece.",
+    "category": "Bangles",
+    "subCategory": "",
+    "colors": [],
+    "createdAt": 1790351833666,
+    "images": [
+      "/products/prod-1790351833666-0.jpg",
+      "/products/prod-1790351833666-1.jpg",
+      "/products/prod-1790351833666-2.jpg",
+      "/products/prod-1790351833666-3.jpg"
+    ],
+    "karat": "Premium Brass ",
+    "stock": 24,
+    "originalPrice": 999,
+    "title": "Premium Brass bangles ",
+    "image": "/products/prod-1790351833666-0.jpg",
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ]
+  },
+  {
+    "id": "prod-1790351647891",
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "image": "/products/prod-1790351647891-0.jpg",
+    "stock": 24,
+    "title": "Premium Brass bangles ",
+    "originalPrice": 1899,
+    "rating": 5,
+    "karat": "Premium Brass ",
+    "category": "Bangles",
+    "subCategory": "",
+    "description": "Crafted luxury jewelry piece.",
+    "images": [
+      "/products/prod-1790351647891-0.jpg",
+      "/products/prod-1790351647891-1.jpg",
+      "/products/prod-1790351647891-2.jpg",
+      "/products/prod-1790351647891-3.jpg"
+    ],
+    "reviewsCount": 1,
+    "colors": [],
+    "createdAt": 1790351647891,
+    "price": 1499
+  },
+  {
+    "id": "prod-1790351536563",
+    "category": "Bangles",
+    "price": 699,
+    "rating": 5,
+    "subCategory": "",
+    "createdAt": 1790351536563,
+    "description": "Crafted luxury jewelry piece.",
+    "colors": [],
+    "images": [
+      "/products/prod-1790351536563-0.jpg",
+      "/products/prod-1790351536563-1.jpg",
+      "/products/prod-1790351536563-2.jpg",
+      "/products/prod-1790351536563-3.jpg"
+    ],
+    "karat": "Premium Brass ",
+    "stock": 24,
+    "title": "Premium Brass bangles ",
+    "reviewsCount": 1,
+    "image": "/products/prod-1790351536563-0.jpg",
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8"
+    ],
+    "originalPrice": 999
+  },
+  {
+    "id": "prod-1790351375698",
+    "reviewsCount": 1,
+    "karat": "Premium Brass ",
+    "createdAt": 1790351375698,
+    "subCategory": "",
+    "title": "Premium Brass bangles ",
+    "stock": 24,
+    "originalPrice": 999,
+    "colors": [],
+    "image": "/products/prod-1790351375698-0.jpg",
+    "images": [
+      "/products/prod-1790351375698-0.jpg",
+      "/products/prod-1790351375698-1.jpg",
+      "/products/prod-1790351375698-2.jpg",
+      "/products/prod-1790351375698-3.jpg"
+    ],
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "rating": 5,
+    "category": "Bangles",
+    "price": 699,
+    "description": "Crafted luxury jewelry piece."
+  },
+  {
+    "id": "prod-1790351270661",
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "subCategory": "",
+    "image": "/products/prod-1790351270661-0.jpg",
+    "reviewsCount": 1,
+    "stock": 4,
+    "title": "Premium Brass bangles ",
+    "images": [
+      "/products/prod-1790351270661-0.jpg",
+      "/products/prod-1790351270661-1.jpg",
+      "/products/prod-1790351270661-2.jpg",
+      "/products/prod-1790351270661-3.jpg"
+    ],
+    "karat": "Premium Brass ",
+    "colors": [],
+    "createdAt": 1790351270661,
+    "rating": 5,
+    "category": "Bangles",
+    "price": 899,
+    "originalPrice": 1299,
+    "description": "Crafted luxury jewelry piece."
+  },
+  {
+    "id": "prod-1790351164568",
+    "images": [
+      "/products/prod-1790351164568-0.jpg",
+      "/products/prod-1790351164568-1.jpg",
+      "/products/prod-1790351164568-2.jpg",
+      "/products/prod-1790351164568-3.jpg"
+    ],
+    "karat": "Premium Brass ",
+    "rating": 5,
+    "price": 499,
+    "colors": [],
+    "category": "Bangles",
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "reviewsCount": 1,
+    "originalPrice": 899,
+    "title": "Premium Brass bangles ",
+    "createdAt": 1790351164568,
+    "description": "Crafted luxury jewelry piece.",
+    "image": "/products/prod-1790351164568-0.jpg",
+    "stock": 12,
+    "subCategory": ""
+  },
+  {
+    "id": "prod-1790351089739",
+    "subCategory": "",
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "description": "Crafted luxury jewelry piece.",
+    "price": 449,
+    "karat": "Premium Brass ",
+    "stock": 12,
+    "image": "/products/prod-1790351089739-0.jpg",
+    "category": "Bangles",
+    "createdAt": 1790351089739,
+    "reviewsCount": 1,
+    "colors": [],
+    "title": "Premium Brass bangles ",
+    "rating": 5,
+    "originalPrice": 899,
+    "images": [
+      "/products/prod-1790351089739-0.jpg",
+      "/products/prod-1790351089739-1.jpg",
+      "/products/prod-1790351089739-2.jpg",
+      "/products/prod-1790351089739-3.jpg"
+    ]
+  },
+  {
+    "id": "prod-1790351006764",
+    "colors": [],
+    "rating": 5,
+    "images": [
+      "/products/prod-1790351006764-0.jpg",
+      "/products/prod-1790351006764-1.jpg",
+      "/products/prod-1790351006764-2.jpg",
+      "/products/prod-1790351006764-3.jpg"
+    ],
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "price": 499,
+    "karat": "Premium Brass ",
+    "reviewsCount": 1,
+    "image": "/products/prod-1790351006764-0.jpg",
+    "stock": 12,
+    "description": "Crafted luxury jewelry piece.",
+    "originalPrice": 899,
+    "category": "Bangles",
+    "title": "Premium Brass bangles ",
+    "subCategory": "",
+    "createdAt": 1790351006764
+  },
+  {
+    "id": "prod-1790350914560",
+    "colors": [],
+    "stock": 36,
+    "category": "Bangles",
+    "rating": 5,
+    "image": "/products/prod-1790350914560-0.jpg",
+    "images": [
+      "/products/prod-1790350914560-0.jpg",
+      "/products/prod-1790350914560-1.jpg",
+      "/products/prod-1790350914560-2.jpg",
+      "/products/prod-1790350914560-3.jpg"
+    ],
+    "title": "✨Premium Brass bangles ",
+    "createdAt": 1790350914560,
+    "originalPrice": 1899,
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ],
+    "reviewsCount": 1,
+    "description": "Crafted luxury jewelry piece.",
+    "price": 1199,
+    "subCategory": "",
+    "karat": "Premium Brass "
+  },
+  {
+    "id": "prod-1790307903724",
+    "karat": "Premium ",
+    "originalPrice": 599,
+    "category": "Bangles",
+    "price": 279,
+    "reviewsCount": 1,
+    "images": [
+      "/products/prod-1790307903724-0.jpg",
+      "/products/prod-1790307903724-1.jpg",
+      "/products/prod-1790307903724-2.jpg"
+    ],
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8"
+    ],
+    "rating": 5,
+    "colors": [],
+    "title": "✨ Matt Bangles ",
+    "description": "⭐ Beautiful Lakshmi Devi Motif Design\n⭐ Rich Antique Gold-Tone Finish\n⭐ Green & Ruby Stone Detailing\n⭐ Intricate Floral & Traditional Patterns\n⭐ Elegant Temple-Jewellery Inspired Look\n⭐ Premium Statement Bangle Design\n⭐ Perfect for Silk Sarees & Ethnic Wear\n⭐ Suitable for Weddings & Festivals\n⭐ Ideal for Traditional Functions & Special Occasions\n⭐ Beautiful Choice for Gifting\n💎 Product Type: Bangle Set\n🎨 Stone Colours: Green & Ruby",
+    "createdAt": 1790307903724,
+    "subCategory": "",
+    "image": "/products/prod-1790307903724-0.jpg",
+    "stock": 10
+  },
+  {
+    "id": "prod-1790307827887",
+    "stock": 10,
+    "image": "/products/prod-1790307827887-0.jpg",
+    "category": "Bangles",
+    "rating": 5,
+    "colors": [],
+    "reviewsCount": 1,
+    "images": [
+      "/products/prod-1790307827887-0.jpg",
+      "/products/prod-1790307827887-1.jpg",
+      "/products/prod-1790307827887-2.jpg"
+    ],
+    "title": "✨ Matt Bangles ",
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8"
+    ],
+    "description": "⭐ Beautiful Lakshmi Devi Motif Design\n⭐ Rich Antique Gold-Tone Finish\n⭐ Green & Ruby Stone Detailing\n⭐ Intricate Floral & Traditional Patterns\n⭐ Elegant Temple-Jewellery Inspired Look\n⭐ Premium Statement Bangle Design\n⭐ Perfect for Silk Sarees & Ethnic Wear\n⭐ Suitable for Weddings & Festivals\n⭐ Ideal for Traditional Functions & Special Occasions\n⭐ Beautiful Choice for Gifting\n💎 Product Type: Bangle Set\n🎨 Stone Colours: Green & Ruby",
+    "karat": "Premium ",
+    "createdAt": 1790307827887,
+    "price": 249,
+    "originalPrice": 599,
+    "subCategory": ""
+  },
+  {
+    "id": "prod-1790307747768",
+    "price": 249,
+    "karat": "Premium ",
+    "subCategory": "",
+    "createdAt": 1790307747768,
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8"
+    ],
+    "description": "⭐ Premium Antique Gold-Tone Finish\n⭐ Elegant Green & Ruby Stone Combination\n⭐ Detailed Traditional Embossed Design\n⭐ Rich & Royal Look\n⭐ Intricate Ornamental Craftsmanship\n⭐ Statement Bangle Design\n⭐ Perfect for Traditional & Ethnic Wear\n⭐ Ideal for Weddings & Festive Occasions\n⭐ Beautifully Complements Silk Sarees\n⭐ Suitable for Special Occasions & Gifting\n💎 Product Type: Antique Bangle\n🎨 Stone Colours: Green & Ruby\n✨ Finish: Antique Gold Tone",
+    "reviewsCount": 1,
+    "title": "✨ Matt Bangles ",
+    "images": [
+      "/products/prod-1790307747768-0.jpg",
+      "/products/prod-1790307747768-1.jpg",
+      "/products/prod-1790307747768-2.jpg"
+    ],
+    "colors": [],
+    "rating": 5,
+    "stock": 10,
+    "image": "/products/prod-1790307747768-0.jpg",
+    "originalPrice": 599,
+    "category": "Bangles"
+  },
+  {
+    "id": "prod-1790307667314",
+    "images": [
+      "/products/prod-1790307667314-0.jpg",
+      "/products/prod-1790307667314-1.jpg",
+      "/products/prod-1790307667314-2.jpg"
+    ],
+    "category": "Bangles",
+    "rating": 5,
+    "reviewsCount": 1,
+    "stock": 9,
+    "colors": [],
+    "title": "✨ Matt Bangles ",
+    "description": "⭐ Premium Antique Gold-Tone Finish\n⭐ Elegant Green & Ruby Stone Combination\n⭐ Detailed Traditional Embossed Design\n⭐ Rich & Royal Look\n⭐ Intricate Ornamental Craftsmanship\n⭐ Statement Bangle Design\n⭐ Perfect for Traditional & Ethnic Wear\n⭐ Ideal for Weddings & Festive Occasions\n⭐ Beautifully Complements Silk Sarees\n⭐ Suitable for Special Occasions & Gifting\n💎 Product Type: Antique Bangle\n🎨 Stone Colours: Green & Ruby\n✨ Finish: Antique Gold Tone",
+    "karat": "Premium ",
+    "originalPrice": 599,
+    "image": "/products/prod-1790307667314-0.jpg",
+    "subCategory": "",
+    "price": 279,
+    "createdAt": 1790307667314,
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8"
+    ]
+  },
+  {
+    "id": "prod-1790307614423",
+    "createdAt": 1790307614423,
+    "karat": "Premium ",
+    "description": "⭐ Premium Antique Gold-Tone Finish\n⭐ Elegant Green & Ruby Stone Combination\n⭐ Detailed Traditional Embossed Design\n⭐ Rich & Royal Look\n⭐ Intricate Ornamental Craftsmanship\n⭐ Statement Bangle Design\n⭐ Perfect for Traditional & Ethnic Wear\n⭐ Ideal for Weddings & Festive Occasions\n⭐ Beautifully Complements Silk Sarees\n⭐ Suitable for Special Occasions & Gifting\n💎 Product Type: Antique Bangle\n🎨 Stone Colours: Green & Ruby\n✨ Finish: Antique Gold Tone",
+    "category": "Bangles",
+    "title": "✨ Matt Bangles ",
+    "reviewsCount": 1,
+    "stock": 10,
+    "images": [
+      "/products/prod-1790307614423-0.jpg",
+      "/products/prod-1790307614423-1.jpg"
+    ],
+    "subCategory": "",
+    "image": "/products/prod-1790307614423-0.jpg",
+    "rating": 5,
+    "colors": [],
+    "originalPrice": 899,
+    "price": 349,
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8",
+      "2.10"
+    ]
+  },
+  {
+    "id": "prod-1790307459759",
+    "reviewsCount": 1,
+    "description": "⭐ Premium Antique Gold-Tone Finish\n⭐ Traditional Lakshmi & Peacock Motif Design\n⭐ Intricate 3D Embossed Detailing\n⭐ Rich Traditional Carving Work\n⭐ Elegant Temple Jewellery-Inspired Look\n⭐ Premium & Royal Appearance\n⭐ Statement Bangle Design\n⭐ Perfect for Bridal & Festive Wear\n⭐ Ideal for Silk Sarees & Traditional Outfits\n⭐ Suitable for Weddings, Pooja & Special Occasions\n⭐ Gives a Rich South Indian Traditional Look\n💎 Product Type: Antique Traditional Bangle\n✨ Finish: Premium Antique Gold Tone\n🌸 Design: Traditional Lakshmi & Peacock Motifs\n👑 Style: Temple Jewellery Inspired",
+    "category": "Bangles",
+    "stock": 10,
+    "title": "✨ Matt Bangles ",
+    "createdAt": 1790307459759,
+    "originalPrice": 599,
+    "karat": "22k Gold BIS Hallmarked",
+    "subCategory": "",
+    "images": [
+      "/products/prod-1790307459759-0.jpg",
+      "/products/prod-1790307459759-1.jpg",
+      "/products/prod-1790307459759-2.jpg"
+    ],
+    "rating": 5,
+    "image": "/products/prod-1790307459759-0.jpg",
+    "price": 249,
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8"
+    ],
+    "colors": []
+  },
+  {
+    "id": "prod-1790307284327",
+    "category": "Bangles",
+    "createdAt": 1790307284327,
+    "subCategory": "",
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8"
+    ],
+    "price": 299,
+    "image": "/products/prod-1790307284327-0.jpg",
+    "originalPrice": 599,
+    "rating": 5,
+    "karat": "22k Gold BIS Hallmarked",
+    "stock": 10,
+    "images": [
+      "/products/prod-1790307284327-0.jpg",
+      "/products/prod-1790307284327-1.jpg",
+      "/products/prod-1790307284327-2.jpg"
+    ],
+    "title": "✨ Matt Bangles ",
+    "reviewsCount": 1,
+    "colors": [],
+    "description": "⭐ Premium Antique Gold-Tone Finish\n⭐ Beautiful Ruby & Green Stone Combination\n⭐ Elegant Floral Stone Design 🌸\n⭐ Intricate Leaf & Vine Motifs\n⭐ Detailed Traditional Craftsmanship\n⭐ Rich & Royal Antique Look\n⭐ Stylish Openwork Pattern\n⭐ Perfect for Traditional & Ethnic Wear\n⭐ Ideal for Weddings & Festive Occasions\n⭐ Beautiful Match for Sarees & Traditional Outfits\n⭐ Perfect for Bridal & Special Occasion Styling\n💎 Product Type: Antique Floral Bangles\n🎨 Stone Colours: Ruby & Green\n✨ Finish: Antique Gold Tone\n🌸 Design: Floral & Leaf Pattern"
+  },
+  {
+    "id": "prod-1790307138722",
+    "karat": "22k Gold BIS Hallmarked",
+    "subCategory": "",
+    "stock": 10,
+    "title": "✨ Matt Bangles ",
+    "category": "Bangles",
+    "reviewsCount": 1,
+    "originalPrice": 599,
+    "createdAt": 1790307138722,
+    "rating": 5,
+    "images": [
+      "/products/prod-1790307138722-0.jpg",
+      "/products/prod-1790307138722-1.jpg",
+      "/products/prod-1790307138722-2.jpg",
+      "/products/prod-1790307138722-3.jpg"
+    ],
+    "price": 279,
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8"
+    ],
+    "image": "/products/prod-1790307138722-0.jpg",
+    "colors": [],
+    "description": "⭐ Beautiful Lakshmi Devi Motif Design\n⭐ Rich Antique Gold-Tone Finish\n⭐ Green & Ruby Stone Detailing\n⭐ Intricate Floral & Traditional Patterns\n⭐ Elegant Temple-Jewellery Inspired Look\n⭐ Premium Statement Bangle Design\n⭐ Perfect for Silk Sarees & Ethnic Wear\n⭐ Suitable for Weddings & Festivals\n⭐ Ideal for Traditional Functions & Special Occasions\n⭐ Beautiful Choice for Gifting\n💎 Product Type: Bangle Set\n🎨 Stone Colours: Green & Ruby"
+  },
+  {
+    "id": "prod-1790307049890",
+    "rating": 5,
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8"
+    ],
+    "price": 299,
+    "originalPrice": 599,
+    "category": "Bangles",
+    "image": "/products/prod-1790307049890-0.jpg",
+    "subCategory": "",
+    "createdAt": 1790307049890,
+    "stock": 10,
+    "title": "✨ Matt Bangles ",
+    "description": "⭐ Beautiful Lakshmi Devi Motif Design\n⭐ Rich Antique Gold-Tone Finish\n⭐ Green & Ruby Stone Detailing\n⭐ Intricate Floral & Traditional Patterns\n⭐ Elegant Temple-Jewellery Inspired Look\n⭐ Premium Statement Bangle Design\n⭐ Perfect for Silk Sarees & Ethnic Wear\n⭐ Suitable for Weddings & Festivals\n⭐ Ideal for Traditional Functions & Special Occasions\n⭐ Beautiful Choice for Gifting\n💎 Product Type: Bangle Set\n🎨 Stone Colours: Green & Ruby",
+    "colors": [],
+    "images": [
+      "/products/prod-1790307049890-0.jpg",
+      "/products/prod-1790307049890-1.jpg",
+      "/products/prod-1790307049890-2.jpg"
+    ],
+    "karat": "22k Gold BIS Hallmarked",
+    "reviewsCount": 1
+  },
+  {
+    "id": "prod-1790306929986",
+    "subCategory": "",
+    "karat": "22k Gold BIS Hallmarked",
+    "colors": [],
+    "images": [
+      "/products/prod-1790306929986-0.jpg",
+      "/products/prod-1790306929986-1.jpg",
+      "/products/prod-1790306929986-2.jpg"
+    ],
+    "category": "Bangles",
+    "originalPrice": 599,
+    "createdAt": 1790306929986,
+    "image": "/products/prod-1790306929986-0.jpg",
+    "rating": 5,
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8"
+    ],
+    "description": "⭐ Beautiful Lakshmi Devi Motif Design\n⭐ Rich Antique Gold-Tone Finish\n⭐ Green & Ruby Stone Detailing\n⭐ Intricate Floral & Traditional Patterns\n⭐ Elegant Temple-Jewellery Inspired Look\n⭐ Premium Statement Bangle Design\n⭐ Perfect for Silk Sarees & Ethnic Wear\n⭐ Suitable for Weddings & Festivals\n⭐ Ideal for Traditional Functions & Special Occasions\n⭐ Beautiful Choice for Gifting\n💎 Product Type: Bangle Set\n🎨 Stone Colours: Green & Ruby",
+    "price": 249,
+    "stock": 10,
+    "title": "✨ Matt Bangles ",
+    "reviewsCount": 1
+  },
+  {
+    "id": "prod-1790306837478",
+    "image": "/products/prod-1790306837478-0.jpg",
+    "price": 249,
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8"
+    ],
+    "subCategory": "",
+    "title": "✨ Matt Bangles ✨",
+    "category": "Bangles",
+    "rating": 5,
+    "stock": 10,
+    "karat": "Premium ",
+    "updatedAt": 1790307517348,
+    "originalPrice": 599,
+    "createdAt": 1790306837478,
+    "description": "⭐ Premium Antique Gold-Tone Finish\n⭐ Elegant Green & Ruby Stone Combination\n⭐ Detailed Traditional Embossed Design\n⭐ Rich & Royal Look\n⭐ Intricate Ornamental Craftsmanship\n⭐ Statement Bangle Design\n⭐ Perfect for Traditional & Ethnic Wear\n⭐ Ideal for Weddings & Festive Occasions\n⭐ Beautifully Complements Silk Sarees\n⭐ Suitable for Special Occasions & Gifting\n💎 Product Type: Antique Bangle\n🎨 Stone Colours: Green & Ruby\n✨ Finish: Antique Gold Tone",
+    "reviewsCount": 1,
+    "colors": [],
+    "images": [
+      "/products/prod-1790306837478-0.jpg",
+      "/products/prod-1790306837478-1.jpg",
+      "/products/prod-1790306837478-2.jpg",
+      "/products/prod-1790306837478-3.jpg"
+    ]
+  },
+  {
+    "id": "prod-1790266673535",
+    "description": "⭐ Beautiful Lakshmi Devi Motif Design\n⭐ Rich Antique Gold-Tone Finish\n⭐ Green & Ruby Stone Detailing\n⭐ Intricate Floral & Traditional Patterns\n⭐ Elegant Temple-Jewellery Inspired Look\n⭐ Premium Statement Bangle Design\n⭐ Perfect for Silk Sarees & Ethnic Wear\n⭐ Suitable for Weddings & Festivals\n⭐ Ideal for Traditional Functions & Special Occasions\n⭐ Beautiful Choice for Gifting\n💎 Product Type: Bangle Set\n🎨 Stone Colours: Green & Ruby",
+    "images": [
+      "/products/prod-1790266673535-0.jpg",
+      "/products/prod-1790266673535-1.jpg",
+      "/products/prod-1790266673535-2.jpg",
+      "/products/prod-1790266673535-3.jpg"
+    ],
+    "colors": [],
+    "karat": "Premium ",
+    "title": "✨ Matt Bangles ",
+    "stock": 6,
+    "subCategory": "",
+    "rating": 5,
+    "reviewsCount": 1,
+    "image": "/products/prod-1790266673535-0.jpg",
+    "originalPrice": 599,
+    "createdAt": 1790266673535,
+    "category": "Bangles",
+    "price": 299,
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8"
+    ]
+  },
+  {
+    "id": "prod-1790266543675",
+    "images": [
+      "/products/prod-1790266543675-0.jpg",
+      "/products/prod-1790266543675-1.jpg",
+      "/products/prod-1790266543675-2.jpg",
+      "/products/prod-1790266543675-3.jpg"
+    ],
+    "colors": [],
+    "createdAt": 1790266543675,
+    "karat": "Premium ",
+    "subCategory": "",
+    "reviewsCount": 1,
+    "category": "Bangles",
+    "title": "✨ Matt Bangles ",
+    "stock": 6,
+    "rating": 5,
+    "originalPrice": 599,
+    "image": "/products/prod-1790266543675-0.jpg",
+    "description": "⭐ Beautiful Lakshmi Devi Motif Design\n⭐ Rich Antique Gold-Tone Finish\n⭐ Green & Ruby Stone Detailing\n⭐ Intricate Floral & Traditional Patterns\n⭐ Elegant Temple-Jewellery Inspired Look\n⭐ Premium Statement Bangle Design\n⭐ Perfect for Silk Sarees & Ethnic Wear\n⭐ Suitable for Weddings & Festivals\n⭐ Ideal for Traditional Functions & Special Occasions\n⭐ Beautiful Choice for Gifting\n💎 Product Type: Bangle Set\n🎨 Stone Colours: Green & Ruby",
+    "price": 299,
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8"
+    ]
+  },
+  {
+    "id": "prod-1790266439671",
+    "category": "Bangles",
+    "price": 249,
+    "karat": "Premium ",
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8"
+    ],
+    "title": "✨ Matt Bangles ",
+    "stock": 6,
+    "originalPrice": 599,
+    "createdAt": 1790266439671,
+    "colors": [],
+    "rating": 5,
+    "image": "/products/prod-1790266439671-0.jpg",
+    "subCategory": "",
+    "reviewsCount": 1,
+    "images": [
+      "/products/prod-1790266439671-0.jpg",
+      "/products/prod-1790266439671-1.jpg",
+      "/products/prod-1790266439671-2.jpg"
+    ],
+    "description": "⭐ Beautiful Lakshmi Devi Motif Design\n⭐ Rich Antique Gold-Tone Finish\n⭐ Green & Ruby Stone Detailing\n⭐ Intricate Floral & Traditional Patterns\n⭐ Elegant Temple-Jewellery Inspired Look\n⭐ Premium Statement Bangle Design\n⭐ Perfect for Silk Sarees & Ethnic Wear\n⭐ Suitable for Weddings & Festivals\n�� Ideal for Traditional Functions & Special Occasions\n⭐ Beautiful Choice for Gifting\n💎 Product Type: Bangle Set\n🎨 Stone Colours: Green & Ruby"
+  },
+  {
+    "id": "prod-1790266307877",
+    "createdAt": 1790266307877,
+    "description": "⭐ Beautiful Lakshmi Devi Motif Design\n⭐ Rich Antique Gold-Tone Finish\n⭐ Green & Ruby Stone Detailing\n⭐ Intricate Floral & Traditional Patterns\n⭐ Elegant Temple-Jewellery Inspired Look\n⭐ Premium Statement Bangle Design\n⭐ Perfect for Silk Sarees & Ethnic Wear\n⭐ Suitable for Weddings & Festivals\n⭐ Ideal for Traditional Functions & Special Occasions\n⭐ Beautiful Choice for Gifting\n💎 Product Type: Bangle Set\n🎨 Stone Colours: Green & Ruby",
+    "image": "/products/prod-1790266307877-0.jpg",
+    "subCategory": "",
+    "category": "Bangles",
+    "images": [
+      "/products/prod-1790266307877-0.jpg",
+      "/products/prod-1790266307877-1.jpg",
+      "/products/prod-1790266307877-2.jpg"
+    ],
+    "title": "✨ Matt Bangles ",
+    "karat": "Premium ",
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8"
+    ],
+    "originalPrice": 599,
+    "price": 249,
+    "rating": 5,
+    "colors": [],
+    "reviewsCount": 1,
+    "stock": 6
+  },
+  {
+    "id": "prod-1790266180234",
+    "image": "/products/prod-1790266180234-0.jpg",
+    "subCategory": "",
+    "originalPrice": 599,
+    "images": [
+      "/products/prod-1790266180234-0.jpg",
+      "/products/prod-1790266180234-1.jpg",
+      "/products/prod-1790266180234-2.jpg"
+    ],
+    "reviewsCount": 1,
+    "colors": [],
+    "rating": 5,
+    "description": "⭐ Beautiful Lakshmi Devi Motif Design\n⭐ Rich Antique Gold-Tone Finish\n⭐ Green & Ruby Stone Detailing\n⭐ Intricate Floral & Traditional Patterns\n⭐ Elegant Temple-Jewellery Inspired Look\n⭐ Premium Statement Bangle Design\n⭐ Perfect for Silk Sarees & Ethnic Wear\n⭐ Suitable for Weddings & Festivals\n⭐ Ideal for Traditional Functions & Special Occasions\n⭐ Beautiful Choice for Gifting\n💎 Product Type: Bangle Set\n🎨 Stone Colours: Green & Ruby",
+    "price": 279,
+    "title": "✨ Matt Bangles ",
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8"
+    ],
+    "karat": "Premium ",
+    "createdAt": 1790266180234,
+    "stock": 6,
+    "category": "Bangles"
+  },
+  {
+    "id": "prod-1790265973502",
+    "images": [
+      "/products/prod-1790265973502-0.jpg",
+      "/products/prod-1790265973502-1.jpg",
+      "/products/prod-1790265973502-2.jpg"
+    ],
+    "description": "⭐ Beautiful Lakshmi Devi Motif Design\n⭐ Rich Antique Gold-Tone Finish\n⭐ Green & Ruby Stone Detailing\n⭐ Intricate Floral & Traditional Patterns\n⭐ Elegant Temple-Jewellery Inspired Look\n⭐ Premium Statement Bangle Design\n⭐ Perfect for Silk Sarees & Ethnic Wear\n⭐ Suitable for Weddings & Festivals\n⭐ Ideal for Traditional Functions & Special Occasions\n⭐ Beautiful Choice for Gifting\n💎 Product Type: Bangle Set\n🎨 Stone Colours: Green & Ruby",
+    "createdAt": 1790265973502,
+    "price": 279,
+    "title": "✨Matt Bangles ",
+    "karat": "Premium ",
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8"
+    ],
+    "colors": [],
+    "subCategory": "Matt Bangles",
+    "rating": 5,
+    "stock": 6,
+    "category": "Bangles",
+    "reviewsCount": 1,
+    "image": "/products/prod-1790265973502-0.jpg",
+    "originalPrice": 699
+  },
+  {
+    "id": "prod-1790265177854",
+    "image": "/products/prod-1790265177854-0.jpg",
+    "subCategory": "Choker",
+    "reviewsCount": 1,
+    "description": "⭐ Beautiful Sun & Moon Inspired Design\n⭐ Rich Ruby-Pink & Green Stone Detailing\n⭐ Elegant Pearl Bead Work\n⭐ Intricate Gold-Tone Finish\n⭐ Statement Choker Design\n⭐ Matching Earrings Included\n⭐ Traditional & Royal Appearance\n⭐ Perfect for Sarees & Ethnic Wear\n⭐ Suitable for Weddings, Festivals & Special Occasions\n⭐ Ideal for Gifting\n💎 Set Includes: Choker + Matching Earrings",
+    "category": "Necklace",
+    "createdAt": 1790265177854,
+    "originalPrice": 1299,
+    "price": 899,
+    "title": "☀️🌙 Royal Sun & Moon Pearl Choker Set ✨",
+    "sizes": [
+      "Adjustable Thread / Dori",
+      "Adjustable Chain"
+    ],
+    "karat": "Premium Brass ",
+    "images": [
+      "/products/prod-1790265177854-0.jpg",
+      "/products/prod-1790265177854-1.jpg",
+      "/products/prod-1790265177854-2.jpg",
+      "/products/prod-1790265177854-3.jpg",
+      "/products/prod-1790265177854-4.jpg",
+      "/products/prod-1790265177854-5.jpg"
+    ],
+    "stock": 6,
+    "colors": [
+      "Ruby Kemp (Red)"
+    ],
+    "rating": 5
+  },
+  {
+    "id": "prod-1790264977694",
+    "sizes": [
+      "Adjustable Thread / Dori",
+      "Adjustable Chain"
+    ],
+    "rating": 5,
+    "subCategory": "Necklace",
+    "createdAt": 1790264977694,
+    "description": "⭐ Available in Green & Ruby Colours\n⭐ Elegant Teardrop Centre Pendant\n⭐ Sparkling White Stone Border\n⭐ Delicate Gold-Tone Chain\n⭐ Matching Teardrop Earrings Included\n⭐ Simple & Elegant Design\n⭐ Lightweight-Looking & Graceful Style\n⭐ Perfect for Daily & Occasional Wear\n⭐ Suitable for Sarees, Salwar & Ethnic Outfits\n⭐ Ideal for Weddings, Festivals & Gifting\n💎 Set Includes: Necklace + Matching Earrings\n🎨 Colour Options: Green | Ruby",
+    "image": "/products/prod-1790264977694-0.jpg",
+    "originalPrice": 599,
+    "colors": [
+      "Ruby stone",
+      "Green stone"
+    ],
+    "stock": 6,
+    "price": 299,
+    "reviewsCount": 1,
+    "category": "Necklace",
+    "images": [
+      "/products/prod-1790264977694-0.jpg",
+      "/products/prod-1790264977694-1.jpg",
+      "/products/prod-1790264977694-2.jpg",
+      "/products/prod-1790264977694-3.jpg",
+      "/products/prod-1790264977694-4.jpg",
+      "/products/prod-1790264977694-5.jpg"
+    ],
+    "karat": "Premium Brass ",
+    "title": "✨ Royal Green & Ruby Teardrop Necklace Set ✨"
+  },
+  {
+    "id": "prod-1790264727121",
+    "title": "🦜 Parrot pendant necklace set ✨💎",
+    "karat": "Premium Brass ",
+    "reviewsCount": 1,
+    "price": 599,
+    "createdAt": 1790264727121,
+    "stock": 6,
+    "images": [
+      "/products/prod-1790264727121-0.jpg",
+      "/products/prod-1790264727121-1.jpg",
+      "/products/prod-1790264727121-2.jpg"
+    ],
+    "subCategory": "Necklace",
+    "category": "Necklace",
+    "description": "⭐ Rich Green Centre Stone\n⭐ Beautiful Ruby Teardrop Stone\n⭐ Sparkling White Stone Border\n⭐ Elegant Dual-Stone Pendant Design\n⭐ Premium Gold-Tone Finish\n⭐ Graceful & Stylish Appearance\n⭐ Matching Earrings Included\n⭐ Perfect for Sarees & Ethnic Wear\n⭐ Suitable for Weddings, Festivals & Special Occasions\n⭐ Ideal for Gifting\n💎 Set Includes: Necklace + Matching Earrings",
+    "originalPrice": 899,
+    "rating": 5,
+    "image": "/products/prod-1790264727121-0.jpg",
+    "colors": [],
+    "sizes": [
+      "Adjustable Thread / Dori",
+      "Adjustable Chain"
+    ]
+  },
+  {
+    "id": "prod-1790264431474",
+    "stock": 6,
+    "rating": 5,
+    "createdAt": 1790264431474,
+    "karat": "Premium Brass ",
+    "title": "✨ Royal Lakshmi Devi Antique Necklace Set ✨",
+    "price": 599,
+    "colors": [],
+    "category": "Necklace",
+    "image": "/products/prod-1790264431474-0.jpg",
+    "description": "⭐ Beautiful Lakshmi Devi Centre Pendant\n⭐ Intricate Antique-Style Gold-Tone Work\n⭐ Sparkling White Stone Detailing\n⭐ Elegant Traditional Design\n⭐ Detailed Centre Pendant Craftsmanship\n⭐ Beautiful Pearl-Style Drop Detailing\n⭐ Rich & Royal Appearance\n⭐ Perfect for Bridal & Traditional Wear\n⭐ Suitable for Weddings, Festivals & Pooja Occasions\n⭐ Ideal for Gifting\n💎 Set Includes: Necklace + Matching Earrings",
+    "subCategory": "Necklace",
+    "sizes": [
+      "Adjustable Thread / Dori",
+      "Adjustable Chain"
+    ],
+    "originalPrice": 899,
+    "reviewsCount": 1,
+    "images": [
+      "/products/prod-1790264431474-0.jpg",
+      "/products/prod-1790264431474-1.jpg",
+      "/products/prod-1790264431474-2.jpg",
+      "/products/prod-1790264431474-3.jpg"
+    ]
+  },
+  {
+    "id": "prod-1790264207511",
+    "images": [
+      "/products/prod-1790264207511-0.jpg",
+      "/products/prod-1790264207511-1.jpg",
+      "/products/prod-1790264207511-2.jpg",
+      "/products/prod-1790264207511-3.jpg",
+      "/products/prod-1790264207511-4.jpg",
+      "/products/prod-1790264207511-5.jpg"
+    ],
+    "title": "👑Royal Green & Ruby Stone Drop Necklace Set ❤️💚",
+    "originalPrice": 1199,
+    "karat": "Premium Brass ",
+    "price": 799,
+    "createdAt": 1790264207511,
+    "stock": 6,
+    "reviewsCount": 1,
+    "colors": [
+      "Ruby Kemp (Red)",
+      "Emerald Green"
+    ],
+    "category": "Necklace",
+    "description": "⭐ Available in Green & Ruby Colours\n⭐ Beautiful Statement Centre Pendant\n⭐ Sparkling White Stone Detailing\n⭐ Intricate Gold-Tone Design\n⭐ Elegant Drop-Style Detailing\n⭐ Matching Earrings Included\n⭐ Graceful & Traditional Appearance\n⭐ Perfect for Sarees & Ethnic Wear\n�� Suitable for Weddings, Festivals & Special Occasions\n⭐ Ideal for Gifting\n💎 Set Includes: Necklace + Matching Earrings\n🎨 Colour Options: Green | Ruby",
+    "image": "/products/prod-1790264207511-0.jpg",
+    "subCategory": "Necklace",
+    "rating": 5,
+    "sizes": [
+      "Adjustable Thread / Dori",
+      "Adjustable Chain"
+    ]
+  },
+  {
+    "id": "prod-1790263905838",
+    "rating": 5,
+    "createdAt": 1790263905838,
+    "price": 599,
+    "karat": "Premium Brass ",
+    "stock": 6,
+    "category": "Necklace",
+    "reviewsCount": 1,
+    "title": "✨ Royal Ruby & Green Drop Necklace Set ✨",
+    "colors": [
+      "Emerald Green",
+      "Ruby stone"
+    ],
+    "image": "/products/prod-1790263905838-0.jpg",
+    "originalPrice": 899,
+    "subCategory": "Necklace",
+    "sizes": [
+      "Adjustable Thread / Dori",
+      "Adjustable Chain"
+    ],
+    "description": "⭐ Product Highlights:\n⭐ Available in Ruby & Green Colours\n⭐ Beautiful Teardrop Centre Pendant\n⭐ Sparkling White Stone Detailing\n⭐ Intricate Gold-Tone Design\n⭐ Elegant Matching Earrings\n⭐ Graceful & Premium Appearance\n⭐ Traditional Yet Stylish Look\n⭐ Perfect for Sarees & Ethnic Wear\n⭐ Suitable for Weddings, Festivals & Special Occasions\n⭐ Ideal for Gifting\n💎 Set Includes: Necklace + Matching Earrings\n🎨 Colour Options: Ruby | Green",
+    "images": [
+      "/products/prod-1790263905838-0.jpg",
+      "/products/prod-1790263905838-1.jpg",
+      "/products/prod-1790263905838-2.jpg",
+      "/products/prod-1790263905838-3.jpg",
+      "/products/prod-1790263905838-4.jpg",
+      "/products/prod-1790263905838-5.jpg"
+    ]
+  },
+  {
+    "id": "prod-1790222585419",
+    "createdAt": 1790222585419,
+    "stock": 12,
+    "karat": "Premium Brass ",
+    "price": 499,
+    "images": [
+      "/products/prod-1790222585419-0.jpg",
+      "/products/prod-1790222585419-1.jpg"
+    ],
+    "subCategory": "Necklace",
+    "description": "✨ Royal Ruby Green Antique Pendant Necklace ✨\nElevate your traditional look with this elegant Royal Ruby Green Antique Pendant Necklace. The necklace features a beautifully crafted statement pendant with a rich ruby centre stone, complemented by an elegant green stone at the top.\nThe pendant is surrounded by intricate gold-tone detailing and sparkling white stone accents, creating a graceful and royal appearance. The delicate decorative drops along the bottom add an attractive finishing touch to the design.",
+    "colors": [
+      "Multi colour"
+    ],
+    "category": "Necklace",
+    "title": "✨ Royal Ruby Green Antique Pendant Necklace ✨",
+    "image": "/products/prod-1790222585419-0.jpg",
+    "originalPrice": 899,
+    "rating": 5,
+    "reviewsCount": 1,
+    "sizes": [
+      "Adjustable Thread / Dori",
+      "Adjustable Chain"
+    ]
+  },
+  {
+    "id": "prod-1790221775340",
+    "colors": [
+      "Ruby stone",
+      "Green stone"
+    ],
+    "reviewsCount": 1,
+    "karat": "Premium Brass ",
+    "stock": 12,
+    "price": 359,
+    "description": "✨ Royal Ruby Green Pearl Drop Necklace Set ✨\nAdd a touch of elegance and traditional charm to your jewellery collection with this beautiful Royal Pearl Drop Necklace Set. The necklace features a graceful gold-tone chain with intricate stone detailing, sparkling white stones, and elegant pearl drops.\nThis design is available in two beautiful colour options — Green and Ruby, allowing you to choose the shade that best matches your outfit and personal style.\n⭐ Available Colour Options:\n⭐ Green – Elegant green centre stone with sparkling white stone detailing and pearl drops.\n⭐ Ruby – Rich ruby-coloured centre stone with sparkling white stone detailing and pearl drops.",
+    "images": [
+      "/products/prod-1790221775340-0.jpg",
+      "/products/prod-1790221775340-1.jpg",
+      "/products/prod-1790221775340-2.jpg",
+      "/products/prod-1790221775340-3.jpg",
+      "/products/prod-1790221775340-4.jpg",
+      "/products/prod-1790221775340-5.jpg"
+    ],
+    "subCategory": "Necklace",
+    "rating": 5,
+    "createdAt": 1790221775340,
+    "image": "/products/prod-1790221775340-0.jpg",
+    "originalPrice": 699,
+    "title": "✨ Royal Ruby Stone Pearl Necklace Set ✨",
+    "sizes": [
+      "Adjustable Thread / Dori",
+      "Adjustable Chain"
+    ],
+    "category": "Necklace"
+  },
+  {
+    "id": "prod-1790221357799",
+    "category": "Necklace",
+    "colors": [
+      "Multi color",
+      "Ruby Kemp (Red)"
+    ],
+    "price": 499,
+    "stock": 12,
+    "reviewsCount": 1,
+    "title": "✨ Royal Ruby Green Drop Necklace ✨",
+    "images": [
+      "/products/prod-1790221357799-0.jpg",
+      "/products/prod-1790221357799-1.jpg",
+      "/products/prod-1790221357799-2.jpg",
+      "/products/prod-1790221357799-3.jpg",
+      "/products/prod-1790221357799-4.jpg"
+    ],
+    "originalPrice": 799,
+    "subCategory": "Necklace",
+    "sizes": [
+      "Adjustable Thread / Dori",
+      "Adjustable Chain"
+    ],
+    "createdAt": 1790221357799,
+    "rating": 5,
+    "karat": "Premium Brass ",
+    "image": "/products/prod-1790221357799-0.jpg",
+    "description": "⭐ Premium Stone Detailing\n⭐ Beautiful Drop-Shaped Stone Design\n⭐ Available in 2 Colour Combinations\n⭐ Multicolour Option Available\n⭐ White & Ruby Option Available\n⭐ Lightweight & Elegant Look\n⭐ Perfect for Traditional & Modern Outfits\n⭐ Suitable for Weddings, Festivals & Special Occasions\n⭐ Ideal for Gifting\n💎 Colour Options: Multicolour | White & Ruby\nMoj Jewels ✨\nElegant Designs • Beautiful Colours • Timeless Style ❤️"
+  },
+  {
+    "id": "prod-1790187734377",
+    "category": "Necklace",
+    "stock": 6,
+    "rating": 5,
+    "title": "⭐ Premium Jadau Stone Work💎",
+    "price": 899,
+    "reviewsCount": 1,
+    "images": [
+      "/products/prod-1790187734377-0.jpg",
+      "/products/prod-1790187734377-1.jpg",
+      "/products/prod-1790187734377-2.jpg",
+      "/products/prod-1790187734377-3.jpg"
+    ],
+    "originalPrice": 1299,
+    "description": "⭐ Premium Jadau Stone Work\n⭐ Ruby Pink Jadau Stone Detailing\n⭐ Green Jadau Stone & Leaf Motifs\n⭐ Sparkling White Stone Accents\n⭐ Elegant Floral Design\n⭐ Rich Gold-Tone Finish\n⭐ Beautiful Statement Centre Pendant\n⭐ Matching Earrings Included\n⭐ Traditional & Royal Look\n⭐ Perfect for Weddings, Festivals & Functions\n⭐ Ideal for Sarees & Traditional Outfits\n💎 Set Includes: Necklace + Matching Earrings",
+    "image": "/products/prod-1790187734377-0.jpg",
+    "karat": "Premium Brass ",
+    "colors": [
+      "Ruby Kemp (Red)"
+    ],
+    "createdAt": 1790187734377,
+    "subCategory": "Necklace",
+    "sizes": [
+      "Adjustable Thread / Dori",
+      "Adjustable Chain"
+    ]
+  },
+  {
+    "id": "prod-1790187314928",
+    "colors": [
+      "Emerald Green"
+    ],
+    "createdAt": 1790187314928,
+    "image": "/products/prod-1790187314928-0.jpg",
+    "karat": "Premium Brass ",
+    "images": [
+      "/products/prod-1790187314928-0.jpg",
+      "/products/prod-1790187314928-1.jpg",
+      "/products/prod-1790187314928-2.jpg",
+      "/products/prod-1790187314928-3.jpg"
+    ],
+    "sizes": [
+      "Adjustable Thread / Dori",
+      "Adjustable Chain"
+    ],
+    "subCategory": "Chain Necklace",
+    "stock": 6,
+    "category": "Necklace",
+    "title": "✨ Royal Green Stone Antique Pendant Necklace Set ✨",
+    "reviewsCount": 1,
+    "originalPrice": 899,
+    "price": 549,
+    "description": "✨ Product Highlights:\n⭐ Rich Green Centre Stone\n⭐ Antique Gold-Tone Finish\n⭐ Intricate Floral-Inspired Pendant Design\n⭐ Ruby Pink & White Stone Detailing\n⭐ Traditional & Elegant Craftsmanship\n⭐ Matching Earrings Included\n⭐ Perfect for Festive & Traditional Wear\n⭐ Suitable for Weddings & Special Occasions\n⭐ Elegant Choice for Gifting\n💎 Set Includes: Necklace + Matching Earrings",
+    "rating": 5
+  },
+  {
+    "id": "prod-1790186825580",
+    "rating": 5,
+    "price": 599,
+    "title": "🪷 Royal Red Lotus Floral Necklace Set 🪷",
+    "reviewsCount": 1,
+    "stock": 12,
+    "sizes": [
+      "Adjustable Chain",
+      "Adjustable Thread / Dori"
+    ],
+    "createdAt": 1790186825580,
+    "category": "Necklace",
+    "originalPrice": 999,
+    "description": "Beautiful Red Lotus Floral Design\nElegant Green Leaf Detailing\nRich Gold-Tone Finish\nLightweight & Comfortable Look\nMatching Lotus Earrings Included\nUnique Traditional Floral Pattern\nPerfect for Festive & Traditional Wear\nSuitable for Special Occasions & Gifting\n💎 Set Includes: Necklace + Matching Earrings\nMoj Jewels ✨\nWhere Tradition Meets Elegance 🌺",
+    "images": [
+      "/products/prod-1790186825580-0.jpg",
+      "/products/prod-1790186825580-1.jpg",
+      "/products/prod-1790186825580-2.jpg",
+      "/products/prod-1790186825580-3.jpg",
+      "/products/prod-1790186825580-4.jpg"
+    ],
+    "subCategory": "Necklace",
+    "image": "/products/prod-1790186825580-0.jpg",
+    "karat": "Premium ",
+    "colors": [
+      "Ruby Kemp (Red)"
+    ]
+  },
+  {
+    "id": "prod-1790182000810",
+    "karat": "Brass ",
+    "reviewsCount": 1,
+    "rating": 5,
+    "description": "Sri Venkateswara Namam inspired centre design\nPremium Ruby & Green Kemp stone detailing\nSparkling white stone work\nIntricate traditional side motifs\nRich antique-gold finish\nMatching earrings included\nElegant traditional & devotional look\nSuitable for festive and wedding wear",
+    "category": "Necklace",
+    "createdAt": 1790182000810,
+    "originalPrice": 699,
+    "updatedAt": 1790182786510,
+    "stock": 12,
+    "title": "✨ Perumal Namam Kemp Necklace ✨",
+    "price": 379,
     "images": [
       "/products/prod-1790182000810-0.jpg",
       "/products/prod-1790182000810-1.jpg",
       "/products/prod-1790182000810-2.jpg",
       "/products/prod-1790182000810-3.jpg"
     ],
-    "karat": "Brass ",
-    "updatedAt": 1790182786510,
-    "reviewsCount": 1,
-    "title": "✨ Perumal Namam Kemp Necklace ✨",
     "image": "/products/prod-1790182000810-0.jpg"
   },
   {
     "id": "prod-1790181674064",
-    "category": "Necklace",
-    "stock": 2,
-    "price": 849,
-    "createdAt": 1790181674064,
+    "reviewsCount": 1,
+    "karat": "Brass ",
     "images": [
       "/products/prod-1790181674064-0.jpg",
       "/products/prod-1790181674064-1.jpg",
       "/products/prod-1790181674064-2.jpg",
       "/products/prod-1790181674064-3.jpg"
     ],
-    "rating": 5,
-    "reviewsCount": 1,
-    "image": "/products/prod-1790181674064-0.jpg",
-    "title": "Lakshmi Devi Pearl Drop Necklace",
+    "createdAt": 1790181674064,
+    "category": "Necklace",
     "description": "• Premium Kemp Stone Work\n• Ruby Pink & Green Stone Detailing\n• Sparkling White Stone Accents\n• Beautiful Pearl Drop Finish\n• Intricate Antique-Gold Detailing\n• Matching Earrings Included\n• Traditional & Elegant Look\n• Ideal for Bridal & Festive Wear",
+    "updatedAt": 1790182853999,
+    "stock": 2,
     "originalPrice": 1200,
-    "karat": "Brass ",
-    "updatedAt": 1790182853999
+    "image": "/products/prod-1790181674064-0.jpg",
+    "rating": 5,
+    "title": "Lakshmi Devi Pearl Drop Necklace",
+    "price": 849
   },
   {
     "id": "prod-1790181332862",
     "karat": "Brass ",
-    "createdAt": 1790181332862,
-    "reviewsCount": 1,
     "category": "Necklace",
-    "title": "Ruby Kemp Mango Pendant Necklace”",
-    "image": "/products/prod-1790181332862-0.jpg",
-    "originalPrice": 899,
-    "stock": 23,
-    "price": 549,
     "images": [
       "/products/prod-1790181332862-0.jpg",
       "/products/prod-1790181332862-1.jpg",
       "/products/prod-1790181332862-2.jpg",
       "/products/prod-1790181332862-3.jpg"
     ],
+    "description": "✨ Premium Look\n✨ Mango Design Pendant\n✨ Ruby Kemp Stone Work\n✨ Green Centre Stone\n✨ Matching Earrings Included\n✨ Perfect for Bridal & Festive Wear",
+    "originalPrice": 899,
+    "createdAt": 1790181332862,
+    "reviewsCount": 1,
+    "stock": 23,
+    "price": 549,
+    "title": "Ruby Kemp Mango Pendant Necklace”",
     "rating": 5,
-    "description": "✨ Premium Look\n✨ Mango Design Pendant\n✨ Ruby Kemp Stone Work\n✨ Green Centre Stone\n✨ Matching Earrings Included\n✨ Perfect for Bridal & Festive Wear"
+    "image": "/products/prod-1790181332862-0.jpg"
   },
   {
     "id": "prod-1790091774985",
-    "subCategory": "",
-    "price": 249,
-    "category": "Bangles",
-    "updatedAt": 1790266058616,
-    "originalPrice": 599,
-    "stock": 9,
-    "colors": [],
-    "sizes": [
-      "2.4",
-      "2.6",
-      "2.8"
-    ],
-    "createdAt": 1790091774985,
-    "karat": "22k Gold BIS Hallmarked",
     "description": "⭐ Beautiful Lakshmi Devi Motif Design\n⭐ Rich Antique Gold-Tone Finish\n⭐ Green & Ruby Stone Detailing\n⭐ Intricate Floral & Traditional Patterns\n⭐ Elegant Temple-Jewellery Inspired Look\n⭐ Premium Statement Bangle Design\n⭐ Perfect for Silk Sarees & Ethnic Wear\n⭐ Suitable for Weddings & Festivals\n⭐ Ideal for Traditional Functions & Special Occasions\n⭐ Beautiful Choice for Gifting\n💎 Product Type: Bangle Set\n🎨 Stone Colours: Green & Ruby",
-    "rating": 5,
     "images": [
       "/products/prod-1790091774985-0.jpg",
       "/products/prod-1790091774985-1.jpg",
       "/products/prod-1790091774985-2.jpg"
     ],
+    "stock": 9,
+    "subCategory": "",
+    "updatedAt": 1790266058616,
+    "title": "✨Matt Bangles",
+    "price": 249,
     "reviewsCount": 1,
     "image": "/products/prod-1790091774985-0.jpg",
-    "title": "✨Matt Bangles"
+    "createdAt": 1790091774985,
+    "karat": "22k Gold BIS Hallmarked",
+    "category": "Bangles",
+    "sizes": [
+      "2.4",
+      "2.6",
+      "2.8"
+    ],
+    "originalPrice": 599,
+    "rating": 5,
+    "colors": []
   }
 ]

@@ -1,8 +1,67 @@
+import fallbackProducts from '../data/fallbackProducts.json';
+
 // Universal fail-proof REST fetcher for MOJ Jewels products, config, coupons, and orders
 // Works on all mobile devices, WebViews, iOS Safari, Android, and restrictive mobile networks
 // where WebSocket or Firestore Web SDK connections might be blocked or throttled.
 
 const FIRESTORE_BASE = 'https://firestore.googleapis.com/v1/projects/moj-jewels-58b8c/databases/(default)/documents';
+
+const fallbackMap = new Map((fallbackProducts || []).map(p => [String(p.id), p]));
+
+const MASK_PARAMS = [
+  'mask.fieldPaths=title',
+  'mask.fieldPaths=category',
+  'mask.fieldPaths=subCategory',
+  'mask.fieldPaths=price',
+  'mask.fieldPaths=originalPrice',
+  'mask.fieldPaths=stock',
+  'mask.fieldPaths=karat',
+  'mask.fieldPaths=rating',
+  'mask.fieldPaths=reviewsCount',
+  'mask.fieldPaths=createdAt',
+  'mask.fieldPaths=updatedAt',
+  'mask.fieldPaths=colors',
+  'mask.fieldPaths=sizes',
+  'mask.fieldPaths=description'
+].join('&');
+
+export async function fetchSingleProductViaRest(id) {
+  try {
+    const res = await fetch(`${FIRESTORE_BASE}/products/${encodeURIComponent(id)}`);
+    if (!res.ok) return null;
+    const doc = await res.json();
+    const f = doc.fields || {};
+    const p = { id };
+    for (const [k, v] of Object.entries(f)) {
+      if (v.stringValue !== undefined) p[k] = v.stringValue;
+      else if (v.integerValue !== undefined) p[k] = Number(v.integerValue);
+      else if (v.doubleValue !== undefined) p[k] = Number(v.doubleValue);
+      else if (v.booleanValue !== undefined) p[k] = v.booleanValue;
+      else if (v.arrayValue !== undefined) {
+        p[k] = (v.arrayValue.values || []).map(val =>
+          val.stringValue !== undefined ? val.stringValue :
+          val.integerValue !== undefined ? Number(val.integerValue) :
+          val.doubleValue !== undefined ? Number(val.doubleValue) : val
+        );
+      }
+    }
+    return p;
+  } catch (e) {
+    return null;
+  }
+}
+
+export async function deleteProductViaRest(id) {
+  try {
+    const res = await fetch(`${FIRESTORE_BASE}/products/${encodeURIComponent(id)}`, {
+      method: 'DELETE'
+    });
+    return res.ok;
+  } catch (e) {
+    console.warn('REST delete product error:', e);
+    return false;
+  }
+}
 
 export async function fetchProductsViaRest(onBatch) {
   const demoIds = ['prod-1', 'prod-2', 'prod-3', 'prod-4', 'prod-5', 'prod-6'];
@@ -11,7 +70,7 @@ export async function fetchProductsViaRest(onBatch) {
 
   try {
     do {
-      const url = `${FIRESTORE_BASE}/products?pageSize=100${
+      const url = `${FIRESTORE_BASE}/products?pageSize=100&${MASK_PARAMS}${
         pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : ''
       }`;
       const res = await fetch(url);
@@ -37,10 +96,23 @@ export async function fetchProductsViaRest(onBatch) {
                   ? val.stringValue
                   : val.integerValue !== undefined
                   ? Number(val.integerValue)
+                  : val.doubleValue !== undefined
+                  ? Number(val.doubleValue)
                   : val
               );
             }
           }
+
+          // Attach static optimized image from fallbackMap if known
+          const fb = fallbackMap.get(id);
+          if (fb) {
+            p.image = fb.image;
+            p.images = fb.images;
+          } else {
+            p.image = p.image || '/images/hero_banner.jpg';
+            p.images = Array.isArray(p.images) && p.images.length > 0 ? p.images : [p.image];
+          }
+
           products.push(p);
         }
         if (typeof onBatch === 'function') {
@@ -50,10 +122,22 @@ export async function fetchProductsViaRest(onBatch) {
       pageToken = data.nextPageToken;
     } while (pageToken);
 
+    // If any newly created products (not in fallbackMap) lack an image, fetch their single doc
+    const newItemsNeedingImages = products.filter(p => !fallbackMap.has(p.id) && (!p.image || p.image === '/images/hero_banner.jpg'));
+    if (newItemsNeedingImages.length > 0) {
+      await Promise.all(newItemsNeedingImages.map(async (item) => {
+        const full = await fetchSingleProductViaRest(item.id);
+        if (full && full.image) {
+          item.image = full.image;
+          item.images = full.images || [full.image];
+        }
+      }));
+    }
+
     return products.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
   } catch (err) {
     console.warn('REST product fetch warning:', err);
-    return products;
+    return products.length > 0 ? products : fallbackProducts;
   }
 }
 
