@@ -27,7 +27,8 @@ import {
   Star,
   Layers,
   ChevronRight,
-  FolderPlus
+  FolderPlus,
+  CreditCard
 } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -137,6 +138,7 @@ export default function AdminDashboard() {
   const [editProdCategory, setEditProdCategory] = useState(categories && categories[1] ? categories[1] : 'Rings');
   const [editProdPrice, setEditProdPrice] = useState('');
   const [editProdOrigPrice, setEditProdOrigPrice] = useState('');
+  const [editProdWholesalePrice, setEditProdWholesalePrice] = useState('');
   const [editProdKarat, setEditProdKarat] = useState('18k Gold & VVS Diamond');
   const [editProdStock, setEditProdStock] = useState('10');
   const [editProdImage, setEditProdImage] = useState('/images/hero_banner.jpg');
@@ -178,6 +180,7 @@ export default function AdminDashboard() {
   const [newProdCategory, setNewProdCategory] = useState(categories && categories[1] ? categories[1] : 'Rings');
   const [newProdPrice, setNewProdPrice] = useState('');
   const [newProdOrigPrice, setNewProdOrigPrice] = useState('');
+  const [newProdWholesalePrice, setNewProdWholesalePrice] = useState('');
   const [newProdKarat, setNewProdKarat] = useState('18k Gold & VVS Diamond');
   const [newProdStock, setNewProdStock] = useState('10');
   const [newProdImage, setNewProdImage] = useState('/images/hero_banner.jpg');
@@ -222,7 +225,9 @@ export default function AdminDashboard() {
   const [couponDesc, setCouponDesc] = useState('');
   const [couponExpiry, setCouponExpiry] = useState('2026-12-31');
 
-  // QR Settings State
+  // Payment Settings State (Gateway & UPI QR)
+  const [editGatewayEnabled, setEditGatewayEnabled] = useState(paymentConfig?.gatewayEnabled !== false);
+  const [editRazorpayKeyId, setEditRazorpayKeyId] = useState(paymentConfig?.razorpayKeyId || '');
   const [editUpiId, setEditUpiId] = useState(paymentConfig?.upiId || '');
   const [editPayeeName, setEditPayeeName] = useState(paymentConfig?.payeeName || '');
   const [editBankName, setEditBankName] = useState(paymentConfig?.bankName || '');
@@ -234,6 +239,8 @@ export default function AdminDashboard() {
   // Sync edit fields whenever paymentConfig updates from Firestore
   useEffect(() => {
     if (paymentConfig) {
+      if (paymentConfig.gatewayEnabled !== undefined) setEditGatewayEnabled(paymentConfig.gatewayEnabled);
+      if (paymentConfig.razorpayKeyId !== undefined) setEditRazorpayKeyId(paymentConfig.razorpayKeyId);
       if (paymentConfig.upiId) setEditUpiId(paymentConfig.upiId);
       if (paymentConfig.payeeName) setEditPayeeName(paymentConfig.payeeName);
       if (paymentConfig.bankName) setEditBankName(paymentConfig.bankName);
@@ -277,8 +284,8 @@ export default function AdminDashboard() {
   const pendingVerifications = safeOrders
     .filter(o => o?.paymentStatus === 'Pending Verification')
     .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
-  const paidOrders = safeOrders.filter(o => o?.paymentStatus === 'Verified');
-  const verifiedOrders = safeOrders.filter(o => (o?.paymentStatus === 'Verified' || o?.orderStatus === 'Confirmed') && o?.orderStatus !== 'Shipped' && o?.orderStatus !== 'Delivered');
+  const paidOrders = safeOrders.filter(o => o?.paymentStatus === 'Verified' || o?.paymentStatus === 'Paid');
+  const verifiedOrders = safeOrders.filter(o => (o?.paymentStatus === 'Verified' || o?.paymentStatus === 'Paid' || o?.orderStatus === 'Confirmed') && o?.orderStatus !== 'Shipped' && o?.orderStatus !== 'Delivered');
   const shippedOrders = safeOrders.filter(o => o?.orderStatus === 'Shipped');
   const deliveredOrders = safeOrders.filter(o => o?.orderStatus === 'Delivered');
   const rejectedOrders = safeOrders.filter(o => o?.paymentStatus === 'Rejected');
@@ -497,18 +504,18 @@ export default function AdminDashboard() {
   const handleCreateProduct = (e) => {
     e.preventDefault();
     const finalImages = newProdImages.length > 0 ? newProdImages : [newProdImage || '/images/hero_banner.jpg'];
-    const priceNum = parseFloat(newProdPrice) || 50000;
-    let origPriceNum = parseFloat(newProdOrigPrice);
-    if (!origPriceNum || origPriceNum <= priceNum) {
-      origPriceNum = Math.round(priceNum * 1.25); // Automatically set 25% higher MRP so top-left % OFF badge always displays identically to preset products
-    }
+    const priceNum = parseFloat(newProdPrice) || 0;
+    const origPriceNum = parseFloat(newProdOrigPrice) || priceNum;
+    const wholesalePriceNum = parseFloat(newProdWholesalePrice) || priceNum;
 
     addProduct({
-      title: newProdTitle,
+      title: newProdTitle.trim(),
       category: newProdCategory,
       subCategory: newProdSubCategory.trim(),
       price: priceNum,
       originalPrice: origPriceNum,
+      wholesalePrice: wholesalePriceNum,
+      wholesaleMinQty: 10,
       karat: newProdKarat || '22k Gold BIS Hallmarked',
       stock: parseInt(newProdStock) || 10,
       image: finalImages[0],
@@ -521,6 +528,7 @@ export default function AdminDashboard() {
     setNewProdTitle('');
     setNewProdPrice('');
     setNewProdOrigPrice('');
+    setNewProdWholesalePrice('');
     setNewProdDesc('');
     setNewProdSubCategory('');
     setNewProdColors([]);
@@ -538,6 +546,7 @@ export default function AdminDashboard() {
     setEditProdSubCategory(p.subCategory || '');
     setEditProdPrice(p.price !== undefined ? String(p.price) : '');
     setEditProdOrigPrice(p.originalPrice !== undefined ? String(p.originalPrice) : '');
+    setEditProdWholesalePrice(p.wholesalePrice !== undefined && p.wholesalePrice !== null && Number(p.wholesalePrice) > 0 ? String(p.wholesalePrice) : '');
     setEditProdKarat(p.karat || '22k Gold BIS Hallmarked');
     setEditProdStock(p.stock !== undefined ? String(p.stock) : '10');
     setEditProdDesc(p.description || '');
@@ -582,10 +591,8 @@ export default function AdminDashboard() {
     setIsSavingProduct(true);
     const finalImages = editProdImages.length > 0 ? editProdImages : (editProdImage ? [editProdImage] : ['/images/hero_banner.jpg']);
     const priceNum = parseFloat(editProdPrice) || 0;
-    let origPriceNum = parseFloat(editProdOrigPrice);
-    if (!origPriceNum || origPriceNum <= priceNum) {
-      origPriceNum = Math.round(priceNum * 1.25);
-    }
+    const origPriceNum = parseFloat(editProdOrigPrice) || priceNum;
+    const wholesalePriceNum = parseFloat(editProdWholesalePrice) || priceNum;
 
     try {
       await editProduct(editingProduct.id, {
@@ -594,6 +601,8 @@ export default function AdminDashboard() {
         subCategory: editProdSubCategory.trim(),
         price: priceNum,
         originalPrice: origPriceNum,
+        wholesalePrice: wholesalePriceNum,
+        wholesaleMinQty: 10,
         karat: editProdKarat || '22k Gold BIS Hallmarked',
         stock: parseInt(editProdStock) || 0,
         image: finalImages[0],
@@ -629,14 +638,16 @@ export default function AdminDashboard() {
     e.preventDefault();
     setPaymentConfig({
       ...paymentConfig,
-      upiId: editUpiId,
-      payeeName: editPayeeName,
-      bankName: editBankName,
-      accountNumber: editAccountNo,
-      ifscCode: editIfsc,
+      gatewayEnabled: editGatewayEnabled,
+      razorpayKeyId: editRazorpayKeyId.trim(),
+      upiId: editUpiId.trim(),
+      payeeName: editPayeeName.trim(),
+      bankName: editBankName.trim(),
+      accountNumber: editAccountNo.trim(),
+      ifscCode: editIfsc.trim(),
       qrImageUrl: editQrImg
     });
-    setQrSaveMsg('Payment QR & Bank details saved successfully!');
+    setQrSaveMsg('Payment Gateway & UPI details saved successfully!');
     setTimeout(() => setQrSaveMsg(''), 3000);
   };
 
@@ -828,7 +839,7 @@ export default function AdminDashboard() {
           }`}
         >
           <Settings className="w-4 h-4" />
-          <span>GPay QR & Bank Config</span>
+          <span>Payment Gateway & QR Config</span>
         </button>
 
         <button
@@ -1085,7 +1096,7 @@ export default function AdminDashboard() {
               {[
                 { key: 'All', label: `All (${safeOrders.length})` },
                 { key: 'Pending Verification', label: `Pending (${pendingVerifications.length})` },
-                { key: 'Verified', label: `Verified (${verifiedOrders.length})` },
+                { key: 'Verified', label: `Paid / Confirmed (${verifiedOrders.length})` },
                 { key: 'Shipped', label: `Shipped (${shippedOrders.length})` },
                 { key: 'Delivered', label: `Delivered (${deliveredOrders.length})` },
                 { key: 'Rejected', label: `Rejected (${rejectedOrders.length})` }
@@ -1164,7 +1175,7 @@ export default function AdminDashboard() {
               .filter(ord => {
                 // Status Filter
                 if (orderFilterTab === 'Pending Verification' && ord.paymentStatus !== 'Pending Verification') return false;
-                if (orderFilterTab === 'Verified' && (ord.paymentStatus !== 'Verified' || ord.orderStatus === 'Shipped' || ord.orderStatus === 'Delivered')) return false;
+                if (orderFilterTab === 'Verified' && ((ord.paymentStatus !== 'Verified' && ord.paymentStatus !== 'Paid' && ord.orderStatus !== 'Confirmed') || ord.orderStatus === 'Shipped' || ord.orderStatus === 'Delivered')) return false;
                 if (orderFilterTab === 'Shipped' && ord.orderStatus !== 'Shipped') return false;
                 if (orderFilterTab === 'Delivered' && ord.orderStatus !== 'Delivered') return false;
                 if (orderFilterTab === 'Rejected' && ord.paymentStatus !== 'Rejected') return false;
@@ -1202,8 +1213,17 @@ export default function AdminDashboard() {
               <div key={ord.id} className="glass-card p-6 rounded-2xl border border-slate-800 space-y-4">
                 <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-800 pb-3 gap-2 text-xs">
                   <div>
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <span className="text-gold-400 font-mono font-bold text-sm">Order ID: {ord.id}</span>
+                      {ord.paymentMethod && (
+                        <span className={`px-2 py-0.5 rounded-md text-[9px] font-bold uppercase border ${
+                          ord.paymentMethod.toLowerCase().includes('gateway') || ord.paymentMethod.toLowerCase().includes('razorpay')
+                            ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                            : 'bg-slate-800 text-slate-300 border-slate-700'
+                        }`}>
+                          {ord.paymentMethod.toLowerCase().includes('gateway') ? '⚡ Gateway' : ord.paymentMethod}
+                        </span>
+                      )}
                       <button
                         type="button"
                         onClick={() => {
@@ -1225,9 +1245,13 @@ export default function AdminDashboard() {
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                      ord.paymentStatus === 'Verified' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'
+                      ord.paymentStatus === 'Verified' || ord.paymentStatus === 'Paid'
+                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                        : ord.paymentStatus === 'Rejected'
+                        ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                        : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
                     }`}>
                       Payment: {ord.paymentStatus}
                     </span>
@@ -1341,8 +1365,8 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                   <div>
-                    <span className="text-slate-500 text-[10px] block">UTR Transaction Ref</span>
-                    <span className="font-mono text-gold-300">{ord.transactionId}</span>
+                    <span className="text-slate-500 text-[10px] block">Payment / UTR Ref</span>
+                    <span className="font-mono text-gold-300">{ord.transactionId || ord.gatewayPaymentId || '—'}</span>
                   </div>
                   <div>
                     <span className="text-slate-500 text-[10px] block">Courier Details</span>
@@ -1508,14 +1532,26 @@ export default function AdminDashboard() {
                     {p.title}
                   </h4>
 
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-gold-300 font-bold text-sm">
-                      ₹{(Number(p.price) || 0).toLocaleString()}
-                    </span>
-                    {p.originalPrice && Number(p.originalPrice) > Number(p.price) && (
-                      <span className="text-slate-500 text-[11px] line-through">
-                        ₹{Number(p.originalPrice).toLocaleString()}
+                  <div className="space-y-0.5 pt-0.5">
+                    <div className="flex items-baseline gap-2 flex-wrap">
+                      <span className="text-[10px] text-slate-400">Retail:</span>
+                      <span className="text-gold-300 font-bold text-sm">
+                        ₹{(Number(p.price) || 0).toLocaleString()}
                       </span>
+                      {p.originalPrice && Number(p.originalPrice) > Number(p.price) && (
+                        <span className="text-slate-500 text-[10px] line-through">
+                          MRP ₹{Number(p.originalPrice).toLocaleString()}
+                        </span>
+                      )}
+                    </div>
+                    {p.wholesalePrice && Number(p.wholesalePrice) > 0 && (
+                      <div className="flex items-baseline gap-1.5 text-xs">
+                        <span className="text-[10px] text-amber-400 font-semibold">Wholesale:</span>
+                        <span className="text-amber-300 font-bold text-xs">
+                          ₹{Number(p.wholesalePrice).toLocaleString()}
+                        </span>
+                        <span className="text-[9px] text-slate-400">(Min 10 pcs)</span>
+                      </div>
                     )}
                   </div>
 
@@ -1905,28 +1941,54 @@ export default function AdminDashboard() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-slate-300 block mb-1 font-medium">Offer Sale Price (₹)</label>
+                    <div className="space-y-3 p-3 bg-slate-950/70 border border-slate-800 rounded-xl">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-slate-300 block mb-1 font-medium">Retail Customer Price (₹) *</label>
+                          <input
+                            type="number"
+                            required
+                            placeholder="e.g. 1500"
+                            value={newProdPrice}
+                            onChange={(e) => setNewProdPrice(e.target.value)}
+                            className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-slate-300 block mb-1 font-medium">Original MRP Price (₹) (Optional)</label>
+                          <input
+                            type="number"
+                            placeholder="Optional reference MRP"
+                            value={newProdOrigPrice}
+                            onChange={(e) => setNewProdOrigPrice(e.target.value)}
+                            className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Wholesale Customer Price & Minimum 10 pcs */}
+                      <div className="bg-amber-500/10 border border-amber-500/30 p-2.5 rounded-xl space-y-1">
+                        <div className="flex items-center justify-between">
+                          <label className="text-amber-300 font-semibold text-xs flex items-center gap-1.5">
+                            <Tag className="w-3.5 h-3.5 text-amber-400" /> Wholesale Customer Price (₹) *
+                          </label>
+                          <span className="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full font-bold">
+                            Min Order: 10 pcs
+                          </span>
+                        </div>
                         <input
                           type="number"
                           required
-                          placeholder="e.g. 50000"
-                          value={newProdPrice}
-                          onChange={(e) => setNewProdPrice(e.target.value)}
-                          className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
+                          min="1"
+                          placeholder="e.g. 950 (Wholesale bulk price for 10+ pcs)"
+                          value={newProdWholesalePrice}
+                          onChange={(e) => setNewProdWholesalePrice(e.target.value)}
+                          className="w-full bg-slate-900 border border-amber-500/50 rounded-xl p-2.5 text-white focus:border-amber-400 font-bold"
                         />
-                      </div>
-
-                      <div>
-                        <label className="text-slate-300 block mb-1 font-medium">Original MRP / Tag Price (₹)</label>
-                        <input
-                          type="number"
-                          placeholder="e.g. 65000 (% OFF badge)"
-                          value={newProdOrigPrice}
-                          onChange={(e) => setNewProdOrigPrice(e.target.value)}
-                          className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
-                        />
+                        <p className="text-[10px] text-slate-400">
+                          Approved wholesale accounts will see and be charged this price when purchasing 10 or more pcs.
+                        </p>
                       </div>
                     </div>
 
@@ -2326,28 +2388,52 @@ export default function AdminDashboard() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-slate-300 block mb-1 font-medium">Offer Sale Price (₹)</label>
-                        <input
-                          type="number"
-                          required
-                          placeholder="e.g. 50000"
-                          value={editProdPrice}
-                          onChange={(e) => setEditProdPrice(e.target.value)}
-                          className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
-                        />
+                    <div className="space-y-3 p-3 bg-slate-950/70 border border-slate-800 rounded-xl">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-slate-300 block mb-1 font-medium">Retail Customer Price (₹) *</label>
+                          <input
+                            type="number"
+                            required
+                            placeholder="e.g. 1500"
+                            value={editProdPrice}
+                            onChange={(e) => setEditProdPrice(e.target.value)}
+                            className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-slate-300 block mb-1 font-medium">Original MRP Price (₹) (Optional)</label>
+                          <input
+                            type="number"
+                            placeholder="Optional reference MRP"
+                            value={editProdOrigPrice}
+                            onChange={(e) => setEditProdOrigPrice(e.target.value)}
+                            className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
+                          />
+                        </div>
                       </div>
 
-                      <div>
-                        <label className="text-slate-300 block mb-1 font-medium">Original MRP / Tag Price (₹)</label>
+                      {/* Wholesale Customer Price & Minimum 10 pcs */}
+                      <div className="bg-amber-500/10 border border-amber-500/30 p-2.5 rounded-xl space-y-1">
+                        <div className="flex items-center justify-between">
+                          <label className="text-amber-300 font-semibold text-xs flex items-center gap-1.5">
+                            <Tag className="w-3.5 h-3.5 text-amber-400" /> Wholesale Customer Price (₹) *
+                          </label>
+                          <span className="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full font-bold">
+                            Min Order: 10 pcs
+                          </span>
+                        </div>
                         <input
                           type="number"
-                          placeholder="e.g. 65000 (Shows Top-Left % OFF Discount Badge)"
-                          value={editProdOrigPrice}
-                          onChange={(e) => setEditProdOrigPrice(e.target.value)}
-                          className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
+                          placeholder="e.g. 950 (Wholesale bulk price for 10+ pcs)"
+                          value={editProdWholesalePrice}
+                          onChange={(e) => setEditProdWholesalePrice(e.target.value)}
+                          className="w-full bg-slate-900 border border-amber-500/50 rounded-xl p-2.5 text-white focus:border-amber-400 font-bold"
                         />
+                        <p className="text-[10px] text-slate-400">
+                          Approved wholesale accounts will see and be charged this price when purchasing 10 or more pcs.
+                        </p>
                       </div>
                     </div>
 
@@ -3093,109 +3179,158 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* TAB 5: Store QR Code & Bank Details Config */}
+      {/* TAB 5: Store Payment Gateway & Manual QR Config */}
       {activeTab === 'qr-settings' && (
         <div className="glass-card p-6 md:p-8 rounded-2xl border border-gold-500/40 space-y-6 max-w-2xl mx-auto animate-fade-in">
           <div className="border-b border-slate-800 pb-4">
             <h2 className="text-2xl font-serif font-bold text-white flex items-center gap-2">
-              <QrCode className="w-6 h-6 text-gold-400" /> Manual Payment QR & Bank Transfer Config
+              <CreditCard className="w-6 h-6 text-gold-400" /> Payment Gateway & UPI Settings
             </h2>
             <p className="text-xs text-slate-400 mt-1">
-              Update the QR Code Image, Store UPI ID, and Bank Account details shown to customers during checkout.
+              Configure your Online Payment Gateway for instant auto-verification, plus manual UPI QR code and Bank Account details.
             </p>
           </div>
 
-          <form onSubmit={handleSaveQrConfig} className="space-y-4 text-xs">
-            <div>
-              <label className="text-gold-300 font-semibold block mb-1">Official Store UPI ID</label>
-              <input
-                type="text"
-                required
-                value={editUpiId}
-                onChange={(e) => setEditUpiId(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white font-mono"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-slate-300 font-medium block mb-1">Payee Name</label>
-                <input
-                  type="text"
-                  required
-                  value={editPayeeName}
-                  onChange={(e) => setEditPayeeName(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white"
-                />
-              </div>
-
-              <div>
-                <label className="text-slate-300 font-medium block mb-1">Bank Name</label>
-                <input
-                  type="text"
-                  required
-                  value={editBankName}
-                  onChange={(e) => setEditBankName(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-slate-300 font-medium block mb-1">Bank Account Number</label>
-                <input
-                  type="text"
-                  required
-                  value={editAccountNo}
-                  onChange={(e) => setEditAccountNo(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white font-mono"
-                />
-              </div>
-
-              <div>
-                <label className="text-slate-300 font-medium block mb-1">Bank IFSC Code</label>
-                <input
-                  type="text"
-                  required
-                  value={editIfsc}
-                  onChange={(e) => setEditIfsc(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white font-mono"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-gold-300 font-semibold block mb-1">
-                Upload GPay / UPI QR Code (Select from Phone/Laptop Storage)
-              </label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleQrFileUpload}
-                className="w-full text-xs text-slate-300 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-gold-500 file:text-black hover:file:bg-gold-400 cursor-pointer bg-slate-900 border border-slate-700 rounded-xl p-1"
-              />
-
-              {editQrImg && (
-                <div className="pt-2 flex items-center space-x-4 bg-slate-950 p-3 rounded-xl border border-slate-800">
-                  <div className="w-20 h-20 bg-white p-1 rounded-lg border border-gold-500/40 shrink-0">
-                    <img src={editQrImg} alt="GPay QR Preview" className="w-full h-full object-contain" />
-                  </div>
-                  <div>
-                    <span className="text-xs text-gold-400 font-semibold block">GPay QR Preview Ready</span>
-                    <span className="text-[10px] text-slate-400">Customers will scan this QR during UPI payment checkout.</span>
-                  </div>
+          <form onSubmit={handleSaveQrConfig} className="space-y-6 text-xs">
+            {/* ── SECTION 1: Online Payment Gateway (Razorpay) ── */}
+            <div className="p-4 rounded-xl border border-gold-500/40 bg-gradient-to-br from-gold-950/30 via-slate-900 to-slate-950 space-y-3">
+              <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-gold-400" />
+                  <span className="text-white font-semibold text-sm">Online Payment Gateway (Razorpay)</span>
                 </div>
-              )}
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <span className={`text-[11px] font-bold ${editGatewayEnabled ? 'text-emerald-400' : 'text-slate-500'}`}>
+                    {editGatewayEnabled ? 'Enabled ✓' : 'Disabled'}
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={editGatewayEnabled}
+                    onChange={(e) => setEditGatewayEnabled(e.target.checked)}
+                    className="w-4 h-4 accent-amber-500 rounded cursor-pointer"
+                  />
+                </label>
+              </div>
 
-              <div className="pt-2">
-                <span className="text-[10px] text-slate-400 block mb-1">Or QR Image URL:</span>
+              <p className="text-[11px] text-slate-300 leading-relaxed">
+                When enabled, customers can instantly pay with <strong>Google Pay, PhonePe, Paytm, Credit/Debit Cards, and NetBanking</strong>. Orders are <strong>automatically confirmed</strong> with instant verification—no waiting for manual approval.
+              </p>
+
+              <div>
+                <label className="text-gold-300 font-semibold block mb-1">
+                  Razorpay Key ID (Live or Test Key)
+                </label>
                 <input
                   type="text"
-                  value={editQrImg}
-                  onChange={(e) => setEditQrImg(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-white text-[11px]"
+                  placeholder="e.g. rzp_test_xxxxxxxxxxxx or rzp_live_xxxxxxxxxxxx"
+                  value={editRazorpayKeyId}
+                  onChange={(e) => setEditRazorpayKeyId(e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white font-mono placeholder-slate-600 focus:border-gold-400"
                 />
+                <span className="text-[10px] text-slate-400 mt-1 block">
+                  Get your Key ID from your Razorpay Dashboard &rarr; Settings &rarr; API Keys. If left empty, test simulation mode is enabled for seamless testing.
+                </span>
+              </div>
+            </div>
+
+            {/* ── SECTION 2: Manual UPI QR & Bank Transfer ── */}
+            <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/60 space-y-3">
+              <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
+                <QrCode className="w-4 h-4 text-amber-400" />
+                <span className="text-white font-semibold text-sm">Manual UPI QR & Bank Transfer Details</span>
+              </div>
+
+              <div>
+                <label className="text-gold-300 font-semibold block mb-1">Official Store UPI ID</label>
+                <input
+                  type="text"
+                  required
+                  value={editUpiId}
+                  onChange={(e) => setEditUpiId(e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white font-mono"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-slate-300 font-medium block mb-1">Payee Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={editPayeeName}
+                    onChange={(e) => setEditPayeeName(e.target.value)}
+                    className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-slate-300 font-medium block mb-1">Bank Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={editBankName}
+                    onChange={(e) => setEditBankName(e.target.value)}
+                    className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-slate-300 font-medium block mb-1">Bank Account Number</label>
+                  <input
+                    type="text"
+                    required
+                    value={editAccountNo}
+                    onChange={(e) => setEditAccountNo(e.target.value)}
+                    className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-slate-300 font-medium block mb-1">Bank IFSC Code</label>
+                  <input
+                    type="text"
+                    required
+                    value={editIfsc}
+                    onChange={(e) => setEditIfsc(e.target.value)}
+                    className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2 pt-1">
+                <label className="text-gold-300 font-semibold block mb-1">
+                  Upload GPay / UPI QR Code (Select from Phone/Laptop Storage)
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleQrFileUpload}
+                  className="w-full text-xs text-slate-300 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-gold-500 file:text-black hover:file:bg-gold-400 cursor-pointer bg-slate-900 border border-slate-700 rounded-xl p-1"
+                />
+
+                {editQrImg && (
+                  <div className="pt-2 flex items-center space-x-4 bg-slate-950 p-3 rounded-xl border border-slate-800">
+                    <div className="w-20 h-20 bg-white p-1 rounded-lg border border-gold-500/40 shrink-0">
+                      <img src={editQrImg} alt="GPay QR Preview" className="w-full h-full object-contain" />
+                    </div>
+                    <div>
+                      <span className="text-xs text-gold-400 font-semibold block">GPay QR Preview Ready</span>
+                      <span className="text-[10px] text-slate-400">Customers will scan this QR during manual UPI checkout.</span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="pt-1">
+                  <span className="text-[10px] text-slate-400 block mb-1">Or QR Image URL:</span>
+                  <input
+                    type="text"
+                    value={editQrImg}
+                    onChange={(e) => setEditQrImg(e.target.value)}
+                    className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-white text-[11px]"
+                  />
+                </div>
               </div>
             </div>
 

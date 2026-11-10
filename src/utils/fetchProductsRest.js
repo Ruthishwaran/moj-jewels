@@ -14,6 +14,8 @@ const MASK_PARAMS = [
   'mask.fieldPaths=subCategory',
   'mask.fieldPaths=price',
   'mask.fieldPaths=originalPrice',
+  'mask.fieldPaths=wholesalePrice',
+  'mask.fieldPaths=wholesaleMinQty',
   'mask.fieldPaths=stock',
   'mask.fieldPaths=karat',
   'mask.fieldPaths=rating',
@@ -182,7 +184,10 @@ export async function fetchConfigViaRest() {
       const pf = fields.payment.mapValue.fields;
       const paymentObj = {};
       for (const [k, v] of Object.entries(pf)) {
-        paymentObj[k] = v.stringValue !== undefined ? v.stringValue : v.integerValue;
+        if (v.stringValue !== undefined) paymentObj[k] = v.stringValue;
+        else if (v.booleanValue !== undefined) paymentObj[k] = v.booleanValue;
+        else if (v.integerValue !== undefined) paymentObj[k] = Number(v.integerValue);
+        else if (v.doubleValue !== undefined) paymentObj[k] = Number(v.doubleValue);
       }
       config.payment = paymentObj;
     }

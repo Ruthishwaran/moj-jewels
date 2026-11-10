@@ -24,7 +24,7 @@ export default function HeroBanner() {
       imageUrl: '/images/moj_banner_2.jpg',
       title: 'Bridal & Royal Antique Masterpieces',
       tagline: 'EXCLUSIVELY DESIGNED FOR BRIDAL ELEGANCE',
-      badge: '50% OFF BULK WHOLESALE'
+      badge: 'DIRECT BULK WHOLESALE'
     },
     ...(banners || []).map((b, idx) => ({
       id: b.id || `custom-b-${idx}`,

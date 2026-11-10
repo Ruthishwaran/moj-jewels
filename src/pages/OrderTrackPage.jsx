@@ -150,13 +150,13 @@ export default function OrderTrackPage() {
 
             <div className="flex flex-wrap gap-2 items-center">
               <span className={`px-3 py-1 rounded-full text-xs font-bold border ${
-                trackedOrder.paymentStatus === 'Verified'
+                trackedOrder.paymentStatus === 'Verified' || trackedOrder.paymentStatus === 'Paid'
                   ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
                   : trackedOrder.paymentStatus === 'Rejected'
                   ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
                   : 'bg-amber-500/20 text-amber-300 border-amber-500/40'
               }`}>
-                Payment: {trackedOrder.paymentStatus}
+                Payment: {trackedOrder.paymentStatus === 'Paid' ? 'Paid (Instant Verified)' : trackedOrder.paymentStatus}
               </span>
 
               <span className="bg-gold-500/20 text-gold-300 border border-gold-500/40 px-3 py-1 rounded-full text-xs font-bold">
@@ -291,8 +291,10 @@ export default function OrderTrackPage() {
                 )}
                 <div className="pt-2 border-t border-slate-800 flex justify-between">
                   <div>
-                    <span className="text-slate-500 text-[10px] block">Transaction Ref (UTR)</span>
-                    <strong className="text-gold-300 font-mono">{trackedOrder.transactionId}</strong>
+                    <span className="text-slate-500 text-[10px] block">
+                      {trackedOrder.paymentMethod?.toLowerCase().includes('gateway') ? 'Gateway Payment Ref' : 'Transaction Ref (UTR)'}
+                    </span>
+                    <strong className="text-gold-300 font-mono">{trackedOrder.transactionId || trackedOrder.gatewayPaymentId || '—'}</strong>
                   </div>
                   <div className="text-right">
                     <span className="text-slate-500 text-[10px] block">Total Amount</span>

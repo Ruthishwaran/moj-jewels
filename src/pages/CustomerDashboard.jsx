@@ -34,7 +34,7 @@ export default function CustomerDashboard() {
             <div className="flex items-center space-x-2">
               <h1 className="text-2xl font-serif font-bold text-white">{currentUser.name}</h1>
               <span className="bg-gold-500/20 text-gold-300 border border-gold-500/40 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase">
-                {user ? 'VIP CUSTOMER' : 'GUEST SHOPPER'}
+                {user ? (user.accountType === 'wholesale' ? 'WHOLESALE PARTNER' : 'VIP CUSTOMER') : 'GUEST SHOPPER'}
               </span>
             </div>
             <p className="text-xs text-slate-400 mt-0.5">{currentUser.email}</p>
@@ -149,15 +149,15 @@ export default function CustomerDashboard() {
                     <span className="text-slate-400">Placed on {new Date(ord.date).toLocaleDateString()}</span>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                      ord.paymentStatus === 'Verified'
+                      ord.paymentStatus === 'Verified' || ord.paymentStatus === 'Paid'
                         ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
                         : ord.paymentStatus === 'Rejected'
                         ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
                         : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
                     }`}>
-                      Payment: {ord.paymentStatus}
+                      Payment: {ord.paymentStatus === 'Paid' ? 'Paid (Instant Verified)' : ord.paymentStatus}
                     </span>
 
                     <span className="bg-slate-800 text-slate-300 px-2.5 py-0.5 rounded-full text-[10px] font-semibold">
@@ -212,7 +212,10 @@ export default function CustomerDashboard() {
                   <div className="md:col-span-4 text-right space-y-2 border-t md:border-t-0 border-slate-800 pt-3 md:pt-0">
                     <span className="text-[10px] text-slate-400 uppercase block">Total Amount</span>
                     <strong className="text-white font-bold text-base">₹{(Number(ord?.total) || 0).toLocaleString()}</strong>
-                    <div className="text-[11px] text-slate-400 font-mono">UTR: {ord.transactionId}</div>
+                    <div className="text-[11px] text-slate-400 font-mono">
+                      {ord.paymentMethod?.toLowerCase().includes('gateway') ? 'Gateway Ref: ' : 'UTR: '}
+                      {ord.transactionId || ord.gatewayPaymentId || '—'}
+                    </div>
                     
                     <div className="flex flex-col sm:flex-row items-end sm:items-center justify-end gap-2 mt-2">
                       <button

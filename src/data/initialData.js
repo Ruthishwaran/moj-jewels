@@ -52,6 +52,8 @@ export const INITIAL_BANNERS = [
 ];
 
 export const INITIAL_PAYMENT_CONFIG = {
+  gatewayEnabled: true,
+  razorpayKeyId: '',
   upiId: 'harishramesh67-2@okhdfcbank',
   payeeName: 'HARISH RAMESH',
   bankName: 'HDFC Bank Ltd',

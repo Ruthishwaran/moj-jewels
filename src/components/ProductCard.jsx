@@ -9,7 +9,8 @@ export default function ProductCard({ product }) {
     isInWishlist,
     setSelectedProduct,
     setCurrentPage,
-    setIsCartOpen
+    setIsCartOpen,
+    user
   } = useStore();
 
   if (!product) return null;
@@ -19,6 +20,11 @@ export default function ProductCard({ product }) {
   const category = product.category || 'Jewelry';
   const price = typeof product.price === 'number' ? product.price : parseFloat(product.price) || 0;
   const originalPrice = typeof product.originalPrice === 'number' ? product.originalPrice : (parseFloat(product.originalPrice) || price);
+  const rawWholesale = typeof product.wholesalePrice === 'number' ? product.wholesalePrice : parseFloat(product.wholesalePrice);
+  const hasWholesalePrice = !isNaN(rawWholesale) && rawWholesale > 0;
+  const wholesalePrice = hasWholesalePrice ? rawWholesale : price;
+  const isWholesaleAccount = user?.accountType === 'wholesale' || user?.role === 'wholesale';
+  const isWholesaleUser = isWholesaleAccount && user?.isApproved !== false;
   const rating = product.rating || 5.0;
   const reviewsCount = product.reviewsCount || 1;
   const stockVal = product.stock !== undefined && product.stock !== null && product.stock !== ''
@@ -86,9 +92,6 @@ export default function ProductCard({ product }) {
   }, [imageList.length]);
 
   const isWishlisted = isInWishlist(id);
-  const discountPercent = (originalPrice > price && originalPrice > 0)
-    ? Math.round(((originalPrice - price) / originalPrice) * 100)
-    : 0;
   const isOutOfStock = stock <= 0;
   const hasVariants = (Array.isArray(product.colors) && product.colors.length > 0) ||
                       (Array.isArray(product.sizes) && product.sizes.length > 0) ||
@@ -102,7 +105,8 @@ export default function ProductCard({ product }) {
       setSelectedProduct(product);
       return;
     }
-    addToCart(product);
+    const addQty = isWholesaleAccount ? 10 : 1;
+    addToCart(product, addQty);
     setAddedFlash(true);
     setTimeout(() => setAddedFlash(false), 2500);
   };
@@ -141,13 +145,6 @@ export default function ProductCard({ product }) {
               />
             ))}
           </div>
-        )}
-
-        {/* Discount Badge */}
-        {discountPercent > 0 && !isOutOfStock && (
-          <span className="absolute top-3 left-3 bg-gradient-to-r from-amber-600 to-gold-500 text-black font-bold text-[11px] px-2.5 py-1 rounded-full shadow-md uppercase tracking-wider z-10">
-            {discountPercent}% OFF
-          </span>
         )}
 
         {/* Out of Stock Badge */}
@@ -221,22 +218,48 @@ export default function ProductCard({ product }) {
         </div>
 
         {/* Price row */}
-        <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between">
-          <div>
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-white font-bold text-base font-sans">
-                ₹{(Number(price) || 0).toLocaleString()}
-              </span>
-              {originalPrice > price && (
-                <span className="text-slate-500 line-through text-xs">
-                  ₹{(Number(originalPrice) || 0).toLocaleString()}
-                </span>
-              )}
-            </div>
-            {isOutOfStock ? (
-              <span className="text-[10px] text-rose-400 font-bold uppercase">Out of Stock</span>
+        <div className="pt-2 border-t border-slate-800/80 flex items-start justify-between">
+          <div className="space-y-0.5">
+            {isWholesaleUser ? (
+              <div>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-amber-400 font-bold text-base font-sans">
+                    ₹{(Number(wholesalePrice) || 0).toLocaleString()}
+                  </span>
+                  {wholesalePrice < price && (
+                    <span className="text-slate-500 line-through text-xs">
+                      ₹{(Number(price) || 0).toLocaleString()}
+                    </span>
+                  )}
+                </div>
+                <div className="text-[10px] text-amber-300 font-semibold">
+                  🏢 Wholesale Price (Min 10 pcs)
+                </div>
+              </div>
             ) : (
-              <span className="text-[10px] text-emerald-400">{stock} units left</span>
+              <div>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-white font-bold text-base font-sans">
+                    ₹{(Number(price) || 0).toLocaleString()}
+                  </span>
+                  {originalPrice > price && (
+                    <span className="text-slate-500 line-through text-xs">
+                      ₹{(Number(originalPrice) || 0).toLocaleString()}
+                    </span>
+                  )}
+                </div>
+                {hasWholesalePrice && (
+                  <div className="text-[10px] text-slate-400 flex items-center gap-1">
+                    <span>Wholesale: ₹{(Number(wholesalePrice) || 0).toLocaleString()}</span>
+                    <span className="text-amber-400 font-medium">(Min 10 pcs)</span>
+                  </div>
+                )}
+              </div>
+            )}
+            {isOutOfStock ? (
+              <span className="text-[10px] text-rose-400 font-bold uppercase block">Out of Stock</span>
+            ) : (
+              <span className="text-[10px] text-emerald-400 block">{stock} units left</span>
             )}
           </div>
 

@@ -8,10 +8,14 @@ export default function ProductModal() {
     setSelectedProduct,
     addToCart,
     toggleWishlist,
-    isInWishlist
+    isInWishlist,
+    user
   } = useStore();
 
-  const [quantity, setQuantity] = useState(1);
+  const isWholesaleAccount = user?.accountType === 'wholesale' || user?.role === 'wholesale';
+  const isWholesaleUser = isWholesaleAccount && user?.isApproved !== false;
+  const minQty = isWholesaleAccount ? 10 : 1;
+  const [quantity, setQuantity] = useState(minQty);
   const [activeImgIndex, setActiveImgIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [copiedShare, setCopiedShare] = useState(false);
@@ -61,6 +65,7 @@ export default function ProductModal() {
   React.useEffect(() => {
     setActiveImgIndex(0);
     setVariantError('');
+    setQuantity(minQty);
     if (Array.isArray(selectedProduct?.colors) && selectedProduct.colors.length === 1) {
       setSelectedColor(selectedProduct.colors[0]);
     } else {
@@ -72,7 +77,7 @@ export default function ProductModal() {
     } else {
       setSelectedSize('');
     }
-  }, [selectedProduct?.id]);
+  }, [selectedProduct?.id, minQty]);
 
   // Auto 3-second slideshow for multi-image gallery
   React.useEffect(() => {
@@ -95,6 +100,10 @@ export default function ProductModal() {
   const category = selectedProduct.category || 'Jewelry';
   const price = typeof selectedProduct.price === 'number' ? selectedProduct.price : (parseFloat(selectedProduct.price) || 0);
   const originalPrice = typeof selectedProduct.originalPrice === 'number' ? selectedProduct.originalPrice : (parseFloat(selectedProduct.originalPrice) || price);
+  const rawWholesale = typeof selectedProduct.wholesalePrice === 'number' ? selectedProduct.wholesalePrice : parseFloat(selectedProduct.wholesalePrice);
+  const hasWholesalePrice = !isNaN(rawWholesale) && rawWholesale > 0;
+  const wholesalePrice = hasWholesalePrice ? rawWholesale : price;
+  const activePrice = isWholesaleUser ? wholesalePrice : price;
   const rating = selectedProduct.rating || 5.0;
   const reviewsCount = selectedProduct.reviewsCount || 1;
   const karat = selectedProduct.karat || 'Premium Hallmarked';
@@ -244,14 +253,35 @@ export default function ProductModal() {
                 {title}
               </h2>
 
-              <div className="flex items-baseline space-x-3 mb-2">
-                <span className="text-2xl font-bold text-white">
-                  ₹{(Number(price) || 0).toLocaleString()}
-                </span>
-                {originalPrice > price && (
-                  <span className="text-slate-500 line-through text-sm">
-                    ₹{(Number(originalPrice) || 0).toLocaleString()}
+              <div className="space-y-1 mb-2">
+                <div className="flex items-baseline space-x-3">
+                  <span className="text-2xl font-bold text-white">
+                    ₹{(Number(activePrice) || 0).toLocaleString()}
                   </span>
+                  {isWholesaleUser ? (
+                    wholesalePrice < price && (
+                      <span className="text-slate-500 line-through text-sm">
+                        ₹{(Number(price) || 0).toLocaleString()}
+                      </span>
+                    )
+                  ) : (
+                    originalPrice > price && (
+                      <span className="text-slate-500 line-through text-sm">
+                        ₹{(Number(originalPrice) || 0).toLocaleString()}
+                      </span>
+                    )
+                  )}
+                </div>
+                {isWholesaleUser ? (
+                  <div className="text-xs text-amber-300 font-semibold flex items-center gap-1.5">
+                    <span className="bg-amber-500/20 border border-amber-500/40 px-2 py-0.5 rounded-full">
+                      🏢 Wholesale Price (Min 10 pcs)
+                    </span>
+                  </div>
+                ) : hasWholesalePrice && (
+                  <div className="text-xs text-slate-400">
+                    Wholesale Price: <strong className="text-amber-300">₹{(Number(wholesalePrice) || 0).toLocaleString()}</strong> <span className="text-slate-500">(Min 10 pcs)</span>
+                  </div>
                 )}
               </div>
 
@@ -368,9 +398,10 @@ export default function ProductModal() {
               <div className="flex items-center space-x-4">
                 <div className="flex items-center bg-slate-900 border border-slate-700 rounded-xl px-3 py-2">
                   <button
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    disabled={isOutOfStock}
+                    onClick={() => setQuantity(Math.max(minQty, quantity - 1))}
+                    disabled={isOutOfStock || quantity <= minQty}
                     className="text-slate-400 hover:text-white px-2 font-bold disabled:opacity-30"
+                    title={isWholesaleAccount ? "Wholesale minimum is 10 pcs" : "Decrease"}
                   >
                     -
                   </button>
@@ -383,18 +414,29 @@ export default function ProductModal() {
                     +
                   </button>
                 </div>
+                {isWholesaleAccount && (
+                  <span className="text-[11px] text-amber-300 font-medium">
+                    (Min: 10 pcs)
+                  </span>
+                )}
 
                 <button
                   onClick={handleAddToCart}
-                  disabled={isOutOfStock}
+                  disabled={isOutOfStock || (isWholesaleAccount && stock < 10)}
                   className={`flex-1 py-3 px-6 rounded-xl font-semibold text-sm flex items-center justify-center space-x-2 transition-all ${
-                    isOutOfStock
+                    isOutOfStock || (isWholesaleAccount && stock < 10)
                       ? 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
                       : 'btn-gold-shimmer text-black cursor-pointer'
                   }`}
                 >
                   <ShoppingBag className="w-4 h-4" />
-                  <span>{isOutOfStock ? 'Currently Out of Stock' : `Add to Bag - ₹${((Number(price) || 0) * (Number(quantity) || 1)).toLocaleString()}`}</span>
+                  <span>
+                    {isOutOfStock
+                      ? 'Currently Out of Stock'
+                      : isWholesaleAccount && stock < 10
+                      ? `Min 10 pcs Required (${stock} left)`
+                      : `${isWholesaleAccount ? 'Add Wholesale Order' : 'Add to Bag'} - ₹${((Number(activePrice) || 0) * (Number(quantity) || 1)).toLocaleString()}`}
+                  </span>
                 </button>
               </div>
 

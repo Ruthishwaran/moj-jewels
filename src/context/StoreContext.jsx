@@ -43,6 +43,8 @@ const updateProductsMetaCache = (prods) => {
       title: p.title,
       price: p.price,
       originalPrice: p.originalPrice,
+      wholesalePrice: p.wholesalePrice,
+      wholesaleMinQty: p.wholesaleMinQty || 10,
       category: p.category,
       subCategory: p.subCategory,
       stock: p.stock,
@@ -1012,6 +1014,8 @@ export const StoreProvider = ({ children }) => {
       id: prodId,
       title: product.title || 'MOJ Fine Jewelry',
       price: typeof product.price === 'number' ? product.price : parseFloat(product.price) || 0,
+      wholesalePrice: Number(product.wholesalePrice) > 0 ? Number(product.wholesalePrice) : 0,
+      wholesaleMinQty: product.wholesaleMinQty || 10,
       image: product.image || (Array.isArray(product.images) && product.images[0]) || '/images/moj_logo.jpg'
     };
 
@@ -1278,8 +1282,14 @@ export const StoreProvider = ({ children }) => {
       };
     }
 
-    const safeCart = Array.isArray(cart) ? cart : [];
-    const cartSubtotal = safeCart.reduce((acc, item) => acc + ((Number(item?.price) || 0) * (Number(item?.quantity) || 1)), 0);
+    const isWholesaleUserCouponCheck = (user?.accountType === 'wholesale' || user?.role === 'wholesale') && user?.isApproved !== false;
+    const safeCartForCoupon = Array.isArray(cart) ? cart : [];
+    const cartSubtotal = safeCartForCoupon.reduce((acc, item) => {
+      const itemPrice = (isWholesaleUserCouponCheck && item?.wholesalePrice && Number(item.wholesalePrice) > 0)
+        ? Number(item.wholesalePrice)
+        : (Number(item?.price) || 0);
+      return acc + (itemPrice * (Number(item?.quantity) || 1));
+    }, 0);
     const minVal = Number(found?.minAmount || 0);
     if (cartSubtotal < minVal) {
       return { success: false, message: `Minimum order value for ${found.code} is ₹${minVal.toLocaleString()}` };
@@ -1293,10 +1303,15 @@ export const StoreProvider = ({ children }) => {
 
   // ===== FINANCIAL CALCULATIONS =====
   const safeCart = Array.isArray(cart) ? cart : [];
-  const rawSubtotal = safeCart.reduce((acc, item) => acc + ((Number(item?.price) || 0) * (Number(item?.quantity) || 1)), 0);
-  const isWholesaleApprovedUser = user?.accountType === 'wholesale' && user?.isApproved !== false;
-  const wholesaleDiscountAmount = isWholesaleApprovedUser ? Math.round(rawSubtotal * 0.05) : 0;
-  const subtotal = Math.max(0, rawSubtotal - wholesaleDiscountAmount);
+  const isWholesaleApprovedUser = (user?.accountType === 'wholesale' || user?.role === 'wholesale') && user?.isApproved !== false;
+  const rawSubtotal = safeCart.reduce((acc, item) => {
+    const itemPrice = (isWholesaleApprovedUser && item?.wholesalePrice && Number(item.wholesalePrice) > 0)
+      ? Number(item.wholesalePrice)
+      : (Number(item?.price) || 0);
+    return acc + (itemPrice * (Number(item?.quantity) || 1));
+  }, 0);
+  const wholesaleDiscountAmount = 0; // Prices are already direct wholesale rates
+  const subtotal = rawSubtotal;
 
   let discountAmount = 0;
   if (appliedCoupon) {
@@ -1394,11 +1409,16 @@ export const StoreProvider = ({ children }) => {
       const rawImg = item.image || originalProduct?.image || (originalProduct?.images && originalProduct.images[0]) || '';
       // Only keep short URLs; huge base64 strings are resolved dynamically on-the-fly via productId to keep order document < 1KB
       const finalImage = (typeof rawImg === 'string' && rawImg.length < 500) ? rawImg : '';
+      const chargedPrice = (isWholesaleApprovedUser && item?.wholesalePrice !== undefined && item?.wholesalePrice !== null && Number(item.wholesalePrice) > 0)
+        ? Number(item.wholesalePrice)
+        : Number(item.price || 0);
+
       return {
         id: item.id,
         productId: item.id,
         title: item.title,
-        price: Number(item.price || 0),
+        price: chargedPrice,
+        wholesalePrice: Number(item.wholesalePrice) > 0 ? Number(item.wholesalePrice) : 0,
         quantity: Number(item.quantity || 1),
         selectedColor: item.selectedColor || '',
         selectedSize: item.selectedSize || '',
@@ -1423,8 +1443,8 @@ export const StoreProvider = ({ children }) => {
       shippingState: orderData?.shippingState || orderData?.state || 'Tamil Nadu',
       total: finalTotal,
       couponCode: appliedCoupon ? appliedCoupon.code : '',
-      paymentStatus: 'Pending Verification',
-      orderStatus: 'Placed',
+      paymentStatus: orderData?.paymentStatus || 'Pending Verification',
+      orderStatus: orderData?.orderStatus || 'Placed',
       courierPartner: '',
       trackingNumber: '',
       customerName: (orderData?.customerName || '').trim(),
@@ -1432,7 +1452,8 @@ export const StoreProvider = ({ children }) => {
       customerEmail: (orderData?.customerEmail || '').trim(),
       shippingAddress: (orderData?.shippingAddress || '').trim(),
       paymentMethod: orderData?.paymentMethod || 'Manual UPI QR',
-      transactionId: cleanTx,
+      gatewayPaymentId: orderData?.gatewayPaymentId || '',
+      transactionId: cleanTx || orderData?.gatewayPaymentId || '',
       notes: orderData?.notes || 'Submitted by customer'
     };
 
@@ -1483,8 +1504,10 @@ export const StoreProvider = ({ children }) => {
                     mapValue: {
                       fields: {
                         id: { stringValue: String(it.id || '') },
+                        productId: { stringValue: String(it.productId || it.id || '') },
                         title: { stringValue: String(it.title || '') },
-                        price: { integerValue: String(it.price || 0) },
+                        price: Number.isInteger(Number(it.price || 0)) ? { integerValue: String(Number(it.price || 0)) } : { doubleValue: Number(it.price || 0) },
+                        wholesalePrice: Number.isInteger(Number(it.wholesalePrice || 0)) ? { integerValue: String(Number(it.wholesalePrice || 0)) } : { doubleValue: Number(it.wholesalePrice || 0) },
                         quantity: { integerValue: String(it.quantity || 1) },
                         selectedColor: { stringValue: String(it.selectedColor || '') },
                         selectedSize: { stringValue: String(it.selectedSize || '') },

@@ -83,7 +83,7 @@ export default function AuthModal() {
           <p className="text-xs text-slate-400">
             {mode === 'login'
               ? 'Sign in to access your orders, track shipments & saved wishlist.'
-              : 'Register now for 10% OFF VIP discounts & fast wholesale checkout.'}
+              : 'Create an account to access order tracking, coupons & wholesale partner pricing.'}
           </p>
         </div>
 
@@ -129,12 +129,12 @@ export default function AuthModal() {
                     }`}
                   >
                     <span>🏢 Wholesale Partner</span>
-                    <span className="text-[10px] text-slate-400 font-normal">Bulk minimum orders</span>
+                    <span className="text-[10px] text-slate-400 font-normal">Min 10 pcs per item</span>
                   </button>
                 </div>
                 {accountType === 'wholesale' && (
                   <p className="text-[10px] text-amber-300/80 mt-1 italic">
-                    * Wholesale accounts require Store Admin approval for bulk ordering privileges (Min 5 pcs / ₹25,000 total).
+                    * Wholesale accounts require Store Admin approval for special wholesale pricing (Minimum 10 pcs per product).
                   </p>
                 )}
               </div>

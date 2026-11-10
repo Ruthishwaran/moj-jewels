@@ -24,12 +24,12 @@ export default function CartDrawer() {
   const [couponFeedback, setCouponFeedback] = useState(null);
 
   const totalCartQty = (cart || []).reduce((acc, item) => acc + (item.quantity || 1), 0);
-  const isWholesaleAccount = user?.accountType === 'wholesale';
+  const isWholesaleAccount = user?.accountType === 'wholesale' || user?.role === 'wholesale';
   const isWholesaleApproved = user?.isApproved !== false;
 
   // Wholesale constraint rule:
   // 1. Must be accepted/approved by Admin
-  // 2. Must have min 5 total items AND min ₹25,000 subtotal
+  // 2. Minimum quantity per product is 10 pcs
   let isWholesaleCanOrder = true;
   let wholesaleReason = '';
 
@@ -37,9 +37,12 @@ export default function CartDrawer() {
     if (!isWholesaleApproved) {
       isWholesaleCanOrder = false;
       wholesaleReason = 'Pending Admin Acceptance';
-    } else if (totalCartQty < 5 || subtotal < 25000) {
-      isWholesaleCanOrder = false;
-      wholesaleReason = 'Min 5 Items & ₹25k Required';
+    } else {
+      const itemBelow10 = (cart || []).find(item => (Number(item?.quantity) || 1) < 10);
+      if (itemBelow10) {
+        isWholesaleCanOrder = false;
+        wholesaleReason = 'Min 10 pcs per item required';
+      }
     }
   }
 
@@ -144,25 +147,39 @@ export default function CartDrawer() {
                       </div>
 
                       <div className="flex items-center justify-between mt-2">
-                        <div className="flex items-center bg-slate-950 border border-slate-800 rounded-lg px-2 py-0.5 text-xs">
-                          <button
-                            onClick={() => updateCartQty(item.cartItemId || item.id, -1)}
-                            className="text-slate-400 hover:text-white px-1"
-                          >
-                            -
-                          </button>
-                          <span className="px-2 text-white font-semibold">{item.quantity}</span>
-                          <button
-                            onClick={() => updateCartQty(item.cartItemId || item.id, 1)}
-                            className="text-slate-400 hover:text-white px-1"
-                          >
-                            +
-                          </button>
+                        <div className="space-y-1">
+                          <div className="flex items-center bg-slate-950 border border-slate-800 rounded-lg px-2 py-0.5 text-xs w-fit">
+                            <button
+                              onClick={() => updateCartQty(item.cartItemId || item.id, -1)}
+                              className="text-slate-400 hover:text-white px-1"
+                            >
+                              -
+                            </button>
+                            <span className="px-2 text-white font-semibold">{item.quantity}</span>
+                            <button
+                              onClick={() => updateCartQty(item.cartItemId || item.id, 1)}
+                              className="text-slate-400 hover:text-white px-1"
+                            >
+                              +
+                            </button>
+                          </div>
+                          {isWholesaleAccount && (Number(item.quantity) || 1) < 10 && (
+                            <span className="text-[9px] text-rose-400 font-bold block">
+                              Min 10 pcs required (add {10 - (Number(item.quantity) || 1)} more)
+                            </span>
+                          )}
                         </div>
 
-                        <span className="text-white font-bold text-sm">
-                          ₹{((Number(item?.price) || 0) * (Number(item?.quantity) || 1)).toLocaleString()}
-                        </span>
+                        <div className="text-right">
+                          <span className="text-white font-bold text-sm block">
+                            ₹{(((isWholesaleAccount && isWholesaleApproved && item.wholesalePrice && Number(item.wholesalePrice) > 0 ? Number(item.wholesalePrice) : Number(item?.price || 0))) * (Number(item?.quantity) || 1)).toLocaleString()}
+                          </span>
+                          {isWholesaleAccount && isWholesaleApproved && item.wholesalePrice && Number(item.wholesalePrice) > 0 && (
+                            <span className="text-[9px] text-amber-300 font-medium">
+                              ₹{Number(item.wholesalePrice).toLocaleString()}/pc (Wholesale)
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -262,7 +279,7 @@ export default function CartDrawer() {
                 <div className="bg-rose-500/20 border border-rose-500/40 p-2.5 rounded-xl text-[11px] text-rose-300 flex items-start gap-2">
                   <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
                   <p>
-                    <strong>Wholesale Bulk Requirement:</strong> Approved wholesale partners must order a minimum of <strong>5 items</strong> AND <strong>₹25,000 order total</strong> (Current: {totalCartQty} items, ₹{(Number(subtotal) || 0).toLocaleString()}).
+                    <strong>Wholesale Minimum Requirement:</strong> Approved wholesale partners must order at least <strong>10 pcs per product</strong>. Please increase item quantities using the <strong>+</strong> button above.
                   </p>
                 </div>
               )}
