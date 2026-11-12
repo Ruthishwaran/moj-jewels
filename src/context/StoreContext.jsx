@@ -1453,6 +1453,7 @@ export const StoreProvider = ({ children }) => {
       shippingAddress: (orderData?.shippingAddress || '').trim(),
       paymentMethod: orderData?.paymentMethod || 'Manual UPI QR',
       gatewayPaymentId: orderData?.gatewayPaymentId || '',
+      gatewayOrderId: orderData?.gatewayOrderId || '',
       transactionId: cleanTx || orderData?.gatewayPaymentId || '',
       notes: orderData?.notes || 'Submitted by customer'
     };

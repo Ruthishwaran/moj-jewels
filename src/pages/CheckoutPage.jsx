@@ -19,7 +19,8 @@ import {
   Download,
   CreditCard,
   Lock,
-  Zap
+  Zap,
+  AlertCircle
 } from 'lucide-react';
 
 const INDIAN_STATES = [
@@ -76,6 +77,7 @@ export default function CheckoutPage() {
   const [couponMsg, setCouponMsg] = useState(null);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [isGatewayProcessing, setIsGatewayProcessing] = useState(false);
+  const [gatewayError, setGatewayError] = useState('');
   const isSubmittingRef = useRef(false);
 
   // Form Fields
@@ -202,115 +204,138 @@ export default function CheckoutPage() {
   const handlePayViaGateway = async () => {
     if (isSubmittingRef.current || isPlacingOrder || isGatewayProcessing) return;
 
+    setGatewayError('');
+
+    const amountInPaise = Math.round(Number(payableTotal) * 100);
+    if (!Number.isFinite(amountInPaise) || amountInPaise < 100) {
+      setGatewayError('Minimum online payment amount is ₹1 (100 paise).');
+      return;
+    }
+
+    if (typeof window === 'undefined' || typeof window.Razorpay !== 'function') {
+      setGatewayError('Razorpay checkout script is unavailable. Please refresh or pay via Manual UPI QR.');
+      return;
+    }
+
+    const keyId = (import.meta.env.VITE_RAZORPAY_KEY_ID || paymentConfig?.razorpayKeyId || '').trim();
+    if (!keyId) {
+      setGatewayError('Razorpay Key ID is not configured. Set VITE_RAZORPAY_KEY_ID or configure it in Admin Dashboard.');
+      return;
+    }
+
     const fullAddress = `${shippingAddress.trim()}, ${city.trim()} - ${pincode.trim()} (${shippingState})`;
-    const keyId = paymentConfig?.razorpayKeyId?.trim();
+    setIsGatewayProcessing(true);
 
-    // If Razorpay SDK is loaded on page and a Key ID is configured by Admin
-    if (typeof window !== 'undefined' && window.Razorpay && keyId) {
-      setIsGatewayProcessing(true);
-      try {
-        const options = {
-          key: keyId,
-          amount: Math.round(payableTotal * 100), // Razorpay accepts amount in paise (1 INR = 100 paise)
+    try {
+      // STEP 1: Create Razorpay Order on backend
+      const createRes = await fetch('/api/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: amountInPaise,
           currency: 'INR',
-          name: 'MOJ JEWELS',
-          description: `Fine Jewelry Order Payment (${cart.length} item${cart.length === 1 ? '' : 's'})`,
-          image: '/images/moj_logo.jpg',
-          prefill: {
-            name: customerName.trim(),
-            email: customerEmail.trim(),
-            contact: customerPhone.trim()
-          },
-          theme: {
-            color: '#c5a059'
-          },
-          handler: async function (response) {
-            isSubmittingRef.current = true;
-            setIsPlacingOrder(true);
-            try {
-              const gatewayTxId = response.razorpay_payment_id || `RZP-${Date.now()}`;
-              const newOrd = await placeOrder({
-                customerName: customerName.trim(),
-                customerPhone: customerPhone.trim(),
-                customerEmail: customerEmail.trim(),
-                shippingAddress: fullAddress,
-                shippingFee,
-                shippingState,
-                subtotal: Number(subtotal || 0),
-                discount: Number(discountAmount || 0),
-                total: payableTotal,
-                paymentMethod: 'Online Payment Gateway (Razorpay)',
-                paymentStatus: 'Paid',
-                orderStatus: 'Confirmed',
-                gatewayPaymentId: gatewayTxId,
-                transactionId: gatewayTxId,
-                notes: notes ? `${notes} (Razorpay ID: ${gatewayTxId})` : `Paid instantly via Razorpay (Payment ID: ${gatewayTxId})`
-              });
-              setCreatedOrder(newOrd);
-              setStep(3);
-            } catch (err) {
-              console.error('Failed to record gateway order:', err);
-              alert('Payment completed, but order recording had an issue. Please contact support with Payment ID: ' + response.razorpay_payment_id);
-            } finally {
-              isSubmittingRef.current = false;
-              setIsPlacingOrder(false);
-              setIsGatewayProcessing(false);
-            }
-          },
-          modal: {
-            ondismiss: function () {
-              setIsGatewayProcessing(false);
-            }
-          }
-        };
+          receipt: `moj_rcpt_${Date.now()}`
+        })
+      });
 
-        const rzp = new window.Razorpay(options);
-        rzp.on('payment.failed', function (response) {
-          setIsGatewayProcessing(false);
-          alert('Payment Failed: ' + (response.error.description || 'Please try another payment method.'));
-        });
-        rzp.open();
-      } catch (err) {
-        console.error('Razorpay popup error:', err);
-        setIsGatewayProcessing(false);
-        alert('Could not open payment gateway. Please use Manual UPI QR or try again.');
+      const orderData = await createRes.json().catch(() => ({}));
+      if (!createRes.ok || !orderData?.order_id) {
+        throw new Error(orderData?.error || `Failed to initialize payment order (HTTP ${createRes.status}).`);
       }
-    } else {
-      // Seamless Simulation / Testing Mode (instant auto-verification)
-      setIsGatewayProcessing(true);
-      setTimeout(async () => {
-        isSubmittingRef.current = true;
-        setIsPlacingOrder(true);
-        try {
-          const testPaymentId = `pay_sim_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
-          const newOrd = await placeOrder({
-            customerName: customerName.trim(),
-            customerPhone: customerPhone.trim(),
-            customerEmail: customerEmail.trim(),
-            shippingAddress: fullAddress,
-            shippingFee,
-            shippingState,
-            subtotal: Number(subtotal || 0),
-            discount: Number(discountAmount || 0),
-            total: payableTotal,
-            paymentMethod: 'Online Payment Gateway (Razorpay)',
-            paymentStatus: 'Paid',
-            orderStatus: 'Confirmed',
-            gatewayPaymentId: testPaymentId,
-            transactionId: testPaymentId,
-            notes: notes ? `${notes} (Gateway Ref: ${testPaymentId})` : `Paid via Online Payment Gateway (Ref: ${testPaymentId})`
-          });
-          setCreatedOrder(newOrd);
-          setStep(3);
-        } catch (err) {
-          console.error('Order placement failed:', err);
-          alert('Order placement encountered an error. Please try again.');
-        } finally {
-          isSubmittingRef.current = false;
-          setIsPlacingOrder(false);
-          setIsGatewayProcessing(false);
+
+      // STEP 2: Open Razorpay Standard Checkout modal with order_id
+      const options = {
+        key: keyId,
+        amount: orderData.amount,
+        currency: orderData.currency || 'INR',
+        name: 'MOJ JEWELS',
+        description: `Fine Jewelry Order Payment (${cart.length} item${cart.length === 1 ? '' : 's'})`,
+        image: '/images/moj_logo.jpg',
+        order_id: orderData.order_id,
+        prefill: {
+          name: customerName.trim(),
+          email: customerEmail.trim(),
+          contact: customerPhone.trim()
+        },
+        theme: {
+          color: '#c5a059'
+        },
+        handler: async function (response) {
+          isSubmittingRef.current = true;
+          setIsPlacingOrder(true);
+          setGatewayError('');
+
+          try {
+            // STEP 3: Verify payment signature on backend before marking order paid
+            const verifyRes = await fetch('/api/verify-payment', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature
+              })
+            });
+
+            const verifyData = await verifyRes.json().catch(() => ({}));
+            if (!verifyRes.ok || !verifyData?.verified) {
+              throw new Error(verifyData?.error || 'Payment signature verification failed.');
+            }
+
+            const gatewayTxId = response.razorpay_payment_id;
+            const newOrd = await placeOrder({
+              customerName: customerName.trim(),
+              customerPhone: customerPhone.trim(),
+              customerEmail: customerEmail.trim(),
+              shippingAddress: fullAddress,
+              shippingFee,
+              shippingState,
+              subtotal: Number(subtotal || 0),
+              discount: Number(discountAmount || 0),
+              total: payableTotal,
+              paymentMethod: 'Online Payment Gateway (Razorpay)',
+              paymentStatus: 'Paid',
+              orderStatus: 'Confirmed',
+              gatewayPaymentId: gatewayTxId,
+              gatewayOrderId: response.razorpay_order_id,
+              transactionId: gatewayTxId,
+              notes: notes
+                ? `${notes} (Razorpay Payment ID: ${gatewayTxId}, Order ID: ${response.razorpay_order_id})`
+                : `Verified Razorpay payment (Payment ID: ${gatewayTxId}, Order ID: ${response.razorpay_order_id})`
+            });
+
+            setCreatedOrder(newOrd);
+            setStep(3);
+          } catch (verifyErr) {
+            console.error('Razorpay verification or order creation failed:', verifyErr);
+            setGatewayError(
+              `${verifyErr?.message || 'Payment verification failed.'} (Ref: ${response.razorpay_payment_id || 'N/A'})`
+            );
+          } finally {
+            isSubmittingRef.current = false;
+            setIsPlacingOrder(false);
+            setIsGatewayProcessing(false);
+          }
+        },
+        modal: {
+          ondismiss: function () {
+            setIsGatewayProcessing(false);
+            setGatewayError('Payment popup was closed before completing payment. You can retry or switch to Manual UPI QR.');
+          }
         }
-      }, 800);
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.on('payment.failed', function (response) {
+        setIsGatewayProcessing(false);
+        const reason = response?.error?.description || response?.error?.reason || 'Transaction failed or was declined.';
+        setGatewayError(`Payment Failed: ${reason}`);
+      });
+      rzp.open();
+    } catch (err) {
+      console.error('Razorpay checkout initialization error:', err);
+      setIsGatewayProcessing(false);
+      setGatewayError(err?.message || 'Could not initialize payment gateway. Please try again or use Manual UPI QR.');
     }
   };
 
@@ -880,6 +905,16 @@ export default function CheckoutPage() {
                     className="w-full bg-slate-900 border border-slate-700/80 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-gold-400"
                   />
                 </div>
+
+                {gatewayError && (
+                  <div className="bg-rose-500/15 border border-rose-500/40 p-3 rounded-xl text-xs text-rose-300 flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <span className="font-semibold block">Payment Notice</span>
+                      <p className="text-[11px] text-rose-200/90 mt-0.5">{gatewayError}</p>
+                    </div>
+                  </div>
+                )}
 
                 <button
                   type="button"

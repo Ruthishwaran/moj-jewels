@@ -3228,7 +3228,7 @@ export default function AdminDashboard() {
                   className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white font-mono placeholder-slate-600 focus:border-gold-400"
                 />
                 <span className="text-[10px] text-slate-400 mt-1 block">
-                  Get your Key ID from your Razorpay Dashboard &rarr; Settings &rarr; API Keys. If left empty, test simulation mode is enabled for seamless testing.
+                  Get your Key ID from Razorpay Dashboard &rarr; Settings &rarr; API Keys. Leave blank to use the <code>VITE_RAZORPAY_KEY_ID</code> environment variable automatically. Never store Key Secret here.
                 </span>
               </div>
             </div>
