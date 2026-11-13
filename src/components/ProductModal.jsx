@@ -14,7 +14,7 @@ export default function ProductModal() {
 
   const isWholesaleAccount = user?.accountType === 'wholesale' || user?.role === 'wholesale';
   const isWholesaleUser = isWholesaleAccount && user?.isApproved !== false;
-  const minQty = isWholesaleAccount ? 10 : 1;
+  const minQty = 1;
   const [quantity, setQuantity] = useState(minQty);
   const [activeImgIndex, setActiveImgIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -275,12 +275,12 @@ export default function ProductModal() {
                 {isWholesaleUser ? (
                   <div className="text-xs text-amber-300 font-semibold flex items-center gap-1.5">
                     <span className="bg-amber-500/20 border border-amber-500/40 px-2 py-0.5 rounded-full">
-                      🏢 Wholesale Price (Min 10 pcs)
+                      🏢 Wholesale Price (Min ₹10,000 order)
                     </span>
                   </div>
                 ) : hasWholesalePrice && (
                   <div className="text-xs text-slate-400">
-                    Wholesale Price: <strong className="text-amber-300">₹{(Number(wholesalePrice) || 0).toLocaleString()}</strong> <span className="text-slate-500">(Min 10 pcs)</span>
+                    Wholesale Price: <strong className="text-amber-300">₹{(Number(wholesalePrice) || 0).toLocaleString()}</strong> <span className="text-slate-500">(Min ₹10,000 order)</span>
                   </div>
                 )}
               </div>
@@ -398,10 +398,10 @@ export default function ProductModal() {
               <div className="flex items-center space-x-4">
                 <div className="flex items-center bg-slate-900 border border-slate-700 rounded-xl px-3 py-2">
                   <button
-                    onClick={() => setQuantity(Math.max(minQty, quantity - 1))}
-                    disabled={isOutOfStock || quantity <= minQty}
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    disabled={isOutOfStock || quantity <= 1}
                     className="text-slate-400 hover:text-white px-2 font-bold disabled:opacity-30"
-                    title={isWholesaleAccount ? "Wholesale minimum is 10 pcs" : "Decrease"}
+                    title="Decrease"
                   >
                     -
                   </button>
@@ -414,17 +414,12 @@ export default function ProductModal() {
                     +
                   </button>
                 </div>
-                {isWholesaleAccount && (
-                  <span className="text-[11px] text-amber-300 font-medium">
-                    (Min: 10 pcs)
-                  </span>
-                )}
 
                 <button
                   onClick={handleAddToCart}
-                  disabled={isOutOfStock || (isWholesaleAccount && stock < 10)}
+                  disabled={isOutOfStock}
                   className={`flex-1 py-3 px-6 rounded-xl font-semibold text-sm flex items-center justify-center space-x-2 transition-all ${
-                    isOutOfStock || (isWholesaleAccount && stock < 10)
+                    isOutOfStock
                       ? 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
                       : 'btn-gold-shimmer text-black cursor-pointer'
                   }`}
@@ -433,8 +428,6 @@ export default function ProductModal() {
                   <span>
                     {isOutOfStock
                       ? 'Currently Out of Stock'
-                      : isWholesaleAccount && stock < 10
-                      ? `Min 10 pcs Required (${stock} left)`
                       : `${isWholesaleAccount ? 'Add Wholesale Order' : 'Add to Bag'} - ₹${((Number(activePrice) || 0) * (Number(quantity) || 1)).toLocaleString()}`}
                   </span>
                 </button>

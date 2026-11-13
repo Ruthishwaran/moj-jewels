@@ -44,7 +44,7 @@ const updateProductsMetaCache = (prods) => {
       price: p.price,
       originalPrice: p.originalPrice,
       wholesalePrice: p.wholesalePrice,
-      wholesaleMinQty: p.wholesaleMinQty || 10,
+      wholesaleMinQty: p.wholesaleMinQty || 1,
       category: p.category,
       subCategory: p.subCategory,
       stock: p.stock,
@@ -233,8 +233,13 @@ export const StoreProvider = ({ children }) => {
 
     fetchOrdersViaRest().then(ords => {
       if (Array.isArray(ords) && ords.length > 0) {
-        setOrders(ords);
-        try { localStorage.setItem('moj_orders_cache', JSON.stringify(ords)); } catch (e) {}
+        setOrders(prev => {
+          const serverIds = new Set(ords.map(o => o.id));
+          const localOnly = (Array.isArray(prev) ? prev : []).filter(o => !serverIds.has(o.id));
+          const merged = [...ords, ...localOnly].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+          try { localStorage.setItem('moj_orders_cache', JSON.stringify(merged)); } catch (e) {}
+          return merged;
+        });
       }
     });
 
@@ -300,9 +305,14 @@ export const StoreProvider = ({ children }) => {
         }
       });
       fetchOrdersViaRest().then(ords => {
-        if (Array.isArray(ords)) {
-          setOrders(ords);
-          try { localStorage.setItem('moj_orders_cache', JSON.stringify(ords)); } catch (e) {}
+        if (Array.isArray(ords) && ords.length > 0) {
+          setOrders(prev => {
+            const serverIds = new Set(ords.map(o => o.id));
+            const localOnly = (Array.isArray(prev) ? prev : []).filter(o => !serverIds.has(o.id));
+            const merged = [...ords, ...localOnly].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+            try { localStorage.setItem('moj_orders_cache', JSON.stringify(merged)); } catch (e) {}
+            return merged;
+          });
         }
       });
       fetchCouponsViaRest().then(cps => {
@@ -325,7 +335,7 @@ export const StoreProvider = ({ children }) => {
       });
     };
 
-    const interval = setInterval(syncDataFromCloud, 4000);
+    const interval = setInterval(syncDataFromCloud, 300000);
     const onVisibilityChange = () => {
       if (document.visibilityState === 'visible') syncDataFromCloud();
     };
@@ -1015,7 +1025,7 @@ export const StoreProvider = ({ children }) => {
       title: product.title || 'MOJ Fine Jewelry',
       price: typeof product.price === 'number' ? product.price : parseFloat(product.price) || 0,
       wholesalePrice: Number(product.wholesalePrice) > 0 ? Number(product.wholesalePrice) : 0,
-      wholesaleMinQty: product.wholesaleMinQty || 10,
+      wholesaleMinQty: product.wholesaleMinQty || 1,
       image: product.image || (Array.isArray(product.images) && product.images[0]) || '/images/moj_logo.jpg'
     };
 
@@ -1485,8 +1495,8 @@ export const StoreProvider = ({ children }) => {
       }
     } catch (e) {}
 
-    // 6. Persist to Firestore with guaranteed sync & REST fallback in background (NON-BLOCKING)
-    (async () => {
+    // 6. Persist to Firestore with guaranteed sync & REST fallback
+    const savePromise = (async () => {
       try {
         await setDoc(doc(db, 'orders', newOrderId), sanitizedOrder);
         console.log('[MOJ] Order saved to Firestore SDK:', newOrderId);
@@ -1567,7 +1577,15 @@ export const StoreProvider = ({ children }) => {
       }
     })();
 
-    // 7. Return newOrder INSTANTLY (0ms delay!)
+    // Await up to 3.5s to ensure the order write reaches Firestore before moving customer forward
+    try {
+      await Promise.race([
+        savePromise,
+        new Promise(resolve => setTimeout(resolve, 3500))
+      ]);
+    } catch (e) {}
+
+    // 7. Return newOrder
     return newOrder;
   };
 
@@ -1577,15 +1595,25 @@ export const StoreProvider = ({ children }) => {
       const snap = await getDocs(collection(db, 'orders'));
       const data = snap.docs.map(d => ({ ...d.data(), id: d.id }));
       data.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
-      setOrders(data);
-      try { localStorage.setItem('moj_orders_cache', JSON.stringify(data)); } catch (e) {}
+      setOrders(prev => {
+        const serverIds = new Set(data.map(o => o.id));
+        const localOnly = (Array.isArray(prev) ? prev : []).filter(o => !serverIds.has(o.id));
+        const merged = [...data, ...localOnly].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+        try { localStorage.setItem('moj_orders_cache', JSON.stringify(merged)); } catch (e) {}
+        return merged;
+      });
       return data;
     } catch (err) {
-      console.warn('refreshOrders error, falling back to REST:', err);
+      console.warn('refreshOrders SDK failed, falling back to REST:', err);
       const restData = await fetchOrdersViaRest();
-      if (Array.isArray(restData)) {
-        setOrders(restData);
-        try { localStorage.setItem('moj_orders_cache', JSON.stringify(restData)); } catch (e) {}
+      if (Array.isArray(restData) && restData.length > 0) {
+        setOrders(prev => {
+          const serverIds = new Set(restData.map(o => o.id));
+          const localOnly = (Array.isArray(prev) ? prev : []).filter(o => !serverIds.has(o.id));
+          const merged = [...restData, ...localOnly].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+          try { localStorage.setItem('moj_orders_cache', JSON.stringify(merged)); } catch (e) {}
+          return merged;
+        });
         return restData;
       }
       return orders;

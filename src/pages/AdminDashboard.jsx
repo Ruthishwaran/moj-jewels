@@ -227,6 +227,7 @@ export default function AdminDashboard() {
 
   // Payment Settings State (Gateway & UPI QR)
   const [editGatewayEnabled, setEditGatewayEnabled] = useState(paymentConfig?.gatewayEnabled !== false);
+  const [editManualPaymentEnabled, setEditManualPaymentEnabled] = useState(paymentConfig?.manualPaymentEnabled === true);
   const [editRazorpayKeyId, setEditRazorpayKeyId] = useState(paymentConfig?.razorpayKeyId || '');
   const [editUpiId, setEditUpiId] = useState(paymentConfig?.upiId || '');
   const [editPayeeName, setEditPayeeName] = useState(paymentConfig?.payeeName || '');
@@ -240,6 +241,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (paymentConfig) {
       if (paymentConfig.gatewayEnabled !== undefined) setEditGatewayEnabled(paymentConfig.gatewayEnabled);
+      if (paymentConfig.manualPaymentEnabled !== undefined) setEditManualPaymentEnabled(paymentConfig.manualPaymentEnabled);
       if (paymentConfig.razorpayKeyId !== undefined) setEditRazorpayKeyId(paymentConfig.razorpayKeyId);
       if (paymentConfig.upiId) setEditUpiId(paymentConfig.upiId);
       if (paymentConfig.payeeName) setEditPayeeName(paymentConfig.payeeName);
@@ -639,6 +641,7 @@ export default function AdminDashboard() {
     setPaymentConfig({
       ...paymentConfig,
       gatewayEnabled: editGatewayEnabled,
+      manualPaymentEnabled: editManualPaymentEnabled,
       razorpayKeyId: editRazorpayKeyId.trim(),
       upiId: editUpiId.trim(),
       payeeName: editPayeeName.trim(),
@@ -1550,7 +1553,7 @@ export default function AdminDashboard() {
                         <span className="text-amber-300 font-bold text-xs">
                           ₹{Number(p.wholesalePrice).toLocaleString()}
                         </span>
-                        <span className="text-[9px] text-slate-400">(Min 10 pcs)</span>
+                        <span className="text-[9px] text-slate-400">(Min ₹10,000 order)</span>
                       </div>
                     )}
                   </div>
@@ -1967,27 +1970,27 @@ export default function AdminDashboard() {
                         </div>
                       </div>
 
-                      {/* Wholesale Customer Price & Minimum 10 pcs */}
+                      {/* Wholesale Customer Price & Minimum ₹10,000 purchase */}
                       <div className="bg-amber-500/10 border border-amber-500/30 p-2.5 rounded-xl space-y-1">
                         <div className="flex items-center justify-between">
                           <label className="text-amber-300 font-semibold text-xs flex items-center gap-1.5">
                             <Tag className="w-3.5 h-3.5 text-amber-400" /> Wholesale Customer Price (₹) *
                           </label>
                           <span className="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full font-bold">
-                            Min Order: 10 pcs
+                            Min Order: ₹10,000
                           </span>
                         </div>
                         <input
                           type="number"
                           required
                           min="1"
-                          placeholder="e.g. 950 (Wholesale bulk price for 10+ pcs)"
+                          placeholder="e.g. 950 (Wholesale price for accounts with ₹10,000+ min purchase)"
                           value={newProdWholesalePrice}
                           onChange={(e) => setNewProdWholesalePrice(e.target.value)}
                           className="w-full bg-slate-900 border border-amber-500/50 rounded-xl p-2.5 text-white focus:border-amber-400 font-bold"
                         />
                         <p className="text-[10px] text-slate-400">
-                          Approved wholesale accounts will see and be charged this price when purchasing 10 or more pcs.
+                          Approved wholesale accounts will see and be charged this special price (Min ₹10,000 order total).
                         </p>
                       </div>
                     </div>
@@ -2414,25 +2417,25 @@ export default function AdminDashboard() {
                         </div>
                       </div>
 
-                      {/* Wholesale Customer Price & Minimum 10 pcs */}
+                      {/* Wholesale Customer Price & Minimum ₹10,000 purchase */}
                       <div className="bg-amber-500/10 border border-amber-500/30 p-2.5 rounded-xl space-y-1">
                         <div className="flex items-center justify-between">
                           <label className="text-amber-300 font-semibold text-xs flex items-center gap-1.5">
                             <Tag className="w-3.5 h-3.5 text-amber-400" /> Wholesale Customer Price (₹) *
                           </label>
                           <span className="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full font-bold">
-                            Min Order: 10 pcs
+                            Min Order: ₹10,000
                           </span>
                         </div>
                         <input
                           type="number"
-                          placeholder="e.g. 950 (Wholesale bulk price for 10+ pcs)"
+                          placeholder="e.g. 950 (Wholesale price for accounts with ₹10,000+ min purchase)"
                           value={editProdWholesalePrice}
                           onChange={(e) => setEditProdWholesalePrice(e.target.value)}
                           className="w-full bg-slate-900 border border-amber-500/50 rounded-xl p-2.5 text-white focus:border-amber-400 font-bold"
                         />
                         <p className="text-[10px] text-slate-400">
-                          Approved wholesale accounts will see and be charged this price when purchasing 10 or more pcs.
+                          Approved wholesale accounts will see and be charged this special price (Min ₹10,000 order total).
                         </p>
                       </div>
                     </div>
@@ -3235,10 +3238,27 @@ export default function AdminDashboard() {
 
             {/* ── SECTION 2: Manual UPI QR & Bank Transfer ── */}
             <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/60 space-y-3">
-              <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
-                <QrCode className="w-4 h-4 text-amber-400" />
-                <span className="text-white font-semibold text-sm">Manual UPI QR & Bank Transfer Details</span>
+              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                <div className="flex items-center gap-2">
+                  <QrCode className="w-4 h-4 text-amber-400" />
+                  <span className="text-white font-semibold text-sm">Manual UPI QR & Bank Transfer Payment</span>
+                </div>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <span className={`text-[11px] font-bold ${editManualPaymentEnabled ? 'text-emerald-400' : 'text-slate-500'}`}>
+                    {editManualPaymentEnabled ? 'Enabled ✓' : 'Disabled'}
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={editManualPaymentEnabled}
+                    onChange={(e) => setEditManualPaymentEnabled(e.target.checked)}
+                    className="w-4 h-4 accent-amber-500 rounded cursor-pointer"
+                  />
+                </label>
               </div>
+
+              <p className="text-[11px] text-slate-300 leading-relaxed">
+                When enabled, customers can scan your store QR code or transfer to your bank account, then submit their 12-digit UTR ID for manual verification. When disabled, customers will checkout directly via the online Payment Gateway.
+              </p>
 
               <div>
                 <label className="text-gold-300 font-semibold block mb-1">Official Store UPI ID</label>

@@ -129,12 +129,12 @@ export default function AuthModal() {
                     }`}
                   >
                     <span>🏢 Wholesale Partner</span>
-                    <span className="text-[10px] text-slate-400 font-normal">Min 10 pcs per item</span>
+                    <span className="text-[10px] text-slate-400 font-normal">Min ₹10,000 purchase</span>
                   </button>
                 </div>
                 {accountType === 'wholesale' && (
                   <p className="text-[10px] text-amber-300/80 mt-1 italic">
-                    * Wholesale accounts require Store Admin approval for special wholesale pricing (Minimum 10 pcs per product).
+                    * Wholesale accounts require Store Admin approval for special wholesale pricing (Minimum ₹10,000 total order purchase).
                   </p>
                 )}
               </div>

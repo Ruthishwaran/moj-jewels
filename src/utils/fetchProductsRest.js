@@ -228,7 +228,10 @@ export async function fetchCouponsViaRest() {
 export async function fetchOrdersViaRest() {
   try {
     const res = await fetch(`${FIRESTORE_BASE}/orders?pageSize=100`);
-    if (!res.ok) return [];
+    if (!res.ok) {
+      console.warn('REST orders fetch returned non-OK status:', res.status);
+      return null;
+    }
     const data = await res.json();
     if (!data.documents || !Array.isArray(data.documents)) return [];
     const orders = data.documents.map(doc => {

@@ -125,7 +125,10 @@ export default function CheckoutPage() {
   const isWholesaleAccount = user?.accountType === 'wholesale' || user?.role === 'wholesale';
   const isWholesaleApproved = user?.isApproved !== false;
   const isGatewayEnabled = paymentConfig?.gatewayEnabled !== false;
-  const activePaymentMode = isGatewayEnabled ? paymentMode : 'upi_qr';
+  const isManualEnabled = paymentConfig?.manualPaymentEnabled === true;
+  const activePaymentMode = isGatewayEnabled
+    ? (paymentMode === 'upi_qr' && isManualEnabled ? 'upi_qr' : 'gateway')
+    : (isManualEnabled ? 'upi_qr' : 'none');
 
   const handleDownloadQr = async () => {
     try {
@@ -191,10 +194,9 @@ export default function CheckoutPage() {
         alert('Wholesale Account Pending Admin Acceptance: Your account must be accepted by Store Admin before placing bulk orders. Contact WhatsApp +91 82488 75865.');
         return;
       }
-      const belowMinItems = (cart || []).filter(item => (Number(item?.quantity) || 1) < 10);
-      if (belowMinItems.length > 0) {
-        const itemNames = belowMinItems.map(i => `• ${i.title} (current qty: ${i.quantity || 1})`).join('\n');
-        alert(`Wholesale Minimum Quantity Requirement: Wholesale customers must order a minimum of 10 pcs per product.\n\nPlease update the following items to at least 10 pcs in your bag:\n\n${itemNames}`);
+      const wholesaleMinAmount = 10000;
+      if (Number(subtotal || 0) < wholesaleMinAmount) {
+        alert(`Wholesale Order Minimum Purchase Requirement: Wholesale accounts require a minimum purchase of ₹10,000.\n\nYour current subtotal is ₹${(Number(subtotal) || 0).toLocaleString()}. Please add ₹${Math.max(0, wholesaleMinAmount - (Number(subtotal) || 0)).toLocaleString()} more to your bag to proceed.`);
         return;
       }
     }
@@ -806,8 +808,8 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          {/* Payment Method Selector Tabs */}
-          {isGatewayEnabled && (
+          {/* Payment Method Selector Tabs (shown when both methods are enabled) */}
+          {isGatewayEnabled && isManualEnabled && (
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
@@ -852,6 +854,17 @@ export default function CheckoutPage() {
                   Scan store QR code from any UPI app & enter 12-digit UTR ref ID manually.
                 </p>
               </button>
+            </div>
+          )}
+
+          {/* Notice when both methods are paused by Admin */}
+          {!isGatewayEnabled && !isManualEnabled && (
+            <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl text-center space-y-3">
+              <CreditCard className="w-8 h-8 text-amber-400 mx-auto" />
+              <h3 className="text-white font-serif font-bold text-base">Checkout Temporarily Unavailable</h3>
+              <p className="text-xs text-slate-400 max-w-md mx-auto">
+                Payment methods are currently disabled for maintenance. Please contact store support on WhatsApp at +91 82488 75865 to complete your order.
+              </p>
             </div>
           )}
 

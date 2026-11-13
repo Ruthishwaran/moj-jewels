@@ -53,6 +53,7 @@ export const INITIAL_BANNERS = [
 
 export const INITIAL_PAYMENT_CONFIG = {
   gatewayEnabled: true,
+  manualPaymentEnabled: false,
   razorpayKeyId: '',
   upiId: 'harishramesh67-2@okhdfcbank',
   payeeName: 'HARISH RAMESH',

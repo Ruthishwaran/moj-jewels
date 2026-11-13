@@ -29,7 +29,7 @@ export default function CartDrawer() {
 
   // Wholesale constraint rule:
   // 1. Must be accepted/approved by Admin
-  // 2. Minimum quantity per product is 10 pcs
+  // 2. Minimum total purchase is ₹10,000
   let isWholesaleCanOrder = true;
   let wholesaleReason = '';
 
@@ -38,10 +38,10 @@ export default function CartDrawer() {
       isWholesaleCanOrder = false;
       wholesaleReason = 'Pending Admin Acceptance';
     } else {
-      const itemBelow10 = (cart || []).find(item => (Number(item?.quantity) || 1) < 10);
-      if (itemBelow10) {
+      const wholesaleMinAmount = 10000;
+      if (Number(subtotal || 0) < wholesaleMinAmount) {
         isWholesaleCanOrder = false;
-        wholesaleReason = 'Min 10 pcs per item required';
+        wholesaleReason = `Min purchase ₹10,000 required (₹${(wholesaleMinAmount - Number(subtotal || 0)).toLocaleString()} more needed)`;
       }
     }
   }
@@ -163,11 +163,6 @@ export default function CartDrawer() {
                               +
                             </button>
                           </div>
-                          {isWholesaleAccount && (Number(item.quantity) || 1) < 10 && (
-                            <span className="text-[9px] text-rose-400 font-bold block">
-                              Min 10 pcs required (add {10 - (Number(item.quantity) || 1)} more)
-                            </span>
-                          )}
                         </div>
 
                         <div className="text-right">
@@ -279,7 +274,7 @@ export default function CartDrawer() {
                 <div className="bg-rose-500/20 border border-rose-500/40 p-2.5 rounded-xl text-[11px] text-rose-300 flex items-start gap-2">
                   <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
                   <p>
-                    <strong>Wholesale Minimum Requirement:</strong> Approved wholesale partners must order at least <strong>10 pcs per product</strong>. Please increase item quantities using the <strong>+</strong> button above.
+                    <strong>Wholesale Minimum Requirement:</strong> Approved wholesale partners must make a minimum purchase of <strong>₹10,000</strong>. (Current Subtotal: ₹{(Number(subtotal) || 0).toLocaleString()} — add ₹{Math.max(0, 10000 - (Number(subtotal) || 0)).toLocaleString()} more).
                   </p>
                 </div>
               )}

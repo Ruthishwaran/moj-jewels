@@ -105,7 +105,7 @@ export default function ProductCard({ product }) {
       setSelectedProduct(product);
       return;
     }
-    const addQty = isWholesaleAccount ? 10 : 1;
+    const addQty = 1;
     addToCart(product, addQty);
     setAddedFlash(true);
     setTimeout(() => setAddedFlash(false), 2500);
@@ -137,7 +137,7 @@ export default function ProductCard({ product }) {
 
         {/* Image dots */}
         {imageList.length > 1 && (
-          <div className="absolute bottom-14 left-1/2 -translate-x-1/2 flex gap-1 z-10">
+          <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex gap-1 z-10 pointer-events-none">
             {imageList.map((_, idx) => (
               <span
                 key={idx}
@@ -152,36 +152,6 @@ export default function ProductCard({ product }) {
           <span className="absolute top-3 left-3 bg-rose-600 text-white font-bold text-[11px] px-3 py-1 rounded-full shadow-lg uppercase tracking-wider animate-pulse z-10">
             OUT OF STOCK
           </span>
-        )}
-
-
-
-        {/* ── ADD TO BAG / CHECKOUT STRIP — Bottom of image, always visible ── */}
-        {addedFlash ? (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setCurrentPage('checkout');
-            }}
-            className="absolute bottom-0 left-0 right-0 z-10 flex items-center justify-center gap-2 py-3 font-bold text-sm bg-emerald-500 text-white animate-pulse"
-          >
-            <CheckCircle className="w-4 h-4" />
-            <span>Added! Go to Checkout</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        ) : (
-          <button
-            onClick={handleAddToCart}
-            disabled={isOutOfStock}
-            className={`absolute bottom-0 left-0 right-0 z-10 flex items-center justify-center gap-2 py-3 font-bold text-sm transition-all duration-200 ${
-              isOutOfStock
-                ? 'bg-slate-800/90 text-slate-500 cursor-not-allowed'
-                : 'bg-gold-500/95 hover:bg-gold-400 text-black backdrop-blur-sm active:scale-98'
-            }`}
-          >
-            <ShoppingBag className="w-4 h-4" />
-            <span>{isOutOfStock ? 'Out of Stock' : hasVariants ? 'Choose Options' : 'Add to Bag'}</span>
-          </button>
         )}
 
       </div>
@@ -233,7 +203,7 @@ export default function ProductCard({ product }) {
                   )}
                 </div>
                 <div className="text-[10px] text-amber-300 font-semibold">
-                  🏢 Wholesale Price (Min 10 pcs)
+                  🏢 Wholesale Price (Min ₹10,000 order)
                 </div>
               </div>
             ) : (
@@ -251,7 +221,7 @@ export default function ProductCard({ product }) {
                 {hasWholesalePrice && (
                   <div className="text-[10px] text-slate-400 flex items-center gap-1">
                     <span>Wholesale: ₹{(Number(wholesalePrice) || 0).toLocaleString()}</span>
-                    <span className="text-amber-400 font-medium">(Min 10 pcs)</span>
+                    <span className="text-amber-400 font-medium">(Min ₹10,000 order)</span>
                   </div>
                 )}
               </div>
@@ -302,6 +272,36 @@ export default function ProductCard({ product }) {
               </span>
             )}
           </div>
+        </div>
+
+        {/* ── Action Button (Choose Options / Add to Bag / Added!) ── */}
+        <div className="pt-2">
+          {addedFlash ? (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setCurrentPage('checkout');
+              }}
+              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-bold text-xs bg-emerald-500 hover:bg-emerald-400 text-white shadow-md transition-all animate-pulse active:scale-[0.98]"
+            >
+              <CheckCircle className="w-4 h-4" />
+              <span>Added! Go to Checkout</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          ) : (
+            <button
+              onClick={handleAddToCart}
+              disabled={isOutOfStock}
+              className={`w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-bold text-xs transition-all duration-200 shadow-md ${
+                isOutOfStock
+                  ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
+                  : 'bg-gradient-to-r from-gold-500 via-amber-400 to-gold-500 hover:from-gold-400 hover:to-amber-300 text-slate-950 active:scale-[0.98]'
+              }`}
+            >
+              <ShoppingBag className="w-4 h-4" />
+              <span>{isOutOfStock ? 'Out of Stock' : hasVariants ? 'Choose Options' : 'Add to Bag'}</span>
+            </button>
+          )}
         </div>
       </div>
     </div>
