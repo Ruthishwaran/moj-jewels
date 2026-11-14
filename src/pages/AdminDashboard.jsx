@@ -28,7 +28,8 @@ import {
   Layers,
   ChevronRight,
   FolderPlus,
-  CreditCard
+  CreditCard,
+  Printer
 } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -475,6 +476,353 @@ export default function AdminDashboard() {
     setTimeout(() => w.print(), 500);
   };
 
+  // ── Download Date-Wise Packing Slips PDF with Product Images ──
+  const downloadPackingOrdersPdf = (ordersToPrint) => {
+    const targetOrders = ordersToPrint || [];
+    if (!targetOrders.length) {
+      alert('No orders found to download for the selected filter.');
+      return;
+    }
+
+    const now = new Date().toLocaleString('en-IN');
+    let dateLabel = 'All Dates';
+    if (selectedOrderDate) {
+      dateLabel = `Specific Date: ${selectedOrderDate}`;
+    } else if (dateQuickFilter === 'Today') {
+      dateLabel = `Date: Today (${new Date().toLocaleDateString('en-IN')})`;
+    } else if (dateQuickFilter === 'Yesterday') {
+      const yest = new Date();
+      yest.setDate(yest.getDate() - 1);
+      dateLabel = `Date: Yesterday (${yest.toLocaleDateString('en-IN')})`;
+    } else if (dateQuickFilter === 'Week') {
+      dateLabel = 'Date: Last 7 Days';
+    }
+
+    const statusLabel = orderFilterTab === 'Verified'
+      ? 'Paid & Confirmed Orders'
+      : orderFilterTab === 'Pending Verification'
+      ? 'Pending Payment Orders'
+      : orderFilterTab === 'Shipped'
+      ? 'Shipped Orders'
+      : orderFilterTab === 'Delivered'
+      ? 'Delivered Orders'
+      : orderFilterTab === 'Rejected'
+      ? 'Rejected Orders'
+      : 'All Status Orders';
+
+    const totalUnits = targetOrders.reduce((acc, o) => {
+      return acc + (o.items || []).reduce((sum, item) => sum + Number(item.quantity || 1), 0);
+    }, 0);
+
+    const totalValue = targetOrders.reduce((acc, o) => acc + Number(o.total || 0), 0);
+
+    const orderCardsHtml = targetOrders.map((ord) => {
+      const ordDate = ord.date && !isNaN(new Date(ord.date).getTime())
+        ? new Date(ord.date).toLocaleString('en-IN')
+        : 'Recently Placed';
+
+      const itemsRows = (ord.items || []).map((i, iIdx) => {
+        const matchedProduct = (products || []).find(
+          p => String(p.id) === String(i.productId || i.id)
+        );
+        let itemImg = i.image || matchedProduct?.image || (matchedProduct?.images && matchedProduct.images[0]) || '/images/hero_banner.jpg';
+        if (itemImg && !itemImg.startsWith('http') && !itemImg.startsWith('data:')) {
+          itemImg = `${window.location.origin}${itemImg.startsWith('/') ? '' : '/'}${itemImg}`;
+        }
+        const itemPrice = Number(i.price || matchedProduct?.price || 0);
+        const itemQty = Number(i.quantity || 1);
+        const itemTotal = itemPrice * itemQty;
+
+        const variantDetails = [];
+        if (i.selectedColor) variantDetails.push(`<strong>Color:</strong> ${i.selectedColor}`);
+        if (i.selectedSize) variantDetails.push(`<strong>Size:</strong> ${i.selectedSize}`);
+        if (matchedProduct?.category) variantDetails.push(`<strong>Category:</strong> ${matchedProduct.category}`);
+
+        return `
+          <tr>
+            <td style="text-align:center;font-weight:bold;color:#64748b;font-size:11px;width:32px;">${iIdx + 1}</td>
+            <td style="width:75px;text-align:center;padding:6px;">
+              <img src="${itemImg}" alt="${i.title || 'Product'}" 
+                style="width:65px;height:65px;object-fit:cover;border-radius:6px;border:1px solid #cbd5e1;display:block;margin:0 auto;"
+                onerror="this.onerror=null;this.src='https://placehold.co/100x100?text=Jewelry';" />
+            </td>
+            <td style="padding:8px 10px;">
+              <div style="font-weight:bold;font-size:13px;color:#0f172a;margin-bottom:3px;">${i.title || 'Jewelry Item'}</div>
+              ${variantDetails.length > 0 ? `<div style="font-size:11px;color:#475569;margin-bottom:3px;">${variantDetails.join(' &nbsp;|&nbsp; ')}</div>` : ''}
+              <div style="font-size:10px;color:#94a3b8;font-family:monospace;">Code: ${i.productId || i.id || 'N/A'}</div>
+            </td>
+            <td style="text-align:center;padding:8px 10px;width:90px;">
+              <span style="display:inline-block;background:#fef3c7;color:#92400e;font-size:13px;font-weight:bold;padding:4px 10px;border-radius:6px;border:1px solid #fde68a;">
+                x ${itemQty}
+              </span>
+            </td>
+            <td style="text-align:right;padding:8px 10px;font-size:12px;width:110px;">
+              <div style="color:#64748b;font-size:10px;">₹${itemPrice.toLocaleString()} each</div>
+              <strong style="color:#0f172a;font-size:13px;">₹${itemTotal.toLocaleString()}</strong>
+            </td>
+            <td style="text-align:center;width:90px;padding:8px;">
+              <div style="border:2px dashed #94a3b8;border-radius:6px;padding:6px 4px;font-size:10px;color:#475569;font-weight:bold;background:#f8fafc;">
+                [ &nbsp; ] PACKED
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      const paymentMethodBadge = (ord.paymentMethod || '').toLowerCase().includes('gateway')
+        ? '<span style="background:#ecfdf5;color:#047857;padding:3px 8px;border-radius:6px;border:1px solid #a7f3d0;font-size:10px;font-weight:bold;">⚡ RAZORPAY GATEWAY (PAID)</span>'
+        : `<span style="background:#eff6ff;color:#1d4ed8;padding:3px 8px;border-radius:6px;border:1px solid #bfdbfe;font-size:10px;font-weight:bold;">MANUAL UPI / BANK (${ord.paymentStatus || 'Verified'})</span>`;
+
+      const courierInfo = ord.courierPartner
+        ? `<strong>Courier:</strong> ${ord.courierPartner} &nbsp;|&nbsp; <strong>AWB / Tracking:</strong> <span style="font-family:monospace;font-weight:bold;">${ord.trackingNumber || 'Pending'}</span>`
+        : '<span style="color:#d97706;font-weight:bold;">Courier: Not Dispatched Yet (Assign in Admin)</span>';
+
+      return `
+        <div class="order-packing-card" style="border:1px solid #cbd5e1;border-radius:10px;margin-bottom:24px;background:#ffffff;page-break-inside:avoid;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;">
+          <!-- Order Header -->
+          <div style="background:#f8fafc;border-bottom:1px solid #cbd5e1;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+            <div>
+              <span style="font-size:15px;font-weight:bold;font-family:monospace;color:#b45309;background:#fef3c7;padding:3px 8px;border-radius:6px;border:1px solid #fde68a;">
+                ORDER #${ord.id}
+              </span>
+              <span style="font-size:11px;color:#64748b;margin-left:10px;">📅 Placed: <strong>${ordDate}</strong></span>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              ${paymentMethodBadge}
+              <span style="background:#f1f5f9;color:#334155;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:bold;">
+                STATUS: ${(ord.orderStatus || 'Confirmed').toUpperCase()}
+              </span>
+            </div>
+          </div>
+
+          <!-- Customer & Shipping Delivery Box -->
+          <div style="padding:12px 16px;background:#ffffff;border-bottom:1px solid #e2e8f0;display:grid;grid-template-columns:1fr 1.2fr;gap:16px;">
+            <div style="border-right:1px solid #f1f5f9;padding-right:12px;">
+              <div style="font-size:10px;text-transform:uppercase;color:#94a3b8;font-weight:bold;margin-bottom:4px;">Customer Details</div>
+              <div style="font-size:13px;font-weight:bold;color:#0f172a;">${ord.customerName || 'N/A'}</div>
+              <div style="font-size:12px;color:#1e293b;margin-top:2px;">📞 <strong>${ord.customerPhone || 'N/A'}</strong></div>
+              ${ord.customerEmail ? `<div style="font-size:11px;color:#64748b;margin-top:2px;">✉️ ${ord.customerEmail}</div>` : ''}
+              <div style="font-size:11px;color:#64748b;margin-top:4px;">
+                <strong>Payment Ref:</strong> <span style="font-family:monospace;color:#047857;">${ord.transactionId || ord.gatewayPaymentId || 'N/A'}</span>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:10px;text-transform:uppercase;color:#94a3b8;font-weight:bold;margin-bottom:4px;">📍 Delivery Shipping Address</div>
+              <div style="font-size:12px;line-height:1.45;color:#1e293b;font-weight:500;background:#f8fafc;padding:8px 10px;border-radius:6px;border:1px solid #e2e8f0;">
+                ${ord.shippingAddress || 'No address provided'}
+              </div>
+              <div style="font-size:11px;color:#475569;margin-top:6px;">
+                ${courierInfo}
+              </div>
+            </div>
+          </div>
+
+          <!-- Items Table -->
+          <div style="padding:10px 16px;">
+            <div style="font-size:10px;text-transform:uppercase;color:#94a3b8;font-weight:bold;margin-bottom:6px;">
+              📦 Items to Pack (${(ord.items || []).length} items)
+            </div>
+            <table style="width:100%;border-collapse:collapse;margin-bottom:8px;">
+              <thead>
+                <tr style="background:#f1f5f9;border-bottom:1px solid #cbd5e1;font-size:10px;color:#475569;text-transform:uppercase;">
+                  <th style="padding:6px;text-align:center;">#</th>
+                  <th style="padding:6px;text-align:center;">Product Photo</th>
+                  <th style="padding:6px 10px;text-align:left;">Item & Options</th>
+                  <th style="padding:6px 10px;text-align:center;">Quantity</th>
+                  <th style="padding:6px 10px;text-align:right;">Price</th>
+                  <th style="padding:6px;text-align:center;">Checklist</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${itemsRows || '<tr><td colspan="6" style="text-align:center;padding:12px;">No items</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Order Summary & Packing Sign-off Footer -->
+          <div style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+            <div style="font-size:11px;color:#475569;">
+              ${ord.notes ? `<span style="font-style:italic;">Customer Note: "${ord.notes}"</span><br/>` : ''}
+              <span>Packaging Sign-off: <strong>[ &nbsp; ] Items Bubble-Wrapped & Inspected</strong></span>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:11px;color:#64748b;">
+                Subtotal: ₹${(Number(ord.subtotal) || Number(ord.total) || 0).toLocaleString()} 
+                ${ord.shippingFee !== undefined ? ` &bull; Shipping: ₹${Number(ord.shippingFee || 0).toLocaleString()}` : ''}
+                ${ord.discountAmount ? ` &bull; Discount: -₹${Number(ord.discountAmount).toLocaleString()}` : ''}
+              </div>
+              <div style="font-size:15px;font-weight:bold;color:#0f172a;margin-top:2px;">
+                Grand Total: <span style="color:#b45309;">₹${(Number(ord.total) || 0).toLocaleString()}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>${statusLabel} - Packing Slips (${dateLabel}) - MOJ Jewels</title>
+  <base href="${window.location.origin}/" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 24px;
+      background: #f1f5f9;
+      color: #0f172a;
+      font-size: 12px;
+    }
+    .no-print {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #0f172a;
+      color: #ffffff;
+      padding: 12px 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    }
+    .print-btn {
+      background: #f59e0b;
+      color: #000;
+      font-weight: bold;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .print-btn:hover { background: #d97706; }
+    .close-btn {
+      background: transparent;
+      color: #94a3b8;
+      border: 1px solid #475569;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .close-btn:hover { color: #ffffff; border-color: #cbd5e1; }
+    .manifest-header {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .manifest-stats {
+      display: flex;
+      gap: 16px;
+    }
+    .stat-pill {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      padding: 6px 12px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .stat-pill .num {
+      font-size: 16px;
+      font-weight: bold;
+      color: #b45309;
+    }
+    .stat-pill .lbl {
+      font-size: 10px;
+      color: #64748b;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #e2e8f0; vertical-align: middle; }
+    @media print {
+      body { background: #ffffff !important; padding: 0 !important; font-size: 11px; }
+      .no-print { display: none !important; }
+      .manifest-header { border-radius: 0; box-shadow: none; border-left: none; border-right: none; border-top: none; padding: 10px 0; margin-bottom: 15px; }
+      .order-packing-card { border-radius: 4px; box-shadow: none; margin-bottom: 20px; page-break-inside: avoid; }
+      @page { margin: 12mm; size: A4; }
+    }
+  </style>
+</head>
+<body>
+  <div class="no-print">
+    <div>
+      <strong style="font-size:14px;color:#f59e0b;">MOJ Jewels Packing Slip & Dispatch Manifest</strong>
+      <div style="font-size:11px;color:#94a3b8;">${statusLabel} &bull; ${dateLabel} &bull; Ready for printing or saving as PDF</div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="print-btn" onclick="window.print()">🖨️ Print / Save as PDF</button>
+      <button class="close-btn" onclick="window.close()">✕ Close</button>
+    </div>
+  </div>
+
+  <div class="manifest-header">
+    <div>
+      <h1 style="margin:0;font-size:20px;color:#92400e;letter-spacing:0.5px;">MOJ JEWELS</h1>
+      <p style="margin:2px 0 0 0;font-size:12px;font-weight:600;color:#1e293b;">
+        ORDER PACKING SLIP & DISPATCH MANIFEST
+      </p>
+      <p style="margin:4px 0 0 0;font-size:11px;color:#64748b;">
+        Filter: <strong>${statusLabel}</strong> &nbsp;|&nbsp; Range: <strong>${dateLabel}</strong> &nbsp;|&nbsp; Generated on: ${now}
+      </p>
+    </div>
+    <div class="manifest-stats">
+      <div class="stat-pill">
+        <div class="num">${targetOrders.length}</div>
+        <div class="lbl">Orders</div>
+      </div>
+      <div class="stat-pill">
+        <div class="num">${totalUnits}</div>
+        <div class="lbl">Total Items</div>
+      </div>
+      <div class="stat-pill">
+        <div class="num">₹${totalValue.toLocaleString()}</div>
+        <div class="lbl">Total Value</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="orders-container">
+    ${orderCardsHtml}
+  </div>
+
+  <script>
+    window.addEventListener('load', () => {
+      const imgs = Array.from(document.images);
+      Promise.all(imgs.map(img => {
+        if (img.complete) return Promise.resolve();
+        return new Promise(resolve => {
+          img.onload = resolve;
+          img.onerror = resolve;
+        });
+      })).then(() => {
+        setTimeout(() => window.print(), 350);
+      });
+    });
+  </script>
+</body>
+</html>`;
+
+    const w = window.open('', '_blank', 'width=1000,height=800');
+    if (!w) {
+      alert('Pop-up blocked. Please allow pop-ups for this site to download the PDF.');
+      return;
+    }
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+  };
+
   // Handle Local File Selection (Laptop / Mobile Local Storage) with Auto-Compression
   const handleImageFileUpload = async (e) => {
     const files = Array.from(e.target.files || []);
@@ -666,6 +1014,45 @@ export default function AdminDashboard() {
       setEditingOrderForShipping(null);
     }
   };
+
+  // ── Filtered Orders List (Calculated from active status tab & active date filter) ──
+  const filteredOrdersList = safeOrders.filter(ord => {
+    // Status Filter
+    if (orderFilterTab === 'Pending Verification' && ord.paymentStatus !== 'Pending Verification') return false;
+    if (orderFilterTab === 'Verified' && ((ord.paymentStatus !== 'Verified' && ord.paymentStatus !== 'Paid' && ord.orderStatus !== 'Confirmed') || ord.orderStatus === 'Shipped' || ord.orderStatus === 'Delivered')) return false;
+    if (orderFilterTab === 'Shipped' && ord.orderStatus !== 'Shipped') return false;
+    if (orderFilterTab === 'Delivered' && ord.orderStatus !== 'Delivered') return false;
+    if (orderFilterTab === 'Rejected' && ord.paymentStatus !== 'Rejected') return false;
+
+    // Date Filter
+    if (!ord.date) return true;
+    const ordDateObj = new Date(ord.date);
+    if (isNaN(ordDateObj.getTime())) return true;
+    const todayStr = new Date().toISOString().split('T')[0];
+    const ordDateStr = ordDateObj.toISOString().split('T')[0];
+
+    if (selectedOrderDate) {
+      return ordDateStr === selectedOrderDate;
+    }
+
+    if (dateQuickFilter === 'Today') {
+      return ordDateStr === todayStr;
+    }
+
+    if (dateQuickFilter === 'Yesterday') {
+      const yestObj = new Date();
+      yestObj.setDate(yestObj.getDate() - 1);
+      return ordDateStr === yestObj.toISOString().split('T')[0];
+    }
+
+    if (dateQuickFilter === 'Week') {
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      return ordDateObj >= weekAgo;
+    }
+
+    return true;
+  });
 
   return (
     <div className="container mx-auto px-4 py-12 space-y-8">
@@ -1119,8 +1506,8 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Date Filter Bar */}
-          <div className="bg-slate-900/90 p-4 rounded-xl border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          {/* Date Filter Bar & Packing PDF Export */}
+          <div className="bg-slate-900/90 p-4 rounded-xl border border-slate-800 flex flex-col lg:flex-row lg:items-center justify-between gap-3 text-xs">
             <div className="flex items-center space-x-2 flex-wrap gap-y-2">
               <span className="text-gold-300 font-semibold text-xs">📅 Filter by Date:</span>
               {[
@@ -1146,73 +1533,57 @@ export default function AdminDashboard() {
               ))}
             </div>
 
-            {/* Custom Date Input */}
-            <div className="flex items-center space-x-2">
-              <span className="text-slate-400 text-[11px]">Specific Date:</span>
-              <input
-                type="date"
-                value={selectedOrderDate}
-                onChange={(e) => {
-                  setSelectedOrderDate(e.target.value);
-                  setDateQuickFilter('Custom');
-                }}
-                className="bg-slate-950 border border-slate-700 text-white rounded-lg px-2.5 py-1 text-xs focus:outline-none focus:border-gold-400"
-              />
-              {selectedOrderDate && (
-                <button
-                  onClick={() => {
-                    setSelectedOrderDate('');
-                    setDateQuickFilter('All');
+            <div className="flex items-center gap-2.5 flex-wrap">
+              {/* Custom Date Input */}
+              <div className="flex items-center space-x-2">
+                <span className="text-slate-400 text-[11px]">Specific Date:</span>
+                <input
+                  type="date"
+                  value={selectedOrderDate}
+                  onChange={(e) => {
+                    setSelectedOrderDate(e.target.value);
+                    setDateQuickFilter('Custom');
                   }}
-                  className="text-slate-500 hover:text-rose-400 text-xs p-1"
-                  title="Clear Date Filter"
-                >
-                  ✕
-                </button>
-              )}
+                  className="bg-slate-950 border border-slate-700 text-white rounded-lg px-2.5 py-1 text-xs focus:outline-none focus:border-gold-400"
+                />
+                {selectedOrderDate && (
+                  <button
+                    onClick={() => {
+                      setSelectedOrderDate('');
+                      setDateQuickFilter('All');
+                    }}
+                    className="text-slate-500 hover:text-rose-400 text-xs p-1"
+                    title="Clear Date Filter"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
+              {/* Download Orders Packing PDF Button */}
+              <button
+                type="button"
+                onClick={() => downloadPackingOrdersPdf(filteredOrdersList)}
+                className="bg-gradient-to-r from-amber-500 to-gold-400 hover:from-amber-400 hover:to-gold-300 text-black font-bold px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 transition-all shadow-md active:scale-95 text-xs shrink-0 cursor-pointer"
+                title="Download Packing Slips with Product Images as PDF for filtered orders"
+              >
+                <Download className="w-3.5 h-3.5 text-black" />
+                <span>Download Orders PDF ({filteredOrdersList.length})</span>
+              </button>
             </div>
           </div>
 
           <div className="space-y-4">
-            {safeOrders
-              .filter(ord => {
-                // Status Filter
-                if (orderFilterTab === 'Pending Verification' && ord.paymentStatus !== 'Pending Verification') return false;
-                if (orderFilterTab === 'Verified' && ((ord.paymentStatus !== 'Verified' && ord.paymentStatus !== 'Paid' && ord.orderStatus !== 'Confirmed') || ord.orderStatus === 'Shipped' || ord.orderStatus === 'Delivered')) return false;
-                if (orderFilterTab === 'Shipped' && ord.orderStatus !== 'Shipped') return false;
-                if (orderFilterTab === 'Delivered' && ord.orderStatus !== 'Delivered') return false;
-                if (orderFilterTab === 'Rejected' && ord.paymentStatus !== 'Rejected') return false;
-
-                // Date Filter
-                if (!ord.date) return true;
-                const ordDateObj = new Date(ord.date);
-                if (isNaN(ordDateObj.getTime())) return true;
-                const todayStr = new Date().toISOString().split('T')[0];
-                const ordDateStr = ordDateObj.toISOString().split('T')[0];
-
-                if (selectedOrderDate) {
-                  return ordDateStr === selectedOrderDate;
-                }
-
-                if (dateQuickFilter === 'Today') {
-                  return ordDateStr === todayStr;
-                }
-
-                if (dateQuickFilter === 'Yesterday') {
-                  const yestObj = new Date();
-                  yestObj.setDate(yestObj.getDate() - 1);
-                  return ordDateStr === yestObj.toISOString().split('T')[0];
-                }
-
-                if (dateQuickFilter === 'Week') {
-                  const weekAgo = new Date();
-                  weekAgo.setDate(weekAgo.getDate() - 7);
-                  return ordDateObj >= weekAgo;
-                }
-
-                return true;
-              })
-              .map((ord) => (
+            {filteredOrdersList.length === 0 ? (
+              <div className="text-center py-12 glass-card rounded-2xl border border-slate-800 space-y-2">
+                <Package className="w-8 h-8 text-slate-600 mx-auto mb-1" />
+                <p className="text-slate-300 font-semibold text-sm">No orders found</p>
+                <p className="text-slate-500 text-xs">
+                  No orders match the status "{orderFilterTab}" and selected date range.
+                </p>
+              </div>
+            ) : (
+              filteredOrdersList.map((ord) => (
               <div key={ord.id} className="glass-card p-6 rounded-2xl border border-slate-800 space-y-4">
                 <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-800 pb-3 gap-2 text-xs">
                   <div>
@@ -1277,6 +1648,16 @@ export default function AdminDashboard() {
                       className="bg-slate-800 hover:bg-slate-700 text-xs px-3 py-1 rounded-lg text-slate-200 flex items-center gap-1"
                     >
                       <Truck className="w-3.5 h-3.5 text-gold-400" /> Assign Courier
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => downloadPackingOrdersPdf([ord])}
+                      className="bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 text-xs px-2.5 py-1 rounded-lg flex items-center gap-1 transition-colors active:scale-95"
+                      title="Download/Print Packing Slip with Images for this Order"
+                    >
+                      <Printer className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Packing Slip</span>
                     </button>
                   </div>
                 </div>
@@ -1383,7 +1764,8 @@ export default function AdminDashboard() {
                   </div>
                 </div>
               </div>
-            ))}
+            ))
+          )}
           </div>
 
           {/* Courier Assignment Modal */}
