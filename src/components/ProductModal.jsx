@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useStore } from '../context/StoreContext';
 import { X, Heart, ShoppingBag, Star, ShieldCheck, Truck, ChevronLeft, ChevronRight, Share2, Check, AlertCircle, Sparkles } from 'lucide-react';
+import { getProductCode } from '../utils/productCode';
 
 export default function ProductModal() {
   const {
@@ -96,6 +97,7 @@ export default function ProductModal() {
   if (!selectedProduct) return null;
 
   const id = selectedProduct.id || `prod-${Math.random()}`;
+  const code = getProductCode(selectedProduct);
   const title = selectedProduct.title || 'MOJ Fine Jewelry';
   const category = selectedProduct.category || 'Jewelry';
   const price = typeof selectedProduct.price === 'number' ? selectedProduct.price : (parseFloat(selectedProduct.price) || 0);
@@ -242,6 +244,9 @@ export default function ProductModal() {
                       {selectedProduct.subCategory}
                     </span>
                   )}
+                  <span className="text-amber-300 font-mono font-bold text-[10px] bg-slate-900 border border-amber-500/30 px-2 py-0.5 rounded tracking-wider shadow-sm">
+                    {code}
+                  </span>
                 </div>
                 <span className="flex items-center text-amber-400 gap-1">
                   <Star className="w-4 h-4 fill-current" />

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from '../context/StoreContext';
 import { compressImage } from '../utils/imageCompressor';
+import { getProductCode, getNextProductCode, isValidMojCode } from '../utils/productCode';
 import {
   ShieldCheck,
   Check,
@@ -152,12 +153,13 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (isAddProductOpen) {
       if (addModalRef.current) addModalRef.current.scrollTop = 0;
+      setNewProdCode(getNextProductCode(products));
       const t = setTimeout(() => {
         if (addModalRef.current) addModalRef.current.scrollTop = 0;
       }, 50);
       return () => clearTimeout(t);
     }
-  }, [isAddProductOpen]);
+  }, [isAddProductOpen, products]);
 
   useEffect(() => {
     if (editingProduct) {
@@ -177,6 +179,7 @@ export default function AdminDashboard() {
   const [adminRevComment, setAdminRevComment] = useState('');
   const [adminRevMsg, setAdminRevMsg] = useState(null);
   const [isPostingReview, setIsPostingReview] = useState(false);
+  const [newProdCode, setNewProdCode] = useState('');
   const [newProdTitle, setNewProdTitle] = useState('');
   const [newProdCategory, setNewProdCategory] = useState(categories && categories[1] ? categories[1] : 'Rings');
   const [newProdPrice, setNewProdPrice] = useState('');
@@ -194,6 +197,7 @@ export default function AdminDashboard() {
   const [newProdCustomSize, setNewProdCustomSize] = useState('');
 
   // Edit Product Variant State
+  const [editProdCode, setEditProdCode] = useState('');
   const [editProdSubCategory, setEditProdSubCategory] = useState('');
   const [editProdColors, setEditProdColors] = useState([]);
   const [editProdCustomColor, setEditProdCustomColor] = useState('');
@@ -532,6 +536,7 @@ export default function AdminDashboard() {
         const itemPrice = Number(i.price || matchedProduct?.price || 0);
         const itemQty = Number(i.quantity || 1);
         const itemTotal = itemPrice * itemQty;
+        const itemCode = getProductCode(matchedProduct || i);
 
         const variantDetails = [];
         if (i.selectedColor) variantDetails.push(`<strong>Color:</strong> ${i.selectedColor}`);
@@ -549,7 +554,7 @@ export default function AdminDashboard() {
             <td style="padding:8px 10px;">
               <div style="font-weight:bold;font-size:13px;color:#0f172a;margin-bottom:3px;">${i.title || 'Jewelry Item'}</div>
               ${variantDetails.length > 0 ? `<div style="font-size:11px;color:#475569;margin-bottom:3px;">${variantDetails.join(' &nbsp;|&nbsp; ')}</div>` : ''}
-              <div style="font-size:10px;color:#94a3b8;font-family:monospace;">Code: ${i.productId || i.id || 'N/A'}</div>
+              <div style="font-size:10px;color:#b45309;font-family:monospace;font-weight:bold;">Model Code: ${itemCode}</div>
             </td>
             <td style="text-align:center;padding:8px 10px;width:90px;">
               <span style="display:inline-block;background:#fef3c7;color:#92400e;font-size:13px;font-weight:bold;padding:4px 10px;border-radius:6px;border:1px solid #fde68a;">
@@ -857,8 +862,12 @@ export default function AdminDashboard() {
     const priceNum = parseFloat(newProdPrice) || 0;
     const origPriceNum = parseFloat(newProdOrigPrice) || priceNum;
     const wholesalePriceNum = parseFloat(newProdWholesalePrice) || priceNum;
+    const resolvedCode = newProdCode && isValidMojCode(newProdCode)
+      ? newProdCode.trim().toUpperCase()
+      : getNextProductCode(products);
 
     addProduct({
+      productCode: resolvedCode,
       title: newProdTitle.trim(),
       category: newProdCategory,
       subCategory: newProdSubCategory.trim(),
@@ -875,6 +884,7 @@ export default function AdminDashboard() {
       description: newProdDesc || 'Crafted luxury jewelry piece.'
     });
     setIsAddProductOpen(false);
+    setNewProdCode('');
     setNewProdTitle('');
     setNewProdPrice('');
     setNewProdOrigPrice('');
@@ -891,6 +901,7 @@ export default function AdminDashboard() {
   // Handle Opening Edit Product Modal
   const handleOpenEditProduct = (p) => {
     setEditingProduct(p);
+    setEditProdCode(getProductCode(p));
     setEditProdTitle(p.title || '');
     setEditProdCategory(p.category || (categories && categories[1] ? categories[1] : 'Rings'));
     setEditProdSubCategory(p.subCategory || '');
@@ -943,9 +954,13 @@ export default function AdminDashboard() {
     const priceNum = parseFloat(editProdPrice) || 0;
     const origPriceNum = parseFloat(editProdOrigPrice) || priceNum;
     const wholesalePriceNum = parseFloat(editProdWholesalePrice) || priceNum;
+    const resolvedCode = editProdCode && isValidMojCode(editProdCode)
+      ? editProdCode.trim().toUpperCase()
+      : getProductCode(editingProduct);
 
     try {
       await editProduct(editingProduct.id, {
+        productCode: resolvedCode,
         title: editProdTitle.trim(),
         category: editProdCategory,
         subCategory: editProdSubCategory.trim(),
@@ -1836,13 +1851,14 @@ export default function AdminDashboard() {
           // Search query filter
           if (catalogSearch.trim()) {
             const q = catalogSearch.toLowerCase();
+            const matchCode = (p.productCode || getProductCode(p)).toLowerCase().includes(q);
             const matchTitle = (p.title || '').toLowerCase().includes(q);
             const matchCat = (p.category || '').toLowerCase().includes(q);
             const matchSubCat = (p.subCategory || '').toLowerCase().includes(q);
             const matchKarat = (p.karat || '').toLowerCase().includes(q);
             const matchColors = Array.isArray(p.colors) && p.colors.some(c => c.toLowerCase().includes(q));
             const matchSizes = Array.isArray(p.sizes) && p.sizes.some(s => s.toLowerCase().includes(q));
-            if (!matchTitle && !matchCat && !matchSubCat && !matchKarat && !matchColors && !matchSizes) {
+            if (!matchTitle && !matchCat && !matchSubCat && !matchKarat && !matchColors && !matchSizes && !matchCode) {
               return false;
             }
           }
@@ -1911,6 +1927,9 @@ export default function AdminDashboard() {
                         {p.subCategory}
                       </span>
                     )}
+                    <span className="text-amber-300 font-mono font-bold text-[9px] bg-slate-900 border border-amber-500/30 px-1.5 py-0.2 rounded tracking-wider shadow-sm">
+                      {getProductCode(p)}
+                    </span>
                   </div>
 
                   <h4 className="text-white font-semibold text-xs leading-snug line-clamp-2" title={p.title}>
@@ -2256,16 +2275,33 @@ export default function AdminDashboard() {
                   </div>
 
                   <form onSubmit={handleCreateProduct} className="space-y-3.5 text-xs">
-                    <div>
-                      <label className="text-slate-300 block mb-1 font-medium">Product Title</label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="e.g. Royal Antique Kemp Choker Necklace"
-                        value={newProdTitle}
-                        onChange={(e) => setNewProdTitle(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
-                      />
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="sm:col-span-2">
+                        <label className="text-slate-300 block mb-1 font-medium">Product Title</label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="e.g. Royal Antique Kemp Choker Necklace"
+                          value={newProdTitle}
+                          onChange={(e) => setNewProdTitle(e.target.value)}
+                          className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
+                        />
+                      </div>
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <label className="text-slate-300 font-medium">Model Code</label>
+                          <span className="text-[10px] text-amber-400 font-mono">7 Chars</span>
+                        </div>
+                        <input
+                          type="text"
+                          required
+                          maxLength={7}
+                          placeholder="e.g. MOJ0104"
+                          value={newProdCode}
+                          onChange={(e) => setNewProdCode(e.target.value.toUpperCase())}
+                          className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-amber-300 font-mono font-bold focus:border-gold-400 uppercase tracking-wider"
+                        />
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
@@ -2703,16 +2739,33 @@ export default function AdminDashboard() {
                   </div>
 
                   <form onSubmit={handleSaveEditedProduct} className="space-y-3.5 text-xs">
-                    <div>
-                      <label className="text-slate-300 block mb-1 font-medium">Product Title</label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="e.g. Royal Ruby Solitaire Ring"
-                        value={editProdTitle}
-                        onChange={(e) => setEditProdTitle(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
-                      />
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="sm:col-span-2">
+                        <label className="text-slate-300 block mb-1 font-medium">Product Title</label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="e.g. Royal Ruby Solitaire Ring"
+                          value={editProdTitle}
+                          onChange={(e) => setEditProdTitle(e.target.value)}
+                          className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:border-gold-400"
+                        />
+                      </div>
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <label className="text-slate-300 font-medium">Model Code</label>
+                          <span className="text-[10px] text-amber-400 font-mono">7 Chars</span>
+                        </div>
+                        <input
+                          type="text"
+                          required
+                          maxLength={7}
+                          placeholder="e.g. MOJ0001"
+                          value={editProdCode}
+                          onChange={(e) => setEditProdCode(e.target.value.toUpperCase())}
+                          className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-amber-300 font-mono font-bold focus:border-gold-400 uppercase tracking-wider"
+                        />
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">

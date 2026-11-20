@@ -24,7 +24,8 @@ const MASK_PARAMS = [
   'mask.fieldPaths=updatedAt',
   'mask.fieldPaths=colors',
   'mask.fieldPaths=sizes',
-  'mask.fieldPaths=description'
+  'mask.fieldPaths=description',
+  'mask.fieldPaths=productCode'
 ].join('&');
 
 export async function fetchSingleProductViaRest(id) {

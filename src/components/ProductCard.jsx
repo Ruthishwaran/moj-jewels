@@ -1,6 +1,7 @@
 import React from 'react';
 import { useStore } from '../context/StoreContext';
 import { Heart, ShoppingBag, Star, ShieldCheck, CheckCircle, ArrowRight, Share2, Check, Sparkles } from 'lucide-react';
+import { getProductCode } from '../utils/productCode';
 
 export default function ProductCard({ product }) {
   const {
@@ -32,6 +33,7 @@ export default function ProductCard({ product }) {
     : 10;
   const stock = !isNaN(stockVal) ? stockVal : 10;
   const karat = product.karat || 'Premium Hallmarked';
+  const code = getProductCode(product);
 
   const [currentImgIdx, setCurrentImgIdx] = React.useState(0);
   const [addedFlash, setAddedFlash] = React.useState(false);
@@ -170,6 +172,9 @@ export default function ProductCard({ product }) {
                   {product.subCategory}
                 </span>
               )}
+              <span className="text-amber-300 font-mono font-bold text-[9px] bg-slate-900 border border-amber-500/30 px-1.5 py-0.5 rounded tracking-wider shadow-sm">
+                {code}
+              </span>
             </div>
             <span className="flex items-center text-amber-400 gap-1 font-semibold shrink-0">
               <Star className="w-3 h-3 fill-current" />
