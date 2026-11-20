@@ -17,6 +17,7 @@ import {
   SlidersHorizontal
 } from 'lucide-react';
 import WhatsAppIcon from './WhatsAppIcon';
+import { getProductCode } from '../utils/productCode';
 
 export default function Navbar() {
   const {
@@ -62,11 +63,16 @@ export default function Navbar() {
     : safeCategories.slice(0, 5);
 
   const matchedProducts = query
-    ? safeProducts.filter(p => 
-        (p.title && p.title.toLowerCase().includes(query)) ||
-        (p.category && p.category.toLowerCase().includes(query)) ||
-        (p.karat && p.karat.toLowerCase().includes(query))
-      ).slice(0, 6)
+    ? safeProducts.filter(p => {
+        const code = (p.productCode || p.modelCode || getProductCode(p)).toLowerCase();
+        return (
+          code.includes(query) ||
+          (p.title && p.title.toLowerCase().includes(query)) ||
+          (p.category && p.category.toLowerCase().includes(query)) ||
+          (p.subCategory && p.subCategory.toLowerCase().includes(query)) ||
+          (p.karat && p.karat.toLowerCase().includes(query))
+        );
+      }).slice(0, 8)
     : [];
 
   // Close search dropdown on click outside
@@ -146,7 +152,7 @@ export default function Navbar() {
             <Search className="w-4 h-4 text-gold-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
-              placeholder="Search rings, necklaces, earrings..."
+              placeholder="Search by model code (MOJ0000), rings, necklaces..."
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
@@ -206,28 +212,36 @@ export default function Navbar() {
                     <p className="text-xs text-slate-400 py-2 text-center">No jewelry items found matching "{searchQuery}"</p>
                   ) : (
                     <div className="space-y-1.5">
-                      {matchedProducts.map((p) => (
-                        <div
-                          key={p.id}
-                          onClick={() => handleSelectProduct(p)}
-                          className="flex items-center justify-between p-2 rounded-xl bg-slate-900/60 hover:bg-gold-500/10 border border-slate-800 hover:border-gold-500/40 cursor-pointer transition-colors"
-                        >
-                          <div className="flex items-center space-x-3">
-                            <img
-                              src={p.image}
-                              alt={p.title}
-                              className="w-10 h-10 object-cover rounded-lg bg-slate-950 border border-slate-800"
-                            />
-                            <div>
-                              <h4 className="text-xs font-semibold text-white line-clamp-1">{p.title}</h4>
-                              <span className="text-[10px] text-slate-400">{p.karat} • {p.category}</span>
+                      {matchedProducts.map((p) => {
+                        const code = getProductCode(p);
+                        return (
+                          <div
+                            key={p.id}
+                            onClick={() => handleSelectProduct(p)}
+                            className="flex items-center justify-between p-2 rounded-xl bg-slate-900/60 hover:bg-gold-500/10 border border-slate-800 hover:border-gold-500/40 cursor-pointer transition-colors"
+                          >
+                            <div className="flex items-center space-x-3 min-w-0">
+                              <img
+                                src={p.image}
+                                alt={p.title}
+                                className="w-10 h-10 object-cover rounded-lg bg-slate-950 border border-slate-800 shrink-0"
+                              />
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <h4 className="text-xs font-semibold text-white line-clamp-1">{p.title}</h4>
+                                  <span className="text-[9px] font-mono font-bold text-amber-300 bg-slate-950 border border-amber-500/30 px-1.5 py-0.5 rounded tracking-wider shrink-0">
+                                    ({code})
+                                  </span>
+                                </div>
+                                <span className="text-[10px] text-slate-400">{p.karat} • {p.category}</span>
+                              </div>
                             </div>
+                            <span className="text-xs font-bold text-gold-400 shrink-0 ml-2">
+                              ₹{(p.price || 0).toLocaleString()}
+                            </span>
                           </div>
-                          <span className="text-xs font-bold text-gold-400 shrink-0">
-                            ₹{(p.price || 0).toLocaleString()}
-                          </span>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
 
@@ -315,7 +329,7 @@ export default function Navbar() {
             <Search className="w-4 h-4 text-gold-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
-              placeholder="Search luxury jewels..."
+              placeholder="Search by model code (MOJ0000), jewels..."
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
@@ -435,28 +449,36 @@ export default function Navbar() {
                   <p className="text-xs text-slate-400 py-2 text-center">No jewelry items found matching "{searchQuery}"</p>
                 ) : (
                   <div className="space-y-1.5">
-                    {matchedProducts.map((p) => (
-                      <div
-                        key={p.id}
-                        onClick={() => handleSelectProduct(p)}
-                        className="flex items-center justify-between p-2 rounded-xl bg-slate-900/60 hover:bg-gold-500/10 border border-slate-800 hover:border-gold-500/40 cursor-pointer transition-colors"
-                      >
-                        <div className="flex items-center space-x-2.5 min-w-0">
-                          <img
-                            src={p.image}
-                            alt={p.title}
-                            className="w-9 h-9 object-cover rounded-lg bg-slate-950 border border-slate-800 shrink-0"
-                          />
-                          <div className="min-w-0">
-                            <h4 className="text-xs font-semibold text-white truncate">{p.title}</h4>
-                            <span className="text-[10px] text-slate-400 block truncate">{p.karat} • {p.category}</span>
+                    {matchedProducts.map((p) => {
+                      const code = getProductCode(p);
+                      return (
+                        <div
+                          key={p.id}
+                          onClick={() => handleSelectProduct(p)}
+                          className="flex items-center justify-between p-2 rounded-xl bg-slate-900/60 hover:bg-gold-500/10 border border-slate-800 hover:border-gold-500/40 cursor-pointer transition-colors"
+                        >
+                          <div className="flex items-center space-x-2.5 min-w-0">
+                            <img
+                              src={p.image}
+                              alt={p.title}
+                              className="w-9 h-9 object-cover rounded-lg bg-slate-950 border border-slate-800 shrink-0"
+                            />
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <h4 className="text-xs font-semibold text-white truncate">{p.title}</h4>
+                                <span className="text-[9px] font-mono font-bold text-amber-300 bg-slate-950 border border-amber-500/30 px-1 py-0.5 rounded tracking-wider shrink-0">
+                                  ({code})
+                                </span>
+                              </div>
+                              <span className="text-[10px] text-slate-400 block truncate">{p.karat} • {p.category}</span>
+                            </div>
                           </div>
+                          <span className="text-xs font-bold text-gold-400 shrink-0 ml-2">
+                            ₹{(Number(p?.price) || 0).toLocaleString()}
+                          </span>
                         </div>
-                        <span className="text-xs font-bold text-gold-400 shrink-0 ml-2">
-                          ₹{(Number(p?.price) || 0).toLocaleString()}
-                        </span>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
 

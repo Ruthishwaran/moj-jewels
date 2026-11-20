@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useStore } from '../context/StoreContext';
 import { X, Trash2, ShoppingBag, ArrowRight, Tag, Check, Sparkles, AlertCircle } from 'lucide-react';
+import { getProductCode } from '../utils/productCode';
 
 export default function CartDrawer() {
   const {
@@ -118,7 +119,14 @@ export default function CartDrawer() {
                     <div className="flex-1 flex flex-col justify-between min-w-0">
                       <div>
                         <div className="flex justify-between items-start gap-1">
-                          <h4 className="text-white text-xs font-semibold line-clamp-1">{item.title}</h4>
+                          <div className="min-w-0 pr-1">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <h4 className="text-white text-xs font-semibold line-clamp-1">{item.title}</h4>
+                              <span className="text-[9px] font-mono font-bold text-amber-300 bg-slate-950 border border-amber-500/30 px-1.5 py-0.5 rounded tracking-wider shrink-0">
+                                ({getProductCode(item)})
+                              </span>
+                            </div>
+                          </div>
                           <button
                             onClick={() => removeFromCart(item.cartItemId || item.id)}
                             className="text-slate-500 hover:text-rose-400 p-1 shrink-0"

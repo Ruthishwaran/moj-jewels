@@ -4,7 +4,8 @@
  */
 
 export function formatMojCode(num) {
-  const clean = Math.max(1, parseInt(num, 10) || 1);
+  const parsed = parseInt(num, 10);
+  const clean = isNaN(parsed) ? 0 : Math.max(0, Math.min(9999, parsed));
   return `MOJ${String(clean).padStart(4, '0')}`;
 }
 
@@ -17,7 +18,7 @@ export function isValidMojCode(code) {
  * Falls back deterministically if code is not explicitly set.
  */
 export function getProductCode(product, fallbackIndex = null) {
-  if (!product) return 'MOJ0001';
+  if (!product) return 'MOJ0000';
 
   if (isValidMojCode(product.productCode)) {
     return product.productCode.trim().toUpperCase();
@@ -28,7 +29,7 @@ export function getProductCode(product, fallbackIndex = null) {
   }
 
   if (fallbackIndex !== null && typeof fallbackIndex === 'number' && fallbackIndex >= 0) {
-    return formatMojCode(fallbackIndex + 1);
+    return formatMojCode(fallbackIndex);
   }
 
   // Derive deterministically from timestamp/id if available
@@ -38,14 +39,15 @@ export function getProductCode(product, fallbackIndex = null) {
     return `MOJ${digits.slice(-4)}`;
   }
 
-  return 'MOJ0001';
+  return 'MOJ0000';
 }
 
 /**
  * Calculates the next sequential MOJ product code based on existing products list.
+ * Starts from MOJ0000 and increments up to MOJ9999.
  */
 export function getNextProductCode(productsList = []) {
-  let maxNum = 0;
+  let maxNum = -1;
   (productsList || []).forEach(p => {
     const raw = p?.productCode || p?.modelCode;
     if (isValidMojCode(raw)) {

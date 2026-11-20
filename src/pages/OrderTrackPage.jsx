@@ -13,6 +13,7 @@ import {
   ExternalLink,
   X
 } from 'lucide-react';
+import { getProductCode } from '../utils/productCode';
 
 export default function OrderTrackPage() {
   const { orders, products, setCurrentPage } = useStore();
@@ -258,7 +259,12 @@ export default function OrderTrackPage() {
                         </div>
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-white font-semibold line-clamp-1 group-hover:text-gold-300 transition-colors">{it.title}</p>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <p className="text-white font-semibold line-clamp-1 group-hover:text-gold-300 transition-colors">{it.title}</p>
+                          <span className="text-[9px] font-mono font-bold text-amber-300 bg-slate-950 border border-amber-500/30 px-1.5 py-0.5 rounded tracking-wider shrink-0">
+                            ({getProductCode(matchedProduct || it)})
+                          </span>
+                        </div>
                         <div className="flex items-center gap-2 text-slate-400 text-[10px]">
                           <span>Qty: {it.quantity || 1} &bull; ₹{(Number(it?.price || matchedProduct?.price || 0)).toLocaleString()}</span>
                           {it.selectedColor && <span className="text-gold-400">&bull; {it.selectedColor}</span>}

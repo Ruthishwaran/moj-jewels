@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useStore } from '../context/StoreContext';
 import ProductCard from '../components/ProductCard';
 import { Search, SlidersHorizontal, Sparkles, ShoppingBag, ArrowRight } from 'lucide-react';
+import { getProductCode } from '../utils/productCode';
 
 export default function ShopPage() {
   const {
@@ -30,11 +31,13 @@ export default function ShopPage() {
   };
 
   let filtered = safeProducts.filter(p => {
-    const titleMatch = p.title ? p.title.toLowerCase().includes(searchQuery.toLowerCase()) : false;
-    const catMatch = p.category ? p.category.toLowerCase().includes(searchQuery.toLowerCase()) : false;
-    const subCatMatch = p.subCategory ? p.subCategory.toLowerCase().includes(searchQuery.toLowerCase()) : false;
-    const karatMatch = p.karat ? p.karat.toLowerCase().includes(searchQuery.toLowerCase()) : false;
-    const matchesSearch = titleMatch || catMatch || subCatMatch || karatMatch;
+    const q = searchQuery.toLowerCase().trim();
+    const codeMatch = (p.productCode || p.modelCode || getProductCode(p)).toLowerCase().includes(q);
+    const titleMatch = p.title ? p.title.toLowerCase().includes(q) : false;
+    const catMatch = p.category ? p.category.toLowerCase().includes(q) : false;
+    const subCatMatch = p.subCategory ? p.subCategory.toLowerCase().includes(q) : false;
+    const karatMatch = p.karat ? p.karat.toLowerCase().includes(q) : false;
+    const matchesSearch = !q || codeMatch || titleMatch || catMatch || subCatMatch || karatMatch;
     const matchesCategory = selectedCategory === 'All' || (p.category && p.category.toLowerCase() === selectedCategory.toLowerCase());
     const matchesSubCategory = selectedSubCategory === 'All' || (p.subCategory && p.subCategory.toLowerCase() === selectedSubCategory.toLowerCase());
     return matchesSearch && matchesCategory && matchesSubCategory;
@@ -86,7 +89,7 @@ export default function ShopPage() {
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Search gold rings, necklaces..."
+              placeholder="Search by model code (MOJ0000), rings, necklaces..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-slate-900 border border-slate-700/80 text-white text-xs rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:border-gold-400"

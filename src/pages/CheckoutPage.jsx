@@ -22,6 +22,7 @@ import {
   Zap,
   AlertCircle
 } from 'lucide-react';
+import { getProductCode } from '../utils/productCode';
 
 const INDIAN_STATES = [
   'Tamil Nadu',
@@ -606,7 +607,12 @@ export default function CheckoutPage() {
                       <div className="flex items-center space-x-3">
                         <img src={item.image} alt="" className="w-10 h-10 object-cover rounded bg-slate-900 shrink-0" />
                         <div>
-                          <p className="text-white font-semibold line-clamp-1">{item.title}</p>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <p className="text-white font-semibold line-clamp-1">{item.title}</p>
+                            <span className="text-[9px] font-mono font-bold text-amber-300 bg-slate-950 border border-amber-500/30 px-1.5 py-0.5 rounded tracking-wider shrink-0">
+                              ({getProductCode(item)})
+                            </span>
+                          </div>
                           <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
                             <span>Qty: {item.quantity}</span>
                             {isWholesaleAccount && isWholesaleApproved && item?.wholesalePrice && Number(item.wholesalePrice) > 0 && (
@@ -1203,7 +1209,12 @@ export default function CheckoutPage() {
                             />
                           </div>
                         <div>
-                          <p className="text-white font-semibold text-xs line-clamp-1">{item.title}</p>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <p className="text-white font-semibold text-xs line-clamp-1">{item.title}</p>
+                            <span className="text-[9px] font-mono font-bold text-amber-300 bg-slate-950 border border-amber-500/30 px-1.5 py-0.5 rounded tracking-wider shrink-0">
+                              ({getProductCode(item)})
+                            </span>
+                          </div>
                           <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
                             <span>Qty: {item.quantity || 1}</span>
                             {item.selectedColor && (

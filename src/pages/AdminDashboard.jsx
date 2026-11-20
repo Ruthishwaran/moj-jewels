@@ -1432,7 +1432,12 @@ export default function AdminDashboard() {
                               </div>
                             </div>
                             <div className="min-w-0 flex-1 text-xs">
-                              <p className="text-white font-semibold line-clamp-1">{i.title}</p>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <p className="text-white font-semibold line-clamp-1">{i.title}</p>
+                                <span className="text-[9px] font-mono font-bold text-amber-300 bg-slate-900 border border-amber-500/30 px-1.5 py-0.5 rounded tracking-wider shrink-0">
+                                  ({getProductCode(matchedProduct || i)})
+                                </span>
+                              </div>
                               {(i.selectedColor || i.selectedSize) && (
                                 <div className="flex flex-wrap gap-1 my-0.5">
                                   {i.selectedColor && (
@@ -1715,7 +1720,12 @@ export default function AdminDashboard() {
                               </div>
                             </div>
                             <div>
-                              <p className="font-semibold text-white line-clamp-1">{i.title}</p>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <p className="font-semibold text-white line-clamp-1">{i.title}</p>
+                                <span className="text-[9px] font-mono font-bold text-amber-300 bg-slate-900 border border-amber-500/30 px-1.5 py-0.5 rounded tracking-wider shrink-0">
+                                  ({getProductCode(matchedProduct || i)})
+                                </span>
+                              </div>
                               {(i.selectedColor || i.selectedSize) && (
                                 <div className="flex flex-wrap gap-1 my-0.5">
                                   {i.selectedColor && (
@@ -1850,8 +1860,8 @@ export default function AdminDashboard() {
           }
           // Search query filter
           if (catalogSearch.trim()) {
-            const q = catalogSearch.toLowerCase();
-            const matchCode = (p.productCode || getProductCode(p)).toLowerCase().includes(q);
+            const q = catalogSearch.toLowerCase().trim();
+            const matchCode = (p.productCode || p.modelCode || getProductCode(p)).toLowerCase().includes(q);
             const matchTitle = (p.title || '').toLowerCase().includes(q);
             const matchCat = (p.category || '').toLowerCase().includes(q);
             const matchSubCat = (p.subCategory || '').toLowerCase().includes(q);
@@ -2140,7 +2150,7 @@ export default function AdminDashboard() {
                   <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     type="text"
-                    placeholder="Search by title, subcategory (Choker, Haram, Bangle), karat, color, or size..."
+                    placeholder="Search by model code (MOJ0000), title, subcategory, karat, color, or size..."
                     value={catalogSearch}
                     onChange={(e) => setCatalogSearch(e.target.value)}
                     className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl pl-9 pr-8 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-gold-400"

@@ -23,7 +23,7 @@
     "karat": "Premium ",
     "category": "Necklace",
     "description": "Crafted luxury jewelry piece.",
-    "productCode": "MOJ0001"
+    "productCode": "MOJ0000"
   },
   {
     "id": "prod-1790478878452",
@@ -48,7 +48,7 @@
     "description": "Crafted luxury jewelry piece.",
     "karat": "Premium ",
     "category": "Necklace",
-    "productCode": "MOJ0002"
+    "productCode": "MOJ0001"
   },
   {
     "id": "prod-1790478831870",
@@ -73,7 +73,7 @@
     "originalPrice": 799,
     "stock": 10,
     "karat": "Premium ",
-    "productCode": "MOJ0003"
+    "productCode": "MOJ0002"
   },
   {
     "id": "prod-1790478784560",
@@ -98,7 +98,7 @@
     "colors": [],
     "subCategory": "Matte Necklace",
     "karat": "Premium ",
-    "productCode": "MOJ0004"
+    "productCode": "MOJ0003"
   },
   {
     "id": "prod-1790478714650",
@@ -129,7 +129,7 @@
     "stock": 10,
     "karat": "Premium ",
     "createdAt": 1790478714650,
-    "productCode": "MOJ0005"
+    "productCode": "MOJ0004"
   },
   {
     "id": "prod-1790478588303",
@@ -154,7 +154,7 @@
     "title": "Matt Necklace",
     "stock": 10,
     "originalPrice": 999,
-    "productCode": "MOJ0006"
+    "productCode": "MOJ0005"
   },
   {
     "id": "prod-1790478527109",
@@ -180,7 +180,7 @@
     "category": "Necklace",
     "description": "Crafted luxury jewelry piece.",
     "karat": "Premium ",
-    "productCode": "MOJ0007"
+    "productCode": "MOJ0006"
   },
   {
     "id": "prod-1790478473778",
@@ -205,7 +205,7 @@
     "price": 659,
     "image": "/products/prod-1790478473778-0.jpg",
     "description": "Crafted luxury jewelry piece.",
-    "productCode": "MOJ0008"
+    "productCode": "MOJ0007"
   },
   {
     "id": "prod-1790478430148",
@@ -230,7 +230,7 @@
     "title": "Matt Necklace",
     "subCategory": "Matte Necklace",
     "reviewsCount": 1,
-    "productCode": "MOJ0009"
+    "productCode": "MOJ0008"
   },
   {
     "id": "prod-1790478369973",
@@ -255,7 +255,7 @@
     "karat": "Premium ",
     "rating": 5,
     "reviewsCount": 1,
-    "productCode": "MOJ0010"
+    "productCode": "MOJ0009"
   },
   {
     "id": "prod-1790478323015",
@@ -280,7 +280,7 @@
     ],
     "colors": [],
     "subCategory": "Matte Necklace",
-    "productCode": "MOJ0011"
+    "productCode": "MOJ0010"
   },
   {
     "id": "prod-1790478247433",
@@ -305,7 +305,7 @@
       "/products/prod-1790478247433-1.jpg",
       "/products/prod-1790478247433-2.jpg"
     ],
-    "productCode": "MOJ0012"
+    "productCode": "MOJ0011"
   },
   {
     "id": "prod-1790477814471",
@@ -331,7 +331,7 @@
     "rating": 5,
     "subCategory": "Matte Necklace",
     "originalPrice": 899,
-    "productCode": "MOJ0013"
+    "productCode": "MOJ0012"
   },
   {
     "id": "prod-1790392976523",
@@ -356,7 +356,7 @@
     ],
     "title": "Matt Necklace",
     "price": 549,
-    "productCode": "MOJ0014"
+    "productCode": "MOJ0013"
   },
   {
     "id": "prod-1790392929406",
@@ -381,7 +381,7 @@
     "rating": 5,
     "category": "Necklace",
     "originalPrice": 899,
-    "productCode": "MOJ0015"
+    "productCode": "MOJ0014"
   },
   {
     "id": "prod-1790392876919",
@@ -407,7 +407,7 @@
     ],
     "karat": "Premium ",
     "title": "Matt Necklace ",
-    "productCode": "MOJ0016"
+    "productCode": "MOJ0015"
   },
   {
     "id": "prod-1790392644358",
@@ -432,7 +432,7 @@
     "reviewsCount": 1,
     "image": "/products/prod-1790392644358-0.jpg",
     "category": "Necklace",
-    "productCode": "MOJ0017"
+    "productCode": "MOJ0016"
   },
   {
     "id": "prod-1790392480540",
@@ -464,7 +464,7 @@
       "Ruby stone",
       "Green stone"
     ],
-    "productCode": "MOJ0018"
+    "productCode": "MOJ0017"
   },
   {
     "id": "prod-1790392397575",
@@ -493,7 +493,7 @@
     ],
     "originalPrice": 1399,
     "rating": 5,
-    "productCode": "MOJ0019"
+    "productCode": "MOJ0018"
   },
   {
     "id": "prod-1790392320033",
@@ -525,7 +525,7 @@
     "subCategory": "Victoria bangles",
     "description": "Crafted luxury jewelry piece.",
     "image": "/products/prod-1790392320033-0.jpg",
-    "productCode": "MOJ0020"
+    "productCode": "MOJ0019"
   },
   {
     "id": "prod-1790392175832",
@@ -557,7 +557,7 @@
     ],
     "category": "Bangles",
     "image": "/products/prod-1790392175832-0.jpg",
-    "productCode": "MOJ0021"
+    "productCode": "MOJ0020"
   },
   {
     "id": "prod-1790392095114",
@@ -595,7 +595,7 @@
       "2.10"
     ],
     "image": "/products/prod-1790392095114-0.jpg",
-    "productCode": "MOJ0022"
+    "productCode": "MOJ0021"
   },
   {
     "id": "prod-1790391974741",
@@ -623,7 +623,7 @@
     "originalPrice": 899,
     "createdAt": 1790391974741,
     "rating": 5,
-    "productCode": "MOJ0023"
+    "productCode": "MOJ0022"
   },
   {
     "id": "prod-1790391917621",
@@ -651,7 +651,7 @@
       "2.10"
     ],
     "originalPrice": 1299,
-    "productCode": "MOJ0024"
+    "productCode": "MOJ0023"
   },
   {
     "id": "prod-1790391834310",
@@ -679,7 +679,7 @@
     "originalPrice": 1199,
     "title": "Victoria bangles ",
     "rating": 5,
-    "productCode": "MOJ0025"
+    "productCode": "MOJ0024"
   },
   {
     "id": "prod-1790358709592",
@@ -714,7 +714,7 @@
     ],
     "subCategory": "",
     "createdAt": 1790358709592,
-    "productCode": "MOJ0026"
+    "productCode": "MOJ0025"
   },
   {
     "id": "prod-1790358582403",
@@ -746,7 +746,7 @@
       "Ruby stone",
       "White stone"
     ],
-    "productCode": "MOJ0027"
+    "productCode": "MOJ0026"
   },
   {
     "id": "prod-1790358509811",
@@ -778,7 +778,7 @@
     "karat": "Ad/cz Bangles ",
     "price": 649,
     "category": "Bangles",
-    "productCode": "MOJ0028"
+    "productCode": "MOJ0027"
   },
   {
     "id": "prod-1790358431259",
@@ -805,7 +805,7 @@
     ],
     "reviewsCount": 1,
     "image": "/products/prod-1790358431259-0.jpg",
-    "productCode": "MOJ0029"
+    "productCode": "MOJ0028"
   },
   {
     "id": "prod-1790358383832",
@@ -832,7 +832,7 @@
     "rating": 5,
     "karat": "Ad/cz Bangles ",
     "image": "/products/prod-1790358383832-0.jpg",
-    "productCode": "MOJ0030"
+    "productCode": "MOJ0029"
   },
   {
     "id": "prod-1790358316519",
@@ -859,7 +859,7 @@
       "/products/prod-1790358316519-0.jpg",
       "/products/prod-1790358316519-1.jpg"
     ],
-    "productCode": "MOJ0031"
+    "productCode": "MOJ0030"
   },
   {
     "id": "prod-1790358250177",
@@ -886,7 +886,7 @@
     "originalPrice": 899,
     "reviewsCount": 1,
     "title": "AD/CZ BANGLES",
-    "productCode": "MOJ0032"
+    "productCode": "MOJ0031"
   },
   {
     "id": "prod-1790358197579",
@@ -913,7 +913,7 @@
     "description": "Crafted luxury jewelry piece.",
     "image": "/products/prod-1790358197579-0.jpg",
     "originalPrice": 899,
-    "productCode": "MOJ0033"
+    "productCode": "MOJ0032"
   },
   {
     "id": "prod-1790358148034",
@@ -940,7 +940,7 @@
       "2.10"
     ],
     "originalPrice": 799,
-    "productCode": "MOJ0034"
+    "productCode": "MOJ0033"
   },
   {
     "id": "prod-1790358075579",
@@ -968,7 +968,7 @@
     "rating": 5,
     "price": 999,
     "category": "Bangles",
-    "productCode": "MOJ0035"
+    "productCode": "MOJ0034"
   },
   {
     "id": "prod-1790358020793",
@@ -996,7 +996,7 @@
     "rating": 5,
     "price": 799,
     "createdAt": 1790358020793,
-    "productCode": "MOJ0036"
+    "productCode": "MOJ0035"
   },
   {
     "id": "prod-1790357973704",
@@ -1024,7 +1024,7 @@
     "title": "AD/CZ BANGLES",
     "stock": 15,
     "colors": [],
-    "productCode": "MOJ0037"
+    "productCode": "MOJ0036"
   },
   {
     "id": "prod-1790357903022",
@@ -1052,7 +1052,7 @@
       "2.8",
       "2.10"
     ],
-    "productCode": "MOJ0038"
+    "productCode": "MOJ0037"
   },
   {
     "id": "prod-1790357820564",
@@ -1080,7 +1080,7 @@
       "/products/prod-1790357820564-2.jpg"
     ],
     "image": "/products/prod-1790357820564-0.jpg",
-    "productCode": "MOJ0039"
+    "productCode": "MOJ0038"
   },
   {
     "id": "prod-1790357517955",
@@ -1108,7 +1108,7 @@
     "description": "Crafted luxury jewelry piece.",
     "karat": "Ad/cz Bangles ",
     "rating": 5,
-    "productCode": "MOJ0040"
+    "productCode": "MOJ0039"
   },
   {
     "id": "prod-1790357447588",
@@ -1136,7 +1136,7 @@
     "colors": [],
     "originalPrice": 999,
     "category": "Bangles",
-    "productCode": "MOJ0041"
+    "productCode": "MOJ0040"
   },
   {
     "id": "prod-1790357366436",
@@ -1164,7 +1164,7 @@
     "karat": "Ad/cz Bangles ",
     "description": "Crafted luxury jewelry piece.",
     "originalPrice": 1199,
-    "productCode": "MOJ0042"
+    "productCode": "MOJ0041"
   },
   {
     "id": "prod-1790357178425",
@@ -1194,7 +1194,7 @@
       "2.10"
     ],
     "karat": "Ad/cz Bangles ",
-    "productCode": "MOJ0043"
+    "productCode": "MOJ0042"
   },
   {
     "id": "prod-1790353522984",
@@ -1224,7 +1224,7 @@
     "rating": 5,
     "stock": 18,
     "originalPrice": 899,
-    "productCode": "MOJ0044"
+    "productCode": "MOJ0043"
   },
   {
     "id": "prod-1790353402514",
@@ -1252,7 +1252,7 @@
     "colors": [],
     "stock": 18,
     "rating": 5,
-    "productCode": "MOJ0045"
+    "productCode": "MOJ0044"
   },
   {
     "id": "prod-1790353362927",
@@ -1282,7 +1282,7 @@
       "2.10"
     ],
     "originalPrice": 1499,
-    "productCode": "MOJ0046"
+    "productCode": "MOJ0045"
   },
   {
     "id": "prod-1790353278516",
@@ -1311,7 +1311,7 @@
     "title": "Ad/cz bangles",
     "stock": 18,
     "reviewsCount": 1,
-    "productCode": "MOJ0047"
+    "productCode": "MOJ0046"
   },
   {
     "id": "prod-1790353184807",
@@ -1341,7 +1341,7 @@
     "createdAt": 1790353184807,
     "karat": "Ad/cz stone ",
     "image": "/products/prod-1790353184807-0.jpg",
-    "productCode": "MOJ0048"
+    "productCode": "MOJ0047"
   },
   {
     "id": "prod-1790352845256",
@@ -1370,7 +1370,7 @@
     "originalPrice": 1499,
     "karat": "Premium Brass ",
     "image": "/products/prod-1790352845256-0.jpg",
-    "productCode": "MOJ0049"
+    "productCode": "MOJ0048"
   },
   {
     "id": "prod-1790352778705",
@@ -1399,7 +1399,7 @@
     "image": "/products/prod-1790352778705-0.jpg",
     "createdAt": 1790352778705,
     "reviewsCount": 1,
-    "productCode": "MOJ0050"
+    "productCode": "MOJ0049"
   },
   {
     "id": "prod-1790352720817",
@@ -1428,7 +1428,7 @@
     "stock": 6,
     "colors": [],
     "rating": 5,
-    "productCode": "MOJ0051"
+    "productCode": "MOJ0050"
   },
   {
     "id": "prod-1790352644930",
@@ -1457,7 +1457,7 @@
       "/products/prod-1790352644930-2.jpg",
       "/products/prod-1790352644930-3.jpg"
     ],
-    "productCode": "MOJ0052"
+    "productCode": "MOJ0051"
   },
   {
     "id": "prod-1790352564556",
@@ -1486,7 +1486,7 @@
     "originalPrice": 1499,
     "category": "Bangles",
     "karat": "Premium Brass ",
-    "productCode": "MOJ0053"
+    "productCode": "MOJ0052"
   },
   {
     "id": "prod-1790352472582",
@@ -1515,7 +1515,7 @@
     "subCategory": "",
     "stock": 24,
     "colors": [],
-    "productCode": "MOJ0054"
+    "productCode": "MOJ0053"
   },
   {
     "id": "prod-1790352392324",
@@ -1549,7 +1549,7 @@
       "Emerald Green"
     ],
     "stock": 24,
-    "productCode": "MOJ0055"
+    "productCode": "MOJ0054"
   },
   {
     "id": "prod-1790352302304",
@@ -1578,7 +1578,7 @@
     "image": "/products/prod-1790352302304-0.jpg",
     "price": 1599,
     "rating": 5,
-    "productCode": "MOJ0056"
+    "productCode": "MOJ0055"
   },
   {
     "id": "prod-1790352224808",
@@ -1607,7 +1607,7 @@
     "description": "Crafted luxury jewelry piece.",
     "karat": "Premium Brass ",
     "colors": [],
-    "productCode": "MOJ0057"
+    "productCode": "MOJ0056"
   },
   {
     "id": "prod-1790352130650",
@@ -1636,7 +1636,7 @@
     "colors": [],
     "reviewsCount": 1,
     "createdAt": 1790352130650,
-    "productCode": "MOJ0058"
+    "productCode": "MOJ0057"
   },
   {
     "id": "prod-1790352057524",
@@ -1664,7 +1664,7 @@
     ],
     "category": "Bangles",
     "subCategory": "",
-    "productCode": "MOJ0059"
+    "productCode": "MOJ0058"
   },
   {
     "id": "prod-1790351995052",
@@ -1693,7 +1693,7 @@
     "rating": 5,
     "price": 639,
     "subCategory": "",
-    "productCode": "MOJ0060"
+    "productCode": "MOJ0059"
   },
   {
     "id": "prod-1790351915736",
@@ -1722,7 +1722,7 @@
     "subCategory": "",
     "category": "Bangles",
     "originalPrice": 999,
-    "productCode": "MOJ0061"
+    "productCode": "MOJ0060"
   },
   {
     "id": "prod-1790351833666",
@@ -1751,7 +1751,7 @@
       "2.8",
       "2.10"
     ],
-    "productCode": "MOJ0062"
+    "productCode": "MOJ0061"
   },
   {
     "id": "prod-1790351647891",
@@ -1780,7 +1780,7 @@
     "colors": [],
     "createdAt": 1790351647891,
     "price": 1499,
-    "productCode": "MOJ0063"
+    "productCode": "MOJ0062"
   },
   {
     "id": "prod-1790351536563",
@@ -1808,7 +1808,7 @@
       "2.8"
     ],
     "originalPrice": 999,
-    "productCode": "MOJ0064"
+    "productCode": "MOJ0063"
   },
   {
     "id": "prod-1790351375698",
@@ -1837,7 +1837,7 @@
     "category": "Bangles",
     "price": 699,
     "description": "Crafted luxury jewelry piece.",
-    "productCode": "MOJ0065"
+    "productCode": "MOJ0064"
   },
   {
     "id": "prod-1790351270661",
@@ -1866,7 +1866,7 @@
     "price": 899,
     "originalPrice": 1299,
     "description": "Crafted luxury jewelry piece.",
-    "productCode": "MOJ0066"
+    "productCode": "MOJ0065"
   },
   {
     "id": "prod-1790351164568",
@@ -1895,7 +1895,7 @@
     "image": "/products/prod-1790351164568-0.jpg",
     "stock": 12,
     "subCategory": "",
-    "productCode": "MOJ0067"
+    "productCode": "MOJ0066"
   },
   {
     "id": "prod-1790351089739",
@@ -1924,7 +1924,7 @@
       "/products/prod-1790351089739-2.jpg",
       "/products/prod-1790351089739-3.jpg"
     ],
-    "productCode": "MOJ0068"
+    "productCode": "MOJ0067"
   },
   {
     "id": "prod-1790351006764",
@@ -1953,7 +1953,7 @@
     "title": "Premium Brass bangles ",
     "subCategory": "",
     "createdAt": 1790351006764,
-    "productCode": "MOJ0069"
+    "productCode": "MOJ0068"
   },
   {
     "id": "prod-1790350914560",
@@ -1982,7 +1982,7 @@
     "price": 1199,
     "subCategory": "",
     "karat": "Premium Brass ",
-    "productCode": "MOJ0070"
+    "productCode": "MOJ0069"
   },
   {
     "id": "prod-1790307903724",
@@ -2009,7 +2009,7 @@
     "subCategory": "",
     "image": "/products/prod-1790307903724-0.jpg",
     "stock": 10,
-    "productCode": "MOJ0071"
+    "productCode": "MOJ0070"
   },
   {
     "id": "prod-1790307827887",
@@ -2036,7 +2036,7 @@
     "price": 249,
     "originalPrice": 599,
     "subCategory": "",
-    "productCode": "MOJ0072"
+    "productCode": "MOJ0071"
   },
   {
     "id": "prod-1790307747768",
@@ -2063,7 +2063,7 @@
     "image": "/products/prod-1790307747768-0.jpg",
     "originalPrice": 599,
     "category": "Bangles",
-    "productCode": "MOJ0073"
+    "productCode": "MOJ0072"
   },
   {
     "id": "prod-1790307667314",
@@ -2090,7 +2090,7 @@
       "2.6",
       "2.8"
     ],
-    "productCode": "MOJ0074"
+    "productCode": "MOJ0073"
   },
   {
     "id": "prod-1790307614423",
@@ -2117,7 +2117,7 @@
       "2.8",
       "2.10"
     ],
-    "productCode": "MOJ0075"
+    "productCode": "MOJ0074"
   },
   {
     "id": "prod-1790307459759",
@@ -2144,7 +2144,7 @@
       "2.8"
     ],
     "colors": [],
-    "productCode": "MOJ0076"
+    "productCode": "MOJ0075"
   },
   {
     "id": "prod-1790307284327",
@@ -2171,7 +2171,7 @@
     "reviewsCount": 1,
     "colors": [],
     "description": "⭐ Premium Antique Gold-Tone Finish\n⭐ Beautiful Ruby & Green Stone Combination\n⭐ Elegant Floral Stone Design 🌸\n⭐ Intricate Leaf & Vine Motifs\n⭐ Detailed Traditional Craftsmanship\n⭐ Rich & Royal Antique Look\n⭐ Stylish Openwork Pattern\n⭐ Perfect for Traditional & Ethnic Wear\n⭐ Ideal for Weddings & Festive Occasions\n⭐ Beautiful Match for Sarees & Traditional Outfits\n⭐ Perfect for Bridal & Special Occasion Styling\n💎 Product Type: Antique Floral Bangles\n🎨 Stone Colours: Ruby & Green\n✨ Finish: Antique Gold Tone\n🌸 Design: Floral & Leaf Pattern",
-    "productCode": "MOJ0077"
+    "productCode": "MOJ0076"
   },
   {
     "id": "prod-1790307138722",
@@ -2199,7 +2199,7 @@
     "image": "/products/prod-1790307138722-0.jpg",
     "colors": [],
     "description": "⭐ Beautiful Lakshmi Devi Motif Design\n⭐ Rich Antique Gold-Tone Finish\n⭐ Green & Ruby Stone Detailing\n⭐ Intricate Floral & Traditional Patterns\n⭐ Elegant Temple-Jewellery Inspired Look\n⭐ Premium Statement Bangle Design\n⭐ Perfect for Silk Sarees & Ethnic Wear\n⭐ Suitable for Weddings & Festivals\n⭐ Ideal for Traditional Functions & Special Occasions\n⭐ Beautiful Choice for Gifting\n💎 Product Type: Bangle Set\n🎨 Stone Colours: Green & Ruby",
-    "productCode": "MOJ0078"
+    "productCode": "MOJ0077"
   },
   {
     "id": "prod-1790307049890",
@@ -2226,7 +2226,7 @@
     ],
     "karat": "22k Gold BIS Hallmarked",
     "reviewsCount": 1,
-    "productCode": "MOJ0079"
+    "productCode": "MOJ0078"
   },
   {
     "id": "prod-1790306929986",
@@ -2253,7 +2253,7 @@
     "stock": 10,
     "title": "✨ Matt Bangles ",
     "reviewsCount": 1,
-    "productCode": "MOJ0080"
+    "productCode": "MOJ0079"
   },
   {
     "id": "prod-1790306837478",
@@ -2282,7 +2282,7 @@
       "/products/prod-1790306837478-2.jpg",
       "/products/prod-1790306837478-3.jpg"
     ],
-    "productCode": "MOJ0081"
+    "productCode": "MOJ0080"
   },
   {
     "id": "prod-1790266673535",
@@ -2310,7 +2310,7 @@
       "2.6",
       "2.8"
     ],
-    "productCode": "MOJ0082"
+    "productCode": "MOJ0081"
   },
   {
     "id": "prod-1790266543675",
@@ -2338,7 +2338,7 @@
       "2.6",
       "2.8"
     ],
-    "productCode": "MOJ0083"
+    "productCode": "MOJ0082"
   },
   {
     "id": "prod-1790266439671",
@@ -2365,7 +2365,7 @@
       "/products/prod-1790266439671-2.jpg"
     ],
     "description": "⭐ Beautiful Lakshmi Devi Motif Design\n⭐ Rich Antique Gold-Tone Finish\n⭐ Green & Ruby Stone Detailing\n⭐ Intricate Floral & Traditional Patterns\n⭐ Elegant Temple-Jewellery Inspired Look\n⭐ Premium Statement Bangle Design\n⭐ Perfect for Silk Sarees & Ethnic Wear\n⭐ Suitable for Weddings & Festivals\n�� Ideal for Traditional Functions & Special Occasions\n⭐ Beautiful Choice for Gifting\n💎 Product Type: Bangle Set\n🎨 Stone Colours: Green & Ruby",
-    "productCode": "MOJ0084"
+    "productCode": "MOJ0083"
   },
   {
     "id": "prod-1790266307877",
@@ -2392,7 +2392,7 @@
     "colors": [],
     "reviewsCount": 1,
     "stock": 6,
-    "productCode": "MOJ0085"
+    "productCode": "MOJ0084"
   },
   {
     "id": "prod-1790266180234",
@@ -2419,7 +2419,7 @@
     "createdAt": 1790266180234,
     "stock": 6,
     "category": "Bangles",
-    "productCode": "MOJ0086"
+    "productCode": "MOJ0085"
   },
   {
     "id": "prod-1790265973502",
@@ -2446,7 +2446,7 @@
     "reviewsCount": 1,
     "image": "/products/prod-1790265973502-0.jpg",
     "originalPrice": 699,
-    "productCode": "MOJ0087"
+    "productCode": "MOJ0086"
   },
   {
     "id": "prod-1790265177854",
@@ -2477,7 +2477,7 @@
       "Ruby Kemp (Red)"
     ],
     "rating": 5,
-    "productCode": "MOJ0088"
+    "productCode": "MOJ0087"
   },
   {
     "id": "prod-1790264977694",
@@ -2509,7 +2509,7 @@
     ],
     "karat": "Premium Brass ",
     "title": "✨ Royal Green & Ruby Teardrop Necklace Set ✨",
-    "productCode": "MOJ0089"
+    "productCode": "MOJ0088"
   },
   {
     "id": "prod-1790264727121",
@@ -2535,7 +2535,7 @@
       "Adjustable Thread / Dori",
       "Adjustable Chain"
     ],
-    "productCode": "MOJ0090"
+    "productCode": "MOJ0089"
   },
   {
     "id": "prod-1790264431474",
@@ -2562,7 +2562,7 @@
       "/products/prod-1790264431474-2.jpg",
       "/products/prod-1790264431474-3.jpg"
     ],
-    "productCode": "MOJ0091"
+    "productCode": "MOJ0090"
   },
   {
     "id": "prod-1790264207511",
@@ -2594,7 +2594,7 @@
       "Adjustable Thread / Dori",
       "Adjustable Chain"
     ],
-    "productCode": "MOJ0092"
+    "productCode": "MOJ0091"
   },
   {
     "id": "prod-1790263905838",
@@ -2626,7 +2626,7 @@
       "/products/prod-1790263905838-4.jpg",
       "/products/prod-1790263905838-5.jpg"
     ],
-    "productCode": "MOJ0093"
+    "productCode": "MOJ0092"
   },
   {
     "id": "prod-1790222585419",
@@ -2653,7 +2653,7 @@
       "Adjustable Thread / Dori",
       "Adjustable Chain"
     ],
-    "productCode": "MOJ0094"
+    "productCode": "MOJ0093"
   },
   {
     "id": "prod-1790221775340",
@@ -2685,7 +2685,7 @@
       "Adjustable Chain"
     ],
     "category": "Necklace",
-    "productCode": "MOJ0095"
+    "productCode": "MOJ0094"
   },
   {
     "id": "prod-1790221357799",
@@ -2716,7 +2716,7 @@
     "karat": "Premium Brass ",
     "image": "/products/prod-1790221357799-0.jpg",
     "description": "⭐ Premium Stone Detailing\n⭐ Beautiful Drop-Shaped Stone Design\n⭐ Available in 2 Colour Combinations\n⭐ Multicolour Option Available\n⭐ White & Ruby Option Available\n⭐ Lightweight & Elegant Look\n⭐ Perfect for Traditional & Modern Outfits\n⭐ Suitable for Weddings, Festivals & Special Occasions\n⭐ Ideal for Gifting\n💎 Colour Options: Multicolour | White & Ruby\nMoj Jewels ✨\nElegant Designs • Beautiful Colours • Timeless Style ❤️",
-    "productCode": "MOJ0096"
+    "productCode": "MOJ0095"
   },
   {
     "id": "prod-1790187734377",
@@ -2745,7 +2745,7 @@
       "Adjustable Thread / Dori",
       "Adjustable Chain"
     ],
-    "productCode": "MOJ0097"
+    "productCode": "MOJ0096"
   },
   {
     "id": "prod-1790187314928",
@@ -2774,7 +2774,7 @@
     "price": 549,
     "description": "✨ Product Highlights:\n⭐ Rich Green Centre Stone\n⭐ Antique Gold-Tone Finish\n⭐ Intricate Floral-Inspired Pendant Design\n⭐ Ruby Pink & White Stone Detailing\n⭐ Traditional & Elegant Craftsmanship\n⭐ Matching Earrings Included\n⭐ Perfect for Festive & Traditional Wear\n⭐ Suitable for Weddings & Special Occasions\n⭐ Elegant Choice for Gifting\n💎 Set Includes: Necklace + Matching Earrings",
     "rating": 5,
-    "productCode": "MOJ0098"
+    "productCode": "MOJ0097"
   },
   {
     "id": "prod-1790186825580",
@@ -2804,7 +2804,7 @@
     "colors": [
       "Ruby Kemp (Red)"
     ],
-    "productCode": "MOJ0099"
+    "productCode": "MOJ0098"
   },
   {
     "id": "prod-1790182000810",
@@ -2826,7 +2826,7 @@
       "/products/prod-1790182000810-3.jpg"
     ],
     "image": "/products/prod-1790182000810-0.jpg",
-    "productCode": "MOJ0100"
+    "productCode": "MOJ0099"
   },
   {
     "id": "prod-1790181674064",
@@ -2848,7 +2848,7 @@
     "rating": 5,
     "title": "Lakshmi Devi Pearl Drop Necklace",
     "price": 849,
-    "productCode": "MOJ0101"
+    "productCode": "MOJ0100"
   },
   {
     "id": "prod-1790181332862",
@@ -2869,7 +2869,7 @@
     "title": "Ruby Kemp Mango Pendant Necklace”",
     "rating": 5,
     "image": "/products/prod-1790181332862-0.jpg",
-    "productCode": "MOJ0102"
+    "productCode": "MOJ0101"
   },
   {
     "id": "prod-1790091774985",
@@ -2897,6 +2897,6 @@
     "originalPrice": 599,
     "rating": 5,
     "colors": [],
-    "productCode": "MOJ0103"
+    "productCode": "MOJ0102"
   }
 ]
