@@ -20,6 +20,15 @@ import {
   deleteOrderViaRest,
   deleteProductViaRest
 } from '../utils/fetchProductsRest';
+import { getProductCode } from '../utils/productCode';
+
+const normalizeProducts = (list) => {
+  if (!Array.isArray(list)) return [];
+  return list.map(p => ({
+    ...p,
+    productCode: getProductCode(p)
+  }));
+};
 
 const StoreContext = createContext();
 
@@ -249,7 +258,7 @@ export const StoreProvider = ({ children }) => {
       const valid = (idbList || []).filter(p => p && p.id && !demoIds.includes(p.id) && !currentDeleted.includes(String(p.id)));
       const hasImages = valid.some(p => (p.image && p.image.length > 50) || (Array.isArray(p.images) && p.images.some(img => img && img.length > 50)));
       if (valid.length > 0 && hasImages) {
-        const sorted = valid.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        const sorted = normalizeProducts(valid.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)));
         setProducts(sorted);
         updateProductsMetaCache(sorted);
         setIsLoading(false);
@@ -257,14 +266,14 @@ export const StoreProvider = ({ children }) => {
       // Always fetch latest products from cloud to sync items added from other devices
       fetchProductsViaRest((batch) => {
         if (Array.isArray(batch) && batch.length > 0) {
-          const filteredBatch = batch.filter(p => !currentDeleted.includes(String(p.id)));
+          const filteredBatch = normalizeProducts(batch.filter(p => !currentDeleted.includes(String(p.id))));
           setProducts(filteredBatch);
           setIsLoading(false);
         }
       }).then(restList => {
         const validRest = (restList || []).filter(p => !demoIds.includes(p.id) && !currentDeleted.includes(String(p.id)));
         if (validRest.length > 0) {
-          const sortedRest = validRest.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+          const sortedRest = normalizeProducts(validRest.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)));
           setProducts(sortedRest);
           replaceIdbProducts(sortedRest);
           updateProductsMetaCache(sortedRest);
@@ -275,14 +284,14 @@ export const StoreProvider = ({ children }) => {
       // In incognito mode or if IndexedDB failed, fetch via REST immediately
       fetchProductsViaRest((batch) => {
         if (Array.isArray(batch) && batch.length > 0) {
-          const filteredBatch = batch.filter(p => !currentDeleted.includes(String(p.id)));
+          const filteredBatch = normalizeProducts(batch.filter(p => !currentDeleted.includes(String(p.id))));
           setProducts(filteredBatch);
           setIsLoading(false);
         }
       }).then(restList => {
         const validRest = (restList || []).filter(p => !demoIds.includes(p.id) && !currentDeleted.includes(String(p.id)));
         if (validRest.length > 0) {
-          const sortedRest = validRest.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+          const sortedRest = normalizeProducts(validRest.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)));
           setProducts(sortedRest);
           updateProductsMetaCache(sortedRest);
           setIsLoading(false);
@@ -299,9 +308,10 @@ export const StoreProvider = ({ children }) => {
       fetchProductsViaRest().then(prods => {
         const valid = (prods || []).filter(p => !demoIds.includes(p.id) && !deletedNow.includes(String(p.id)));
         if (valid.length > 0) {
-          setProducts(valid);
-          replaceIdbProducts(valid);
-          updateProductsMetaCache(valid);
+          const normalized = normalizeProducts(valid);
+          setProducts(normalized);
+          replaceIdbProducts(normalized);
+          updateProductsMetaCache(normalized);
         }
       });
       fetchOrdersViaRest().then(ords => {

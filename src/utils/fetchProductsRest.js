@@ -106,11 +106,14 @@ export async function fetchProductsViaRest(onBatch) {
             }
           }
 
-          // Attach static optimized image from fallbackMap if known
+          // Attach static optimized image & model code from fallbackMap if known
           const fb = fallbackMap.get(id);
           if (fb) {
             p.image = fb.image;
             p.images = fb.images;
+            if (!p.productCode && fb.productCode) {
+              p.productCode = fb.productCode;
+            }
           } else {
             // New dynamic product created in Admin: fetch full doc with authentic images
             try {

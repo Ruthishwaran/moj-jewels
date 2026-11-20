@@ -1,7 +1,6 @@
-/**
- * Utility functions for generating and validating 7-character MOJ Product Model Codes
- * Format: "MOJ" followed by 4 digits (e.g. "MOJ0001", "MOJ0042", "MOJ0105")
- */
+import fallbackProducts from '../data/fallbackProducts.json';
+
+const fallbackCodeMap = new Map((fallbackProducts || []).map(p => [String(p.id), p.productCode]));
 
 export function formatMojCode(num) {
   const parsed = parseInt(num, 10);
@@ -15,7 +14,7 @@ export function isValidMojCode(code) {
 
 /**
  * Returns a guaranteed valid 7-character MOJ product code.
- * Falls back deterministically if code is not explicitly set.
+ * Falls back deterministically in exact catalog order starting from MOJ0000.
  */
 export function getProductCode(product, fallbackIndex = null) {
   if (!product) return 'MOJ0000';
@@ -28,15 +27,15 @@ export function getProductCode(product, fallbackIndex = null) {
     return product.modelCode.trim().toUpperCase();
   }
 
-  if (fallbackIndex !== null && typeof fallbackIndex === 'number' && fallbackIndex >= 0) {
-    return formatMojCode(fallbackIndex);
+  // Look up mapped ID in catalog sequence (MOJ0000 - MOJ0102)
+  const idStr = String(product.id || '');
+  if (idStr && fallbackCodeMap.has(idStr)) {
+    const code = fallbackCodeMap.get(idStr);
+    if (isValidMojCode(code)) return code;
   }
 
-  // Derive deterministically from timestamp/id if available
-  const idStr = String(product.id || product.createdAt || '');
-  const digits = idStr.replace(/\D/g, '');
-  if (digits.length >= 4) {
-    return `MOJ${digits.slice(-4)}`;
+  if (fallbackIndex !== null && typeof fallbackIndex === 'number' && fallbackIndex >= 0) {
+    return formatMojCode(fallbackIndex);
   }
 
   return 'MOJ0000';
@@ -48,8 +47,9 @@ export function getProductCode(product, fallbackIndex = null) {
  */
 export function getNextProductCode(productsList = []) {
   let maxNum = -1;
-  (productsList || []).forEach(p => {
-    const raw = p?.productCode || p?.modelCode;
+  const combined = [...(fallbackProducts || []), ...(productsList || [])];
+  combined.forEach(p => {
+    const raw = p?.productCode || p?.modelCode || (p?.id ? fallbackCodeMap.get(String(p.id)) : null);
     if (isValidMojCode(raw)) {
       const match = raw.trim().match(/^MOJ(\d{4})$/i);
       if (match && match[1]) {
